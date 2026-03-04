@@ -12,7 +12,7 @@ interface RawAlarmRow {
 }
 
 const CSV_URL = 'https://raw.githubusercontent.com/yuval-harpaz/alarms/master/data/alarms.csv';
-const FILTER_DATE = new Date('2026-02-27T00:00:00');
+const FILTER_DATE = new Date('2026-02-28T00:00:00');
 
 export async function fetchAlarms(): Promise<Alarm[]> {
   const response = await fetch(CSV_URL);

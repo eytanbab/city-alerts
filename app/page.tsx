@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, use, useMemo, Suspense } from 'react';
-import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, Alarm } from '@/lib/data';
+import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, getTopCities } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
 import { StatCards } from '@/components/StatCards';
+import { Leaderboard } from '@/components/Leaderboard';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Search } from 'lucide-react';
 
 const alarmsPromise = fetchAlarms();
 
@@ -26,23 +28,24 @@ function DashboardSkeleton() {
         <Skeleton className="h-10 w-full rounded-md" />
       </div>
       
-      <div className="mt-8 space-y-8">
-        {/* Top Chart / Placeholder Skeleton */}
-        <Skeleton className="h-[450px] w-full rounded-xl" />
-        
-        {/* Trend Chart Skeleton */}
-        <Skeleton className="h-[450px] w-full rounded-xl" />
+      <div className="space-y-8 mt-8">
+        <Skeleton className="h-112.5 w-full rounded-xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <Skeleton className="h-112.5 w-full rounded-xl" />
+          <Skeleton className="h-112.5 w-full rounded-xl" />
+        </div>
       </div>
     </div>
   );
 }
 
-const POPULAR_CITIES = ['אשקלון', 'תל אביב - יפו', 'באר שבע', 'שדרות', 'חיפה'];
+const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אילת'];
 
 function Dashboard() {
   const alarms = use(alarmsPromise);
   const cities = useMemo(() => getUniqueCities(alarms), [alarms]);
   const stats = useMemo(() => getGlobalStats(alarms), [alarms]);
+  const topCities = useMemo(() => getTopCities(alarms), [alarms]);
   const [activeCity, setActiveCity] = useState('');
 
   const hourlyData = useMemo(() => {
@@ -55,38 +58,46 @@ function Dashboard() {
   }, [alarms]);
 
   return (
-    <div className="w-full flex flex-col items-center gap-8" dir="rtl">
+    <div className="w-full flex flex-col items-center gap-12" dir="rtl">
       {stats && <StatCards stats={stats} />}
       
-      <div className="w-full flex flex-col items-center">
-        <CitySearch cities={cities} onSearch={setActiveCity} selectedCity={activeCity} />
-
-        <div className="flex flex-wrap justify-center gap-2 mt-4">
-          {POPULAR_CITIES.map((city) => (
-            <button
-              key={city}
-              onClick={() => setActiveCity(city)}
-              className={`px-3 py-1 rounded-full text-sm border transition-colors ${
-                activeCity === city
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-background hover:bg-muted text-muted-foreground border-input'
-              }`}
-            >
-              {city}
-            </button>
-          ))}
+      <div className="w-full flex flex-col items-center space-y-6">
+        <div className="w-full flex flex-col items-center space-y-4">
+          <CitySearch cities={cities} onSearch={setActiveCity} selectedCity={activeCity} />
+          
+          <div className="flex flex-wrap justify-center gap-2">
+            {POPULAR_CITIES.map((city) => (
+              <button
+                key={city}
+                onClick={() => setActiveCity(city)}
+                className={`px-3 py-1 rounded-full text-sm border transition-all duration-200 ${
+                  activeCity === city
+                    ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
+                    : 'bg-background hover:bg-muted text-muted-foreground border-input hover:border-primary/50'
+                }`}
+              >
+                {city}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="w-full space-y-8 mt-8">
+        <div className="w-full space-y-8 pt-4">
+          {/* Active City Detail Chart */}
           {activeCity ? (
             <AlarmChart data={hourlyData} city={activeCity} />
           ) : (
-            <div className="py-12 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
-              <p>בחר עיר מהרשימה כדי לצפות בהתפלגות האזעקות השעתית שלה.</p>
+            <div className="py-8 text-center text-muted-foreground border border-dashed rounded-xl bg-muted/5 flex flex-col items-center gap-2">
+              <Search className="h-5 w-5 opacity-20" />
+              <p className="text-sm">חפש עיר כדי לצפות בפירוט שעת המטחים שלה.</p>
             </div>
           )}
 
-          <DailyTrendChart data={globalDailyTrend} />
+          {/* Global Comparison & Trends */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <Leaderboard data={topCities} onSelect={setActiveCity} />
+            <DailyTrendChart data={globalDailyTrend} />
+          </div>
         </div>
       </div>
     </div>

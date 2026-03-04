@@ -119,7 +119,7 @@ function Dashboard() {
                 <button
                   key={city}
                   onClick={() => setActiveCity(city)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer ${
                     activeCity === city ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105' : 'bg-background text-muted-foreground border-input hover:bg-accent'
                   }`}
                 >
@@ -191,7 +191,7 @@ function Dashboard() {
                     <button
                       key={city}
                       onClick={() => setActiveCity(city)}
-                      className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 ${
+                      className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer ${
                         activeCity === city ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105' : 'bg-background hover:bg-accent text-muted-foreground border-input'
                       }`}
                     >

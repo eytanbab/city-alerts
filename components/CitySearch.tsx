@@ -69,7 +69,7 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full justify-between text-right font-normal"
+            className="w-full justify-between text-right font-normal cursor-pointer"
           >
             {selectedCity ? selectedCity : "חפש עיר..."}
             <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -94,7 +94,7 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
                       onSearch(currentValue);
                       setOpen(false);
                     }}
-                    className="text-right flex items-center justify-between"
+                    className="text-right flex items-center justify-between cursor-pointer"
                   >
                     {city}
                     <Check

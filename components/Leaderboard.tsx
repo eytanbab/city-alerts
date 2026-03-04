@@ -22,7 +22,7 @@ export function Leaderboard({ data, onSelect }: LeaderboardProps) {
           {data.map((city, index) => (
             <button 
               key={city.name} 
-              className="group w-full flex items-center justify-between p-3 rounded-md transition-colors hover:bg-accent text-right" 
+              className="group w-full flex items-center justify-between p-3 rounded-md transition-colors hover:bg-accent text-right cursor-pointer" 
               onClick={() => onSelect(city.name)}
             >
               <div className="flex items-center gap-3">

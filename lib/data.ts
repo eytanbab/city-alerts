@@ -41,7 +41,10 @@ export async function fetchAlarms(): Promise<Alarm[]> {
 export function getUniqueCities(alarms: Alarm[]): string[] {
   const cities = new Set<string>();
   for (let i = 0; i < alarms.length; i++) {
-    cities.add(alarms[i].city);
+    const city = alarms[i].city;
+    // If the city has a sector (e.g. "באר שבע - מזרח"), only add the base city ("באר שבע")
+    const baseCity = city.includes(' - ') ? city.split(' - ')[0] : city;
+    cities.add(baseCity);
   }
   return Array.from(cities).sort((a, b) => a.localeCompare(b, 'he'));
 }
@@ -51,7 +54,8 @@ export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
   
   for (let i = 0; i < alarms.length; i++) {
     const alarm = alarms[i];
-    if (alarm.city === cityName) {
+    // Check for exact match or if it's a sector of the city (e.g. "באר שבע" matches "באר שבע - מזרח")
+    if (alarm.city === cityName || alarm.city.startsWith(`${cityName} -`)) {
       const timePart = alarm.datetime.split(' ')[1];
       const hour = parseInt(timePart.split(':')[0], 10);
       if (hour >= 0 && hour < 24) {
@@ -71,7 +75,7 @@ export function getDailyTrend(alarms: Alarm[], cityName?: string) {
   
   for (let i = 0; i < alarms.length; i++) {
     const alarm = alarms[i];
-    if (!cityName || alarm.city === cityName) {
+    if (!cityName || alarm.city === cityName || alarm.city.startsWith(`${cityName} -`)) {
       const datePart = alarm.datetime.includes(' ') ? alarm.datetime.split(' ')[0] : alarm.datetime;
       dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
     }

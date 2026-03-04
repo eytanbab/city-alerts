@@ -1,46 +1,71 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeCityName, getUniqueCities, getHourlyDistribution, getDailyTrend, getGlobalStats, getMapData, Alarm } from './data';
+import { normalizeCityName, getHourlyDistribution, processRawAlarms, Alarm } from './data';
 
-const mockAlarms: Alarm[] = [
-  { datetime: '2026-02-28 10:00:00', city: 'חיפה - כרמל', lat: 32.79, lon: 34.98 },
-  { datetime: '2026-02-28 10:15:00', city: 'חיפה - כרמל', lat: 32.79, lon: 34.98 },
-  { datetime: '2026-02-28 11:00:00', city: 'תל אביב - מרכז העיר', lat: 32.07, lon: 34.77 },
-];
-
-describe('Data Utility Functions', () => {
-  it('should normalize city names by removing sectors', () => {
+describe('Data Utility Functions (Optimized)', () => {
+  it('should normalize city names by removing sectors and parentheses', () => {
     expect(normalizeCityName('חיפה - כרמל')).toBe('חיפה');
-    expect(normalizeCityName('אשדוד - יא')).toBe('אשדוד');
+    expect(normalizeCityName('אשדוד - יא (מרכז)')).toBe('אשדוד');
   });
 
-  it('should get unique sorted cities (sectors preserved)', () => {
-    const cities = getUniqueCities(mockAlarms);
-    expect(cities).toEqual(['חיפה - כרמל', 'תל אביב - מרכז העיר']);
-  });
-
-  it('should calculate hourly distribution correctly', () => {
-    const haifaDist = getHourlyDistribution(mockAlarms, 'חיפה - כרמל');
-    const tenAm = haifaDist.find(d => d.hour === '10:00');
+  it('should calculate hourly distribution correctly (minute-based aggregation)', () => {
+    const alarms: Alarm[] = [
+      { datetime: '2026-02-28 10:00:00', city: 'חיפה' },
+      { datetime: '2026-02-28 10:15:00', city: 'חיפה' },
+    ];
+    const dist = getHourlyDistribution(alarms, 'חיפה');
+    const tenAm = dist.find(d => d.hour === '10:00');
     expect(tenAm?.count).toBe(2);
+
+    const sameMinAlarms: Alarm[] = [
+      { datetime: '2026-02-28 10:00:00', city: 'חיפה - א' },
+      { datetime: '2026-02-28 10:00:30', city: 'חיפה - ב' }
+    ];
+    const sameMinDist = getHourlyDistribution(sameMinAlarms, 'חיפה');
+    expect(sameMinDist.find(d => d.hour === '10:00')?.count).toBe(1);
   });
 
-  it('should calculate daily trend correctly', () => {
-    const trend = getDailyTrend(mockAlarms);
-    expect(trend).toHaveLength(1);
-    expect(trend[0].count).toBe(3);
-  });
+  it('should process raw alarms into dashboard data correctly', () => {
+    // [group_id, threat_id, [cities], unix_timestamp]
+    const rawAlarms: [number, number, string[], number][] = [
+      [1, 0, ['חיפה - כרמל', 'חיפה - מערב'], 1772186400], // 2026-02-28 10:00:00
+      [2, 0, ['תל אביב - יפו'], 1772186460],             // 2026-02-28 10:01:00
+      [3, 0, ['חיפה - כרמל'], 1772186405],               // 2026-02-28 10:00:05 (Same minute as #1)
+    ];
 
-  it('should get global stats', () => {
-    const stats = getGlobalStats(mockAlarms);
-    expect(stats?.totalAlarms).toBe(3);
-    expect(stats?.affectedCitiesCount).toBe(2);
-  });
+    const citiesMetadata = {
+      'חיפה - כרמל': { id: 101, lat: 32.8, lng: 34.9 },
+      'חיפה - מערב': { id: 102, lat: 32.7, lng: 34.8 },
+      'תל אביב - יפו': { id: 201, lat: 32.0, lng: 34.7 }
+    };
 
-  it('should get map data aggregated by full sector name', () => {
-    const mapData = getMapData(mockAlarms);
-    expect(mapData).toHaveLength(2);
-    const haifa = mapData.find(d => d.city === 'חיפה - כרמל');
-    expect(haifa?.count).toBe(2);
-    expect(haifa?.lat).toBe(32.79);
+    const polygonsRaw = {
+      '101': [[32.8, 34.9], [32.81, 34.91]],
+      '201': [[32.0, 34.7], [32.01, 34.71]]
+    };
+
+    const filterDateUnix = 1772150400; // 2026-02-28 00:00:00
+
+    const result = processRawAlarms(rawAlarms, citiesMetadata, polygonsRaw, filterDateUnix);
+
+    // Total Sirens (raw count) = 2 (entry 1) + 1 (entry 2) + 1 (entry 3) = 4
+    expect(result.stats?.totalAlarms).toBe(4);
+
+    // Affected CitiesCount (unique base cities) = חיפה, תל אביב = 2
+    expect(result.stats?.affectedCitiesCount).toBe(2);
+
+    // Top City Events (minute-based):
+    // חיפה: 10:00 (from entries 1 & 3) = 1 event
+    // תל אביב: 10:01 (from entry 2) = 1 event
+    expect(result.stats?.topCityCount).toBe(1);
+
+    // Map Data (sector based)
+    expect(result.mapData).toHaveLength(3);
+    const haifaCarmel = result.mapData.find(m => m.city === 'חיפה - כרמל');
+    expect(haifaCarmel?.count).toBe(2);
+    expect(haifaCarmel?.polygon).toBeDefined();
+
+    // Daily Trend (minute-based unique events)
+    // 2026-02-28: חיפה (10:00), תל אביב (10:01) = 2 total events
+    expect(result.globalDailyTrend[0].count).toBe(2);
   });
 });

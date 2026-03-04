@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, use, useMemo, Suspense, useEffect } from 'react';
+import { useState, useMemo, Suspense, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, getTopCities, getMapData, type Alarm } from '@/lib/data';
+import { fetchDashboardData, getHourlyDistribution, type Alarm, type DashboardData } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
@@ -63,13 +63,13 @@ function DashboardSkeleton() {
 const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אשקלון', 'אשדוד', 'אילת'];
 
 function Dashboard() {
-  const [data, setData] = useState<{ alarms: Alarm[], polygons: Record<string, [number, number][]> } | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCity, setActiveCity] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
-    fetchAlarms()
+    fetchDashboardData()
       .then(setData)
       .catch(err => {
         console.error(err);
@@ -78,21 +78,16 @@ function Dashboard() {
   }, []);
 
   const alarms = useMemo(() => data?.alarms || [], [data]);
-  const polygons = useMemo(() => data?.polygons || {}, [data]);
-
-  const cities = useMemo(() => getUniqueCities(alarms), [alarms]);
-  const stats = useMemo(() => getGlobalStats(alarms), [alarms]);
-  const topCities = useMemo(() => getTopCities(alarms), [alarms]);
-  const mapData = useMemo(() => getMapData(alarms, polygons), [alarms, polygons]);
+  const cities = useMemo(() => data?.citiesList || [], [data]);
+  const stats = useMemo(() => data?.stats || null, [data]);
+  const topCities = useMemo(() => data?.topCities || [], [data]);
+  const mapData = useMemo(() => data?.mapData || [], [data]);
+  const globalDailyTrend = useMemo(() => data?.globalDailyTrend || [], [data]);
 
   const hourlyData = useMemo(() => {
     if (!alarms.length || !activeCity) return [];
     return getHourlyDistribution(alarms, activeCity);
   }, [alarms, activeCity]);
-
-  const globalDailyTrend = useMemo(() => {
-    return alarms.length ? getDailyTrend(alarms) : [];
-  }, [alarms]);
 
   if (error) {
     return (
@@ -103,6 +98,7 @@ function Dashboard() {
   }
 
   if (!data) return <DashboardSkeleton />;
+
   const handleCitySelect = (city: string) => {
     setActiveCity(city);
     setActiveTab('city');

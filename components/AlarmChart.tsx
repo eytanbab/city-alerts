@@ -112,12 +112,15 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
               tickLine={false}
               tickMargin={10}
               axisLine={false}
+              minTickGap={10}
+              fontSize={12}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
               orientation="right"
               allowDecimals={false}
+              fontSize={12}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar

@@ -52,7 +52,7 @@ export default function Home() {
           התפלגות אזעקות במבצע שאגת הארי לפי עיר
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          ויזואליזציה של תדירות אזעקות שעתית לכל עיר החל מה-27 בפברואר 2026.
+          ויזואליזציה של תדירות אזעקות שעתית לכל עיר.
         </p>
       </div>
 

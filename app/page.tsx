@@ -60,8 +60,11 @@ export default function Home() {
         <Dashboard />
       </Suspense>
 
-      <footer className="mt-auto pt-12 text-sm text-muted-foreground text-center">
-        הנתונים מקורם ב-<a href="https://github.com/yuval-harpaz/alarms" className="underline underline-offset-4 hover:text-foreground" target="_blank" rel="noopener noreferrer">yuval-harpaz/alarms</a>
+      <footer className="mt-auto pt-12 text-sm text-muted-foreground text-center space-y-2">
+        <p>הנתונים מתעדכנים על בסיס יומי.</p>
+        <p>
+          הנתונים מקורם ב-<a href="https://github.com/yuval-harpaz/alarms" className="underline underline-offset-4 hover:text-foreground" target="_blank" rel="noopener noreferrer">yuval-harpaz/alarms</a>
+        </p>
       </footer>
     </main>
   );

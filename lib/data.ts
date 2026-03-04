@@ -5,6 +5,12 @@ export interface Alarm {
   city: string;
 }
 
+interface RawAlarmRow {
+  time: string | number;
+  cities: string | number;
+  [key: string]: string | number | undefined;
+}
+
 const CSV_URL = 'https://raw.githubusercontent.com/yuval-harpaz/alarms/master/data/alarms.csv';
 const FILTER_DATE = new Date('2026-02-27T00:00:00');
 
@@ -13,7 +19,7 @@ export async function fetchAlarms(): Promise<Alarm[]> {
   const csvText = await response.text();
 
   return new Promise((resolve, reject) => {
-    Papa.parse(csvText, {
+    Papa.parse<RawAlarmRow>(csvText, {
       header: true,
       dynamicTyping: true,
       skipEmptyLines: true,
@@ -21,7 +27,7 @@ export async function fetchAlarms(): Promise<Alarm[]> {
         const uniqueAlarms = new Set<string>();
         const alarms: Alarm[] = [];
 
-        (results.data as any[]).forEach((row) => {
+        results.data.forEach((row) => {
           if (!row.time || !row.cities) return;
           
           const datetime = String(row.time);
@@ -45,10 +51,10 @@ export async function fetchAlarms(): Promise<Alarm[]> {
           }
         });
 
-        console.log(`Parsed ${alarms.length} de-duplicated alarms, ${new Set(alarms.map(a => a.city)).size} unique cities`);
+        // console.log(`Parsed ${alarms.length} de-duplicated alarms, ${new Set(alarms.map(a => a.city)).size} unique cities`);
         resolve(alarms);
       },
-      error: (error: any) => {
+      error: (error: Error) => {
         reject(error);
       },
     });

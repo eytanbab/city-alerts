@@ -178,7 +178,7 @@ export default function Home() {
           התפלגות אזעקות במבצע שאגת הארי
         </h1>
         <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto px-4 leading-relaxed font-medium">
-          ויזואליזציה של תדירות אזעקות ומגמות בזמן אמת לכל עיר ויישוב.
+          ויזואליזציה של תדירות אזעקות ומגמות עם נתונים מעודכנים לכל עיר ויישוב.
         </p>
       </div>
 

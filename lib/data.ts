@@ -84,3 +84,29 @@ export function getDailyTrend(alarms: Alarm[], cityName?: string) {
       count,
     }));
 }
+
+export function getGlobalStats(alarms: Alarm[]) {
+  if (alarms.length === 0) return null;
+
+  const totalAlarms = alarms.length;
+  const uniqueCities = new Set(alarms.map(a => a.city));
+  
+  const cityCounts: Record<string, number> = {};
+  alarms.forEach(a => {
+    cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+  });
+  
+  const topCity = Object.entries(cityCounts)
+    .sort(([, a], [, b]) => b - a)[0];
+
+  const dates = alarms.map(a => a.datetime.split(' ')[0]);
+  const uniqueDays = new Set(dates);
+  
+  return {
+    totalAlarms,
+    topCityName: topCity?.[0] || 'N/A',
+    topCityCount: topCity?.[1] || 0,
+    activeDays: uniqueDays.size,
+    affectedCitiesCount: uniqueCities.size
+  };
+}

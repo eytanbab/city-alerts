@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, use, useMemo, Suspense } from 'react';
-import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, Alarm } from '@/lib/data';
+import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, Alarm } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
+import { StatCards } from '@/components/StatCards';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const alarmsPromise = fetchAlarms();
@@ -12,8 +13,16 @@ const alarmsPromise = fetchAlarms();
 function DashboardSkeleton() {
   return (
     <div className="w-full space-y-8" dir="rtl">
+      {/* Stats Cards Skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-24 w-full rounded-xl" />
+      </div>
+
       {/* Search Input Skeleton */}
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-md mx-auto pt-4">
         <Skeleton className="h-10 w-full rounded-md" />
       </div>
       
@@ -28,9 +37,12 @@ function DashboardSkeleton() {
   );
 }
 
+const POPULAR_CITIES = ['אשקלון', 'תל אביב - יפו', 'באר שבע', 'שדרות', 'חיפה'];
+
 function Dashboard() {
   const alarms = use(alarmsPromise);
   const cities = useMemo(() => getUniqueCities(alarms), [alarms]);
+  const stats = useMemo(() => getGlobalStats(alarms), [alarms]);
   const [activeCity, setActiveCity] = useState('');
 
   const hourlyData = useMemo(() => {
@@ -42,25 +54,40 @@ function Dashboard() {
     return getDailyTrend(alarms);
   }, [alarms]);
 
-  const cityDailyTrend = useMemo(() => {
-    if (!activeCity) return [];
-    return getDailyTrend(alarms, activeCity);
-  }, [alarms, activeCity]);
-
   return (
-    <div className="w-full flex flex-col items-center" dir="rtl">
-      <CitySearch cities={cities} onSearch={setActiveCity} selectedCity={activeCity} />
+    <div className="w-full flex flex-col items-center gap-8" dir="rtl">
+      {stats && <StatCards stats={stats} />}
+      
+      <div className="w-full flex flex-col items-center">
+        <CitySearch cities={cities} onSearch={setActiveCity} selectedCity={activeCity} />
 
-      <div className="w-full space-y-8 mt-8">
-        {activeCity ? (
-          <AlarmChart data={hourlyData} city={activeCity} />
-        ) : (
-          <div className="py-12 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
-            <p>בחר עיר מהרשימה כדי לצפות בהתפלגות האזעקות השעתית שלה.</p>
-          </div>
-        )}
+        <div className="flex flex-wrap justify-center gap-2 mt-4">
+          {POPULAR_CITIES.map((city) => (
+            <button
+              key={city}
+              onClick={() => setActiveCity(city)}
+              className={`px-3 py-1 rounded-full text-sm border transition-colors ${
+                activeCity === city
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-background hover:bg-muted text-muted-foreground border-input'
+              }`}
+            >
+              {city}
+            </button>
+          ))}
+        </div>
 
-        <DailyTrendChart data={globalDailyTrend} />
+        <div className="w-full space-y-8 mt-8">
+          {activeCity ? (
+            <AlarmChart data={hourlyData} city={activeCity} />
+          ) : (
+            <div className="py-12 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
+              <p>בחר עיר מהרשימה כדי לצפות בהתפלגות האזעקות השעתית שלה.</p>
+            </div>
+          )}
+
+          <DailyTrendChart data={globalDailyTrend} />
+        </div>
       </div>
     </div>
   );

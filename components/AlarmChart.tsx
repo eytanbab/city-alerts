@@ -6,7 +6,7 @@ import {
   Bar, 
   XAxis, 
   YAxis, 
-  CartesianGrid, 
+  CartesianGrid,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { 
@@ -74,7 +74,7 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
       <Card className="w-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
-          <p className="text-base text-muted-foreground font-medium">לא נמצאו נתוני אזעקות עבור "{city}"</p>
+          <p className="text-base text-muted-foreground font-medium">לא נמצאו נתוני אזעקות עבור &quot;{city}&quot;</p>
         </CardContent>
       </Card>
     );
@@ -96,8 +96,8 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
-          <BarChart data={data} margin={{ left: 10, right: 10, top: 10, bottom: 0 }}>
+        <ChartContainer config={chartConfig} className="aspect-auto h-62.5 w-full">
+          <BarChart data={data} margin={{ left: 0, right: 0, top: 10, bottom: 0 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" strokeOpacity={0.5} />
             <XAxis
               dataKey="hour"
@@ -116,6 +116,7 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
               tickMargin={10}
               fontSize={12}
               tick={{ fill: 'var(--muted-foreground)' }}
+              width={35}
             />
             <ChartTooltip content={<ChartTooltipContent className="rounded-lg border-border" />} />
             <Bar

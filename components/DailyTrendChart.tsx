@@ -105,6 +105,8 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
               tickMargin={15}
               axisLine={false}
               tickFormatter={formatDate}
+              minTickGap={20}
+              fontSize={12}
             />
             <YAxis
               tickLine={false}
@@ -113,6 +115,7 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
               allowDecimals={false}
               tickMargin={15}
               width={40}
+              fontSize={12}
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Area

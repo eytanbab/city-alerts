@@ -177,7 +177,7 @@ export default function Home() {
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
           התפלגות אזעקות במבצע שאגת הארי
         </h1>
-        <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto px-4 leading-relaxed font-medium">
+        <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
           ויזואליזציה של תדירות אזעקות ומגמות עם נתונים מעודכנים לכל עיר ויישוב.
         </p>
       </div>
@@ -185,16 +185,16 @@ export default function Home() {
       <Suspense fallback={<DashboardSkeleton />}>
         <Dashboard />
       </Suspense>
-      <footer className="mt-auto pt-12 pb-6 text-sm text-muted-foreground text-center flex flex-col gap-3 w-full border-t border-border/40 mt-12">
+      <footer className="text-sm text-muted-foreground text-center flex flex-col gap-3 w-full border-t border-border/40">
         <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6">
           <p className="font-medium">הנתונים מתעדכנים על בסיס יומי</p>
           <span className="hidden md:block opacity-30">•</span>
           <p>
-            מקור: <a href="https://github.com/yuval-harpaz/alarms" className="underline underline-offset-4 hover:text-foreground transition-all font-semibold" target="_blank" rel="noopener noreferrer">yuval-harpaz/alarms</a>
+            מקור: <a href="https://github.com/yuval-harpaz/alarms" className="underline underline-offset-4 hover:text-foreground transition-all font-medium" target="_blank" rel="noopener noreferrer">yuval-harpaz/alarms</a>
           </p>
           <span className="hidden md:block opacity-30">•</span>
           <p>
-            פותח על ידי <a href="https://github.com/eytanbab" className="underline underline-offset-4 hover:text-foreground transition-all font-semibold" target="_blank" rel="noopener noreferrer">eytanbab</a>
+            פותח על ידי <a href="https://github.com/eytanbab" className="underline underline-offset-4 hover:text-foreground transition-all font-medium" target="_blank" rel="noopener noreferrer">eytanbab</a>
           </p>
         </div>
       </footer>

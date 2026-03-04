@@ -20,22 +20,47 @@ export default function MapChart({ data }: MapChartProps) {
   // Center of Israel
   const center: [number, number] = [31.5, 34.75];
   
-  // Find max count for scaling color intensity or radius fallback
+  // Find max count for scaling color intensity or radius fallback    
   const maxCount = useMemo(() => {
     if (data.length === 0) return 1;
     return Math.max(...data.map(d => d.count), 1);
   }, [data]);
 
-  const getStyle = (count: number) => {
-    const opacity = 0.2 + (count / maxCount) * 0.6;
-    return {
-      fillColor: '#ef4444',
-      color: '#b91c1c',
-      weight: 1,
-      fillOpacity: opacity,
-    };
+  const getColor = (count: number) => {
+    const ratio = count / maxCount;
+
+    // RGB interpolation
+    // Green: (34, 197, 94)  #22c55e
+    // Yellow: (234, 179, 8) #eab308
+    // Red: (239, 68, 68)    #ef4444
+
+    let r, g, b;
+    if (ratio < 0.5) {
+      // Interpolate Green to Yellow
+      const localRatio = ratio * 2;
+      r = Math.floor(34 + (234 - 34) * localRatio);
+      g = Math.floor(197 + (179 - 197) * localRatio);
+      b = Math.floor(94 + (8 - 94) * localRatio);
+    } else {
+      // Interpolate Yellow to Red
+      const localRatio = (ratio - 0.5) * 2;
+      r = Math.floor(234 + (239 - 234) * localRatio);
+      g = Math.floor(179 + (68 - 179) * localRatio);
+      b = Math.floor(8 + (68 - 8) * localRatio);
+    }
+
+    return `rgb(${r}, ${g}, ${b})`;
   };
 
+  const getStyle = (count: number) => {
+    const color = getColor(count);
+    return {
+      fillColor: color,
+      color: color,
+      weight: 1.5,
+      fillOpacity: 0.6,
+    };
+  };
   if (!isMounted) {
     return (
       <Card className="w-full h-[600px] flex flex-col overflow-hidden bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">

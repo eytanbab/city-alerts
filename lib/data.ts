@@ -10,10 +10,12 @@ export interface MapData {
   count: number;
   lat: number;
   lon: number;
+  polygon?: [number, number][];
 }
 
 type RawAlarmEntry = [number, number, string[], number];
 interface RawCityMetadata {
+  id: number;
   lat: number;
   lng: number;
   [key: string]: any;
@@ -21,10 +23,10 @@ interface RawCityMetadata {
 
 const DATA_URL = '/api/alarms';
 const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
-const CACHE_KEY = 'alarms_cache_v7'; 
+const CACHE_KEY = 'alarms_cache_v8'; 
 const CACHE_DURATION = 10 * 60 * 1000;
 
-export async function fetchAlarms(): Promise<Alarm[]> {
+export async function fetchAlarms(): Promise<{ alarms: Alarm[], polygons: Record<string, [number, number][]> }> {
   if (typeof window !== 'undefined') {
     const cachedData = sessionStorage.getItem(CACHE_KEY);
     if (cachedData) {
@@ -39,8 +41,10 @@ export async function fetchAlarms(): Promise<Alarm[]> {
   const json = await response.json();
   const rawAlarms: RawAlarmEntry[] = json.alarms;
   const citiesMetadata: Record<string, RawCityMetadata> = json.cities;
+  const polygonsRaw: Record<string, [number, number][]> = json.polygons;
   
   const alarms: Alarm[] = [];
+  const cityToPolygon: Record<string, [number, number][]> = {};
 
   rawAlarms.forEach(([, , cities, timestamp]) => {
     if (timestamp < FILTER_DATE_UNIX) return;
@@ -58,32 +62,34 @@ export async function fetchAlarms(): Promise<Alarm[]> {
         lat: meta?.lat,
         lon: meta?.lng
       });
+
+      if (meta?.id && polygonsRaw[meta.id] && !cityToPolygon[city]) {
+        cityToPolygon[city] = polygonsRaw[meta.id];
+      }
     });
   });
 
   alarms.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
 
+  const result = { alarms, polygons: cityToPolygon };
+
   if (typeof window !== 'undefined') {
     try {
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({
         timestamp: Date.now(),
-        data: alarms
+        data: result
       }));
     } catch (e) {}
   }
 
-  return alarms;
+  return result;
 }
 
 export function normalizeCityName(city: string): string {
   return city.replace(/\(.*\)/g, '').split('-')[0].trim();
 }
 
-/**
- * Gets the "Minute Key" for an alarm to aggregate events happening within the same minute.
- */
 function getMinuteKey(datetime: string): string {
-  // Format: YYYY-MM-DD HH:MM
   return datetime.substring(0, 16);
 }
 
@@ -193,7 +199,7 @@ export function getTopCities(alarms: Alarm[], limit: number = 5) {
     .map(([name, count]) => ({ name, count }));
 }
 
-export function getMapData(alarms: Alarm[]): MapData[] {
+export function getMapData(alarms: Alarm[], polygons: Record<string, [number, number][]>): MapData[] {
   const cityCounts: Record<string, { count: number; lat?: number; lon?: number }> = {};
   
   alarms.forEach(a => {
@@ -211,7 +217,8 @@ export function getMapData(alarms: Alarm[]): MapData[] {
         city,
         count: data.count,
         lat: data.lat,
-        lon: data.lon
+        lon: data.lon,
+        polygon: polygons[city]
       });
     }
   });

@@ -44,7 +44,7 @@ export function StatCards({ stats }: StatCardsProps) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full" dir="rtl">
       {items.map((item) => (
-        <Card key={item.label} className="bg-card px-2 border-none shadow-sm ring-1 ring-border/50">
+        <Card key={item.label} className="bg-card px-2 border-none shadow-sm ring-1 ring-border/50 p-2">
           <CardContent className="p-2 flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">

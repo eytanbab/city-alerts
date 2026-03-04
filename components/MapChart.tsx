@@ -21,11 +21,17 @@ export default function MapChart({ data }: MapChartProps) {
   const center: [number, number] = [31.5, 34.75];
   
   // Find max count for scaling radius
-  const maxCount = useMemo(() => Math.max(...data.map(d => d.count), 1), [data]);
+  const maxCount = useMemo(() => {
+    if (data.length === 0) return 1;
+    return Math.max(...data.map(d => d.count), 1);
+  }, [data]);
 
   if (!isMounted) {
     return (
-      <Card className="w-full h-[600px] flex flex-col overflow-hidden bg-card border-none shadow-sm ring-1 ring-border/50">
+      <Card className="w-full h-[600px] flex flex-col overflow-hidden bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
+        <CardHeader className="p-4 border-b border-border/50 bg-muted/20 flex justify-between items-center">
+          <CardTitle className="text-lg font-bold text-right w-full">מפת מוקדי אזעקות</CardTitle>
+        </CardHeader>
         <CardContent className="p-0 flex-1 relative min-h-0">
           <div className="w-full h-full bg-muted/20 animate-pulse flex items-center justify-center">
             <span className="text-muted-foreground font-medium">טוען מפה...</span>
@@ -36,7 +42,10 @@ export default function MapChart({ data }: MapChartProps) {
   }
 
   return (
-    <Card className="w-full h-[600px] flex flex-col overflow-hidden bg-card border-none shadow-sm ring-1 ring-border/50">
+    <Card className="w-full h-[600px] flex flex-col overflow-hidden bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
+      <CardHeader className="p-4 border-b border-border/50 bg-muted/20 flex justify-between items-center">
+        <CardTitle className="text-lg font-bold text-right w-full">מפת מוקדי אזעקות</CardTitle>
+      </CardHeader>
       <CardContent className="p-0 flex-1 relative min-h-0">
         <MapContainer 
           center={center} 
@@ -53,7 +62,7 @@ export default function MapChart({ data }: MapChartProps) {
             <CircleMarker
               key={item.city}
               center={[item.lat, item.lon]}
-              radius={Math.max(5, (item.count / maxCount) * 25)}
+              radius={Math.max(5, (item.count / maxCount) * 35)}
               pathOptions={{
                 fillColor: '#ef4444',
                 color: '#b91c1c',

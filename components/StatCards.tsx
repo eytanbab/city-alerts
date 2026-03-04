@@ -1,6 +1,6 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, MapPin, Calendar, Hash } from "lucide-react";
 
 interface StatCardsProps {
@@ -14,51 +14,55 @@ interface StatCardsProps {
 }
 
 export function StatCards({ stats }: StatCardsProps) {
+  const items = [
+    {
+      label: "סה\"כ אזעקות",
+      value: stats.totalAlarms.toLocaleString(),
+      subValue: "אזעקות מתחילת התקופה",
+      icon: AlertTriangle,
+    },
+    {
+      label: "העיר המטווחת",
+      value: stats.topCityName,
+      subValue: `${stats.topCityCount.toLocaleString()} אזעקות`,
+      icon: MapPin,
+    },
+    {
+      label: "ימי פעילות",
+      value: stats.activeDays,
+      subValue: "ימים מתחילת המבצע",
+      icon: Calendar,
+    },
+    {
+      label: "יישובים",
+      value: stats.affectedCitiesCount.toLocaleString(),
+      subValue: "ערים ויישובים שונים",
+      icon: Hash,
+    },
+  ];
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full" dir="rtl">
-      <Card className="bg-primary/5 border-primary/20 shadow-none transition-colors hover:bg-primary/8">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
-          <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground">סה&quot;כ אזעקות</CardTitle>
-          <AlertTriangle className="h-4 w-4 text-primary opacity-70" />
-        </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-          <div className="text-2xl md:text-3xl font-bold tracking-tight text-primary">{stats.totalAlarms.toLocaleString()}</div>
-          <p className="text-[10px] md:text-xs text-muted-foreground mt-1">אזעקות מתחילת התקופה</p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-red-500/5 border-red-500/20 shadow-none transition-colors hover:bg-red-500/8">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
-          <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground">העיר המטווחת</CardTitle>
-          <MapPin className="h-4 w-4 text-red-500 opacity-70" />
-        </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-          <div className="text-2xl md:text-3xl font-bold tracking-tight text-red-600 truncate">{stats.topCityName}</div>
-          <p className="text-[10px] md:text-xs text-muted-foreground mt-1">{stats.topCityCount.toLocaleString()} אזעקות</p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-blue-500/5 border-blue-500/20 shadow-none transition-colors hover:bg-blue-500/8">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
-          <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground">ימי פעילות</CardTitle>
-          <Calendar className="h-4 w-4 text-blue-500 opacity-70" />
-        </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-          <div className="text-2xl md:text-3xl font-bold tracking-tight text-blue-600">{stats.activeDays}</div>
-          <p className="text-[10px] md:text-xs text-muted-foreground mt-1">ימי לחימה עם נתונים</p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-amber-500/5 border-amber-500/20 shadow-none transition-colors hover:bg-amber-500/8">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-4 md:p-6">
-          <CardTitle className="text-xs md:text-sm font-semibold text-muted-foreground">יישובים</CardTitle>
-          <Hash className="h-4 w-4 text-amber-500 opacity-70" />
-        </CardHeader>
-        <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-          <div className="text-2xl md:text-3xl font-bold tracking-tight text-amber-600">{stats.affectedCitiesCount.toLocaleString()}</div>
-          <p className="text-[10px] md:text-xs text-muted-foreground mt-1">ערים ויישובים שונים</p>
-        </CardContent>
-      </Card>
+      {items.map((item) => (
+        <Card key={item.label} className="bg-card px-2 border-none shadow-sm ring-1 ring-border/50">
+          <CardContent className="p-2 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                {item.label}
+              </span>
+              <item.icon className="h-4 w-4 text-muted-foreground/40" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <div className="text-2xl md:text-3xl font-bold tracking-tight text-foreground leading-none">
+                {item.value}
+              </div>
+              <span className="text-sm text-muted-foreground font-normal">
+                {item.subValue}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

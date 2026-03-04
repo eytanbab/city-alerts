@@ -7,9 +7,8 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  ResponsiveContainer 
 } from 'recharts';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { 
   ChartConfig, 
   ChartContainer, 
@@ -17,7 +16,6 @@ import {
   ChartTooltipContent 
 } from '@/components/ui/chart';
 import { TrendingUp, Calendar, Hash } from "lucide-react";
-import { CardFooter } from '@/components/ui/card';
 
 interface DailyTrendChartProps {
   data: { date: string; count: number }[];
@@ -27,7 +25,7 @@ interface DailyTrendChartProps {
 const chartConfig = {
   count: {
     label: "כמות אזעקות",
-    color: "hsl(var(--primary))",
+    color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig;
 
@@ -44,8 +42,8 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
 
   const insights = useMemo(() => {
     if (data.length === 0) return null;
-    
-    const maxDay = [...data].sort((a, b) => b.count - a.count)[0];
+    const sortedData = [...data].sort((a, b) => b.count - a.count);
+    const maxDay = sortedData[0];
     
     return {
       peakDay: formatDate(maxDay.date),
@@ -54,106 +52,67 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
     };
   }, [data, total]);
 
-  if (total === 0) {
-    return null;
-  }
+  if (total === 0) return null;
 
   return (
-    <Card className="w-full mt-8" dir="rtl">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="text-right">
-            <CardTitle className="text-xl">
-              מגמת אזעקות יומית כללית
-            </CardTitle>
-            <CardDescription>
-              כמות האזעקות בכל הארץ לאורך זמן
-            </CardDescription>
-          </div>
-          <TrendingUp className="h-5 w-5 text-muted-foreground" />
-        </div>
+    <Card className="h-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-lg font-bold">
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          מגמת אזעקות יומית
+        </CardTitle>
+        <CardDescription className="text-sm font-normal">
+          כמות האזעקות בכל הארץ לאורך זמן
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+      <CardContent className="pb-4 px-2">
+        <ChartContainer config={chartConfig} className="h-[240px] w-full">
           <AreaChart 
             data={data}
-            margin={{
-              left: 12,
-              right: 12,
-              top: 10,
-              bottom: 10
-            }}
+            margin={{ left: 10, right: 10, top: 10, bottom: 0 }}
           >
-            <defs>
-              <linearGradient id="fillCount" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-count)"
-                  stopOpacity={0.3}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-count)"
-                  stopOpacity={0}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" strokeOpacity={0.5} />
             <XAxis
               dataKey="date"
               tickLine={false}
-              tickMargin={15}
+              tickMargin={10}
               axisLine={false}
               tickFormatter={formatDate}
-              minTickGap={20}
+              minTickGap={30}
               fontSize={12}
+              tick={{ fill: 'var(--muted-foreground)' }}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
               orientation="right"
               allowDecimals={false}
-              tickMargin={15}
-              width={40}
+              tickMargin={10}
               fontSize={12}
+              tick={{ fill: 'var(--muted-foreground)' }}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip content={<ChartTooltipContent className="rounded-xl border-border" />} />
             <Area
               type="monotone"
               dataKey="count"
-              stroke="var(--color-count)"
-              strokeWidth={3}
-              fillOpacity={1}
-              fill="url(#fillCount)"
+              stroke="var(--color-chart-1)"
+              strokeWidth={2}
+              fill="var(--color-chart-1)"
+              fillOpacity={0.1}
+              animationDuration={500}
             />
           </AreaChart>
         </ChartContainer>
       </CardContent>
       {insights && (
-        <CardFooter className="flex flex-col gap-4 border-t pt-6 bg-muted/50 rounded-b-xl">
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
-            <div className="flex items-start gap-3 p-3 bg-background rounded-lg border shadow-sm">
-              <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                <Calendar className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">יום שיא</p>
-                <p className="text-sm text-muted-foreground">
-                  {insights.peakDay} ({insights.peakCount} אזעקות)
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 p-3 bg-background rounded-lg border shadow-sm">
-              <div className="p-2 bg-blue-500/10 rounded-full shrink-0">
-                <Hash className="h-4 w-4 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">ממוצע יומי</p>
-                <p className="text-sm text-muted-foreground">
-                  {insights.avgCount} אזעקות ליום
-                </p>
-              </div>
-            </div>
+        <CardFooter className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">יום שיא</span>
+            <span className="text-sm font-bold text-foreground">{insights.peakDay} ({insights.peakCount})</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ממוצע יומי</span>
+            <span className="text-sm font-bold text-foreground">{insights.avgCount} אזעקות</span>
           </div>
         </CardFooter>
       )}

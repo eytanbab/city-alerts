@@ -15,7 +15,7 @@ import {
   ChartTooltip, 
   ChartTooltipContent 
 } from '@/components/ui/chart';
-import { AlertCircle, Zap, Moon } from "lucide-react";
+import { Zap, Moon, AlertCircle } from "lucide-react";
 
 interface AlarmChartProps {
   data: { hour: string; count: number }[];
@@ -31,12 +31,7 @@ const chartConfig = {
 
 function formatHourRanges(hours: string[]) {
   if (hours.length === 0) return "";
-  
-  // Convert "HH:00" to integers for sorting and calculation
-  const hourNums = hours
-    .map(h => parseInt(h.split(':')[0], 10))
-    .sort((a, b) => a - b);
-    
+  const hourNums = hours.map(h => parseInt(h.split(':')[0], 10)).sort((a, b) => a - b);
   const ranges: string[] = [];
   let start = hourNums[0];
   let end = hourNums[0];
@@ -47,14 +42,12 @@ function formatHourRanges(hours: string[]) {
     } else {
       const nextHour = (end + 1).toString().padStart(2, '0');
       ranges.push(`${start.toString().padStart(2, '0')}:00-${nextHour}:00`);
-      
       if (i < hourNums.length) {
         start = hourNums[i];
         end = hourNums[i];
       }
     }
   }
-  
   return ranges.join(', ');
 }
 
@@ -63,10 +56,8 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
 
   const insights = useMemo(() => {
     if (total === 0) return null;
-
     const maxCount = Math.max(...data.map(d => d.count));
     const peakHours = data.filter(d => d.count === maxCount).map(d => d.hour);
-    
     const minCount = Math.min(...data.map(d => d.count));
     const silentHours = data.filter(d => d.count === minCount).map(d => d.hour);
 
@@ -80,33 +71,34 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
 
   if (total === 0) {
     return (
-      <Card className="w-full mt-8" dir="rtl">
-        <CardContent className="pt-10 pb-10 text-center text-muted-foreground">
-          לא נמצאו נתוני אזעקות עבור "{city}" החל מה-27 בפברואר.
+      <Card className="w-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
+        <CardContent className="py-12 text-center">
+          <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
+          <p className="text-base text-muted-foreground font-medium">לא נמצאו נתוני אזעקות עבור "{city}"</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="w-full mt-8" dir="rtl">
-      <CardHeader>
+    <Card className="w-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <div className="text-right">
-            <CardTitle className="text-xl">
-              התפלגות אזעקות לפי שעה עבור "{city}"
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-lg font-bold">
+              התפלגות שעתית: {city}
             </CardTitle>
-            <CardDescription>
-              סך הכל: {total} אזעקות
+            <CardDescription className="text-sm font-normal">
+              סך הכל: {total.toLocaleString()} אזעקות בתקופה
             </CardDescription>
           </div>
-          <AlertCircle className="h-5 w-5 text-muted-foreground" />
+          <Zap className="h-4 w-4 text-muted-foreground/50" />
         </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-          <BarChart data={data}>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+      <CardContent className="pb-4 px-2">
+        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <BarChart data={data} margin={{ left: 10, right: 10, top: 10, bottom: 0 }}>
+            <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" strokeOpacity={0.5} />
             <XAxis
               dataKey="hour"
               tickLine={false}
@@ -114,47 +106,49 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
               axisLine={false}
               minTickGap={10}
               fontSize={12}
+              tick={{ fill: 'var(--muted-foreground)' }}
             />
             <YAxis
               tickLine={false}
               axisLine={false}
               orientation="right"
               allowDecimals={false}
+              tickMargin={10}
               fontSize={12}
+              tick={{ fill: 'var(--muted-foreground)' }}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip content={<ChartTooltipContent className="rounded-lg border-border" />} />
             <Bar
               dataKey="count"
-              fill="var(--color-count)"
+              fill="var(--color-primary)"
               radius={[4, 4, 0, 0]}
+              maxBarSize={40}
             />
           </BarChart>
         </ChartContainer>
       </CardContent>
       {insights && (
-        <CardFooter className="flex flex-col gap-4 border-t pt-6 bg-muted/50 rounded-b-xl">
-          <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 text-right">
-            <div className="flex items-start gap-3 p-3 bg-background rounded-lg border shadow-sm">
-              <div className="p-2 bg-primary/10 rounded-full shrink-0">
-                <Zap className="h-4 w-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">שעות שיא (הכי הרבה אזעקות)</p>
-                <p className="text-sm text-muted-foreground">
-                  {insights.peakHoursFormatted} ({insights.maxCount} לשעה)
-                </p>
-              </div>
+        <CardFooter className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-border">
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                <Zap className="h-3 w-3" />
+                שעות שיא
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {insights.peakHoursFormatted} <span className="text-muted-foreground font-normal">({insights.maxCount} אזעקות)</span>
+              </p>
             </div>
-            <div className="flex items-start gap-3 p-3 bg-background rounded-lg border shadow-sm">
-              <div className="p-2 bg-blue-500/10 rounded-full shrink-0">
-                <Moon className="h-4 w-4 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold">שעות שקטות (הכי פחות אזעקות)</p>
-                <p className="text-sm text-muted-foreground">
-                  {insights.silentHoursFormatted} ({insights.minCount} לשעה)
-                </p>
-              </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
+                <Moon className="h-3 w-3" />
+                שעות שקטות
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {insights.silentHoursFormatted} <span className="text-muted-foreground font-normal">({insights.minCount} אזעקות)</span>
+              </p>
             </div>
           </div>
         </CardFooter>

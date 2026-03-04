@@ -1,8 +1,8 @@
-import { getCoordinatesForCity } from './geodata';
-
 export interface Alarm {
   datetime: string;
   city: string;
+  lat?: number;
+  lon?: number;
 }
 
 export interface MapData {
@@ -12,108 +12,102 @@ export interface MapData {
   lon: number;
 }
 
-// JSON Structure: [group_id, threat_id, [cities], unix_timestamp]
 type RawAlarmEntry = [number, number, string[], number];
+interface RawCityMetadata {
+  lat: number;
+  lng: number;
+  [key: string]: any;
+}
 
-const DATA_URL = 'https://www.tzevaadom.co.il/static/historical/all.json';
+const DATA_URL = '/api/alarms';
 const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
-const CACHE_KEY = 'alarms_cache_v2'; // Changed version to invalidate old CSV cache
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+const CACHE_KEY = 'alarms_cache_v7'; 
+const CACHE_DURATION = 10 * 60 * 1000;
 
 export async function fetchAlarms(): Promise<Alarm[]> {
-  // Try to load from cache
   if (typeof window !== 'undefined') {
     const cachedData = sessionStorage.getItem(CACHE_KEY);
     if (cachedData) {
       try {
         const { timestamp, data } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          return data;
-        }
-      } catch (e) {
-        // ignore error
-      }
+        if (Date.now() - timestamp < CACHE_DURATION) return data;
+      } catch (e) {}
     }
   }
 
   const response = await fetch(DATA_URL);
-  const data: RawAlarmEntry[] = await response.json();
-
-  const uniqueAlarms = new Set<string>();
+  const json = await response.json();
+  const rawAlarms: RawAlarmEntry[] = json.alarms;
+  const citiesMetadata: Record<string, RawCityMetadata> = json.cities;
+  
   const alarms: Alarm[] = [];
 
-  // Sort by timestamp ascending for consistent display if needed
-  data.sort((a, b) => a[3] - b[3]);
-
-  data.forEach(([, , cities, timestamp]) => {
+  rawAlarms.forEach(([, , cities, timestamp]) => {
     if (timestamp < FILTER_DATE_UNIX) return;
 
     const date = new Date(timestamp * 1000);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    const seconds = String(date.getSeconds()).padStart(2, '0');
-    const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    const datetime = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
 
-    cities.forEach((city) => {
-      const normalizedCity = normalizeCityName(city);
-      const key = `${normalizedCity}|${datetime}`;
-
-      if (!uniqueAlarms.has(key)) {
-        uniqueAlarms.add(key);
-        alarms.push({
-          datetime,
-          city: normalizedCity,
-        });
-      }
+    cities.forEach((cityName) => {
+      const city = cityName.trim();
+      const meta = citiesMetadata[city];
+      
+      alarms.push({
+        datetime,
+        city,
+        lat: meta?.lat,
+        lon: meta?.lng
+      });
     });
   });
 
-  // Save to cache
+  alarms.sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime());
+
   if (typeof window !== 'undefined') {
     try {
       sessionStorage.setItem(CACHE_KEY, JSON.stringify({
         timestamp: Date.now(),
         data: alarms
       }));
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
   }
 
   return alarms;
 }
 
 export function normalizeCityName(city: string): string {
-  // Simple fix: Split at the first hyphen and trim.
-  // This handles "אשדוד - יא...", "באר שבע - מזרח", and "תל אביב - יפו" consistently.
-  return city.split('-')[0].trim();
+  return city.replace(/\(.*\)/g, '').split('-')[0].trim();
+}
+
+/**
+ * Gets the "Minute Key" for an alarm to aggregate events happening within the same minute.
+ */
+function getMinuteKey(datetime: string): string {
+  // Format: YYYY-MM-DD HH:MM
+  return datetime.substring(0, 16);
 }
 
 export function getUniqueCities(alarms: Alarm[]): string[] {
   const cities = new Set<string>();
-  for (let i = 0; i < alarms.length; i++) {
-    cities.add(alarms[i].city);
-  }
+  alarms.forEach(a => cities.add(normalizeCityName(a.city)));
   return Array.from(cities).sort((a, b) => a.localeCompare(b, 'he'));
 }
 
 export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
   const hourlyCounts = Array(24).fill(0);
-  const normalizedSearchName = normalizeCityName(cityName);
-  
-  for (let i = 0; i < alarms.length; i++) {
-    const alarm = alarms[i];
-    if (alarm.city === normalizedSearchName) {
-      const timePart = alarm.datetime.split(' ')[1];
-      const hour = parseInt(timePart.split(':')[0], 10);
-      if (hour >= 0 && hour < 24) {
-        hourlyCounts[hour]++;
+  const normalizedTarget = normalizeCityName(cityName);
+  const seenMinutes = new Set<string>();
+
+  alarms.forEach(a => {
+    if (normalizeCityName(a.city) === normalizedTarget) {
+      const minKey = getMinuteKey(a.datetime);
+      if (!seenMinutes.has(minKey)) {
+        seenMinutes.add(minKey);
+        const hour = parseInt(a.datetime.split(' ')[1].split(':')[0], 10);
+        if (hour >= 0 && hour < 24) hourlyCounts[hour]++;
       }
     }
-  }
+  });
 
   return hourlyCounts.map((count, hour) => ({
     hour: `${hour.toString().padStart(2, '0')}:00`,
@@ -123,44 +117,54 @@ export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
 
 export function getDailyTrend(alarms: Alarm[], cityName?: string) {
   const dailyCounts: Record<string, number> = {};
-  const normalizedSearchName = cityName ? normalizeCityName(cityName) : null;
-  
-  for (let i = 0; i < alarms.length; i++) {
-    const alarm = alarms[i];
-    if (!normalizedSearchName || alarm.city === normalizedSearchName) {
-      const datePart = alarm.datetime.includes(' ') ? alarm.datetime.split(' ')[0] : alarm.datetime;
-      dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
+  const normalizedTarget = cityName ? normalizeCityName(cityName) : null;
+  const seenEvents = new Set<string>();
+
+  alarms.forEach(a => {
+    const baseCity = normalizeCityName(a.city);
+    const minKey = getMinuteKey(a.datetime);
+    const eventKey = `${baseCity}|${minKey}`;
+    
+    if (!normalizedTarget || baseCity === normalizedTarget) {
+      if (!seenEvents.has(eventKey)) {
+        seenEvents.add(eventKey);
+        const datePart = a.datetime.split(' ')[0];
+        dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
+      }
     }
-  }
+  });
 
   return Object.entries(dailyCounts)
     .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-    .map(([date, count]) => ({
-      date,
-      count,
-    }));
+    .map(([date, count]) => ({ date, count }));
 }
 
 export function getGlobalStats(alarms: Alarm[]) {
   if (alarms.length === 0) return null;
-
-  const totalAlarms = alarms.length;
-  const cityCounts: Record<string, number> = {};
+  
+  const totalSirens = alarms.length; 
+  const cityEventCounts: Record<string, number> = {};
+  const seenEvents = new Set<string>();
   const uniqueBaseCities = new Set<string>();
 
   alarms.forEach(a => {
-    uniqueBaseCities.add(a.city);
-    cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+    const baseCity = normalizeCityName(a.city);
+    uniqueBaseCities.add(baseCity);
+    const minKey = getMinuteKey(a.datetime);
+    const eventKey = `${baseCity}|${minKey}`;
+    
+    if (!seenEvents.has(eventKey)) {
+      seenEvents.add(eventKey);
+      cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
+    }
   });
   
-  const topCity = Object.entries(cityCounts)
-    .sort(([, a], [, b]) => b - a)[0];
-
-  const dates = alarms.map(a => a.datetime.split(' ')[0]);
-  const uniqueDays = new Set(dates);
+  const sortedCities = Object.entries(cityEventCounts).sort(([, a], [, b]) => b - a);
+  const topCity = sortedCities[0];
+  const uniqueDays = new Set(alarms.map(a => a.datetime.split(' ')[0]));
   
   return {
-    totalAlarms,
+    totalAlarms: totalSirens, 
     topCityName: topCity?.[0] || 'N/A',
     topCityCount: topCity?.[1] || 0,
     activeDays: uniqueDays.size,
@@ -169,35 +173,45 @@ export function getGlobalStats(alarms: Alarm[]) {
 }
 
 export function getTopCities(alarms: Alarm[], limit: number = 5) {
-  const cityCounts: Record<string, number> = {};
+  const cityEventCounts: Record<string, number> = {};
+  const seenEvents = new Set<string>();
   
   alarms.forEach(a => {
-    cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+    const baseCity = normalizeCityName(a.city);
+    const minKey = getMinuteKey(a.datetime);
+    const eventKey = `${baseCity}|${minKey}`;
+    
+    if (!seenEvents.has(eventKey)) {
+      seenEvents.add(eventKey);
+      cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
+    }
   });
 
-  return Object.entries(cityCounts)
+  return Object.entries(cityEventCounts)
     .sort(([, a], [, b]) => b - a)
     .slice(0, limit)
     .map(([name, count]) => ({ name, count }));
 }
 
 export function getMapData(alarms: Alarm[]): MapData[] {
-  const cityCounts: Record<string, number> = {};
+  const cityCounts: Record<string, { count: number; lat?: number; lon?: number }> = {};
   
   alarms.forEach(a => {
-    cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+    if (!cityCounts[a.city]) {
+      cityCounts[a.city] = { count: 0, lat: a.lat, lon: a.lon };
+    }
+    cityCounts[a.city].count++;
   });
 
   const mapData: MapData[] = [];
   
-  Object.entries(cityCounts).forEach(([city, count]) => {
-    const coords = getCoordinatesForCity(city);
-    if (coords) {
+  Object.entries(cityCounts).forEach(([city, data]) => {
+    if (data.lat !== undefined && data.lon !== undefined) {
       mapData.push({
         city,
-        count,
-        lat: coords.lat,
-        lon: coords.lon
+        count: data.count,
+        lat: data.lat,
+        lon: data.lon
       });
     }
   });

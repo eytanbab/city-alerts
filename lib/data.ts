@@ -18,17 +18,34 @@ export async function fetchAlarms(): Promise<Alarm[]> {
       dynamicTyping: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const alarms = (results.data as any[])
-          .filter((row: any) => row.time && row.cities)
-          .map((row: any) => ({
-            datetime: String(row.time),
-            city: String(row.cities),
-          }))
-          .filter((alarm: Alarm) => {
-            const alarmDate = new Date(alarm.datetime.replace(' ', 'T'));
-            return alarmDate >= FILTER_DATE;
-          });
-        console.log(`Parsed ${alarms.length} alarms, ${new Set(alarms.map(a => a.city)).size} unique cities`);
+        const uniqueAlarms = new Set<string>();
+        const alarms: Alarm[] = [];
+
+        (results.data as any[]).forEach((row) => {
+          if (!row.time || !row.cities) return;
+          
+          const datetime = String(row.time);
+          const alarmDate = new Date(datetime.replace(' ', 'T'));
+          
+          // Filter out old data and unnecessary 2019 data
+          if (alarmDate < FILTER_DATE) return;
+
+          // Normalize city name immediately
+          const normalizedCity = normalizeCityName(String(row.cities));
+          
+          // De-duplicate: A city has 1 alarm at a specific timestamp, even if multiple sectors were triggered.
+          const key = `${normalizedCity}|${datetime}`;
+          
+          if (!uniqueAlarms.has(key)) {
+            uniqueAlarms.add(key);
+            alarms.push({
+              datetime,
+              city: normalizedCity,
+            });
+          }
+        });
+
+        console.log(`Parsed ${alarms.length} de-duplicated alarms, ${new Set(alarms.map(a => a.city)).size} unique cities`);
         resolve(alarms);
       },
       error: (error: any) => {
@@ -38,24 +55,27 @@ export async function fetchAlarms(): Promise<Alarm[]> {
   });
 }
 
+export function normalizeCityName(city: string): string {
+  // Simple fix: Split at the first hyphen and trim.
+  // This handles "אשדוד - יא...", "באר שבע - מזרח", and "תל אביב - יפו" consistently.
+  return city.split('-')[0].trim();
+}
+
 export function getUniqueCities(alarms: Alarm[]): string[] {
   const cities = new Set<string>();
   for (let i = 0; i < alarms.length; i++) {
-    const city = alarms[i].city;
-    // If the city has a sector (e.g. "באר שבע - מזרח"), only add the base city ("באר שבע")
-    const baseCity = city.includes(' - ') ? city.split(' - ')[0] : city;
-    cities.add(baseCity);
+    cities.add(alarms[i].city);
   }
   return Array.from(cities).sort((a, b) => a.localeCompare(b, 'he'));
 }
 
 export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
   const hourlyCounts = Array(24).fill(0);
+  const normalizedSearchName = normalizeCityName(cityName);
   
   for (let i = 0; i < alarms.length; i++) {
     const alarm = alarms[i];
-    // Check for exact match or if it's a sector of the city (e.g. "באר שבע" matches "באר שבע - מזרח")
-    if (alarm.city === cityName || alarm.city.startsWith(`${cityName} -`)) {
+    if (alarm.city === normalizedSearchName) {
       const timePart = alarm.datetime.split(' ')[1];
       const hour = parseInt(timePart.split(':')[0], 10);
       if (hour >= 0 && hour < 24) {
@@ -72,10 +92,11 @@ export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
 
 export function getDailyTrend(alarms: Alarm[], cityName?: string) {
   const dailyCounts: Record<string, number> = {};
+  const normalizedSearchName = cityName ? normalizeCityName(cityName) : null;
   
   for (let i = 0; i < alarms.length; i++) {
     const alarm = alarms[i];
-    if (!cityName || alarm.city === cityName || alarm.city.startsWith(`${cityName} -`)) {
+    if (!normalizedSearchName || alarm.city === normalizedSearchName) {
       const datePart = alarm.datetime.includes(' ') ? alarm.datetime.split(' ')[0] : alarm.datetime;
       dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
     }
@@ -93,10 +114,11 @@ export function getGlobalStats(alarms: Alarm[]) {
   if (alarms.length === 0) return null;
 
   const totalAlarms = alarms.length;
-  const uniqueCities = new Set(alarms.map(a => a.city));
-  
   const cityCounts: Record<string, number> = {};
+  const uniqueBaseCities = new Set<string>();
+
   alarms.forEach(a => {
+    uniqueBaseCities.add(a.city);
     cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
   });
   
@@ -111,6 +133,19 @@ export function getGlobalStats(alarms: Alarm[]) {
     topCityName: topCity?.[0] || 'N/A',
     topCityCount: topCity?.[1] || 0,
     activeDays: uniqueDays.size,
-    affectedCitiesCount: uniqueCities.size
+    affectedCitiesCount: uniqueBaseCities.size
   };
+}
+
+export function getTopCities(alarms: Alarm[], limit: number = 5) {
+  const cityCounts: Record<string, number> = {};
+  
+  alarms.forEach(a => {
+    cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+  });
+
+  return Object.entries(cityCounts)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, limit)
+    .map(([name, count]) => ({ name, count }));
 }

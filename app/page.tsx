@@ -40,32 +40,35 @@ function DashboardSkeleton() {
 const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אשקלון', 'אשדוד', 'אילת'];
 
 function Dashboard() {
-  const [alarms, setAlarms] = useState<Alarm[] | null>(null);
+  const [data, setData] = useState<{ alarms: Alarm[], polygons: Record<string, [number, number][]> } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCity, setActiveCity] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchAlarms()
-      .then(setAlarms)
+      .then(setData)
       .catch(err => {
         console.error(err);
-        setError('נכשל בטעינת נתונים. אנא נסה שוב מאוחר יותר.');
+        setError('נכשל בטעינת נתונים. אנא נסה שוב מאוחר יותר.');      
       });
   }, []);
 
-  const cities = useMemo(() => alarms ? getUniqueCities(alarms) : [], [alarms]);
-  const stats = useMemo(() => alarms ? getGlobalStats(alarms) : null, [alarms]);
-  const topCities = useMemo(() => alarms ? getTopCities(alarms) : [], [alarms]);
-  const mapData = useMemo(() => alarms ? getMapData(alarms) : [], [alarms]);
+  const alarms = useMemo(() => data?.alarms || [], [data]);
+  const polygons = useMemo(() => data?.polygons || {}, [data]);
+
+  const cities = useMemo(() => getUniqueCities(alarms), [alarms]);
+  const stats = useMemo(() => getGlobalStats(alarms), [alarms]);
+  const topCities = useMemo(() => getTopCities(alarms), [alarms]);
+  const mapData = useMemo(() => getMapData(alarms, polygons), [alarms, polygons]);
 
   const hourlyData = useMemo(() => {
-    if (!alarms || !activeCity) return [];
+    if (!alarms.length || !activeCity) return [];
     return getHourlyDistribution(alarms, activeCity);
   }, [alarms, activeCity]);
 
   const globalDailyTrend = useMemo(() => {
-    return alarms ? getDailyTrend(alarms) : [];
+    return alarms.length ? getDailyTrend(alarms) : [];
   }, [alarms]);
 
   if (error) {
@@ -76,8 +79,7 @@ function Dashboard() {
     );
   }
 
-  if (!alarms) return <DashboardSkeleton />;
-
+  if (!data) return <DashboardSkeleton />;
   const handleCitySelect = (city: string) => {
     setActiveCity(city);
     setActiveTab('city');

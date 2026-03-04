@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, use, useMemo, Suspense } from 'react';
-import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, getTopCities } from '@/lib/data';
+import dynamic from 'next/dynamic';
+import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, getTopCities, getMapData } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
@@ -9,7 +10,12 @@ import { StatCards } from '@/components/StatCards';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search as SearchIcon, LayoutDashboard, MapPin } from 'lucide-react';
+import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon } from 'lucide-react';
+
+const MapChart = dynamic(() => import('@/components/MapChart'), { 
+  ssr: false,
+  loading: () => <Skeleton className="w-full h-[600px] rounded-2xl" />
+});
 
 const alarmsPromise = fetchAlarms();
 
@@ -40,6 +46,7 @@ function Dashboard() {
   const cities = useMemo(() => getUniqueCities(alarms), [alarms]);
   const stats = useMemo(() => getGlobalStats(alarms), [alarms]);
   const topCities = useMemo(() => getTopCities(alarms), [alarms]);
+  const mapData = useMemo(() => getMapData(alarms), [alarms]);
   const [activeCity, setActiveCity] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -91,6 +98,11 @@ function Dashboard() {
           )}
         </section>
 
+        <section className="flex flex-col gap-4 pt-6 border-t border-border/40">
+          <h2 className="text-xl font-bold tracking-tight px-1">מפת מוקדי אזעקות</h2>
+          <MapChart data={mapData} />
+        </section>
+
         <section className="flex flex-col gap-4">
           <h2 className="text-xl font-bold tracking-tight px-1">מגמה ארצית</h2>
           <DailyTrendChart data={globalDailyTrend} />
@@ -123,6 +135,7 @@ function Dashboard() {
 
           <TabsContent value="overview" className="flex flex-col gap-8 mt-0 focus-visible:outline-none">
             {stats && <StatCards stats={stats} />}
+            <MapChart data={mapData} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Leaderboard data={topCities} onSelect={handleCitySelect} />
               <DailyTrendChart data={globalDailyTrend} />

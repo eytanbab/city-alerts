@@ -1,8 +1,16 @@
 import Papa from 'papaparse';
+import { getCoordinatesForCity } from './geodata';
 
 export interface Alarm {
   datetime: string;
   city: string;
+}
+
+export interface MapData {
+  city: string;
+  count: number;
+  lat: number;
+  lon: number;
 }
 
 interface RawAlarmRow {
@@ -13,8 +21,26 @@ interface RawAlarmRow {
 
 const CSV_URL = 'https://raw.githubusercontent.com/yuval-harpaz/alarms/master/data/alarms.csv';
 const FILTER_DATE = new Date('2026-02-28T00:00:00');
+const CACHE_KEY = 'alarms_cache_v1';
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 export async function fetchAlarms(): Promise<Alarm[]> {
+  // Try to load from cache
+  if (typeof window !== 'undefined') {
+    const cachedData = sessionStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+      try {
+        const { timestamp, data } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          // console.log('Serving from cache');
+          return data;
+        }
+      } catch (e) {
+        // console.error('Cache parsing error', e);
+      }
+    }
+  }
+
   const response = await fetch(CSV_URL);
   const csvText = await response.text();
 
@@ -51,7 +77,18 @@ export async function fetchAlarms(): Promise<Alarm[]> {
           }
         });
 
-        // console.log(`Parsed ${alarms.length} de-duplicated alarms, ${new Set(alarms.map(a => a.city)).size} unique cities`);
+        // Save to cache
+        if (typeof window !== 'undefined') {
+          try {
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+              timestamp: Date.now(),
+              data: alarms
+            }));
+          } catch (e) {
+            // console.error('Cache storage error', e);
+          }
+        }
+
         resolve(alarms);
       },
       error: (error: Error) => {
@@ -154,4 +191,28 @@ export function getTopCities(alarms: Alarm[], limit: number = 5) {
     .sort(([, a], [, b]) => b - a)
     .slice(0, limit)
     .map(([name, count]) => ({ name, count }));
+}
+
+export function getMapData(alarms: Alarm[]): MapData[] {
+  const cityCounts: Record<string, number> = {};
+  
+  alarms.forEach(a => {
+    cityCounts[a.city] = (cityCounts[a.city] || 0) + 1;
+  });
+
+  const mapData: MapData[] = [];
+  
+  Object.entries(cityCounts).forEach(([city, count]) => {
+    const coords = getCoordinatesForCity(city);
+    if (coords) {
+      mapData.push({
+        city,
+        count,
+        lat: coords.lat,
+        lon: coords.lon
+      });
+    }
+  });
+
+  return mapData;
 }

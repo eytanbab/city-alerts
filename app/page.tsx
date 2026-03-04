@@ -10,28 +10,51 @@ import { StatCards } from '@/components/StatCards';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search as SearchIcon, LayoutDashboard, MapPin } from 'lucide-react';
+import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon } from 'lucide-react';
 
 const MapChart = dynamic(() => import('@/components/MapChart'), { 
   ssr: false,
-  loading: () => <Skeleton className="w-full h-[600px] rounded-2xl" />
+  loading: () => (
+    <div className="w-full h-[600px] rounded-2xl bg-card border border-border/50 flex flex-col overflow-hidden">
+      <div className="p-4 border-b border-border/50 bg-muted/20">
+        <div className="h-6 w-32 bg-muted animate-pulse rounded-md" />
+      </div>
+      <div className="flex-1 bg-muted/10 animate-pulse flex items-center justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <MapIcon className="h-10 w-10 text-muted-foreground/20" />
+          <span className="text-sm text-muted-foreground/40 font-medium">טוען מפה...</span>
+        </div>
+      </div>
+    </div>
+  )
 });
 
 function DashboardSkeleton() {
   return (
-    <div className="w-full flex flex-col gap-6" dir="rtl">
+    <div className="w-full flex flex-col gap-8" dir="rtl">
       <div className="flex justify-center">
         <Skeleton className="h-12 w-full max-w-sm rounded-xl" />
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-        <Skeleton className="h-28 w-full rounded-xl" />
-        <Skeleton className="h-28 w-full rounded-xl" />
-        <Skeleton className="h-28 w-full rounded-xl" />
-        <Skeleton className="h-28 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-xl shadow-sm" />
+        <Skeleton className="h-28 w-full rounded-xl shadow-sm" />
+        <Skeleton className="h-28 w-full rounded-xl shadow-sm" />
+        <Skeleton className="h-28 w-full rounded-xl shadow-sm" />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Skeleton className="h-100 w-full rounded-xl" />
-        <Skeleton className="h-100 w-full rounded-xl" />
+      
+      {/* Map Skeleton */}
+      <div className="w-full h-[600px] rounded-2xl bg-muted/5 border border-dashed flex flex-col overflow-hidden">
+        <div className="p-4 border-b border-border/50 bg-muted/10">
+          <Skeleton className="h-6 w-32" />
+        </div>
+        <div className="flex-1 flex items-center justify-center">
+          <Skeleton className="h-12 w-12 rounded-full opacity-20" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <Skeleton className="h-[400px] w-full rounded-2xl shadow-sm" />
+        <Skeleton className="h-[400px] w-full rounded-2xl shadow-sm" />
       </div>
     </div>
   );

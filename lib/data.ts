@@ -65,3 +65,22 @@ export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
     count,
   }));
 }
+
+export function getDailyTrend(alarms: Alarm[], cityName?: string) {
+  const dailyCounts: Record<string, number> = {};
+  
+  for (let i = 0; i < alarms.length; i++) {
+    const alarm = alarms[i];
+    if (!cityName || alarm.city === cityName) {
+      const datePart = alarm.datetime.includes(' ') ? alarm.datetime.split(' ')[0] : alarm.datetime;
+      dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
+    }
+  }
+
+  return Object.entries(dailyCounts)
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+    .map(([date, count]) => ({
+      date,
+      count,
+    }));
+}

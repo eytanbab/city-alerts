@@ -1,19 +1,28 @@
 'use client';
 
 import { useState, use, useMemo, Suspense } from 'react';
-import { fetchAlarms, getHourlyDistribution, getUniqueCities, Alarm } from '@/lib/data';
+import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, Alarm } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
+import { DailyTrendChart } from '@/components/DailyTrendChart';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const alarmsPromise = fetchAlarms();
 
 function DashboardSkeleton() {
   return (
-    <div className="w-full max-w-md mx-auto space-y-8" dir="rtl">
-      <Skeleton className="h-10 w-full rounded-md" />
-      <div className="mt-8 space-y-4">
-        <Skeleton className="h-[400px] w-full rounded-xl" />
+    <div className="w-full space-y-8" dir="rtl">
+      {/* Search Input Skeleton */}
+      <div className="w-full max-w-md mx-auto">
+        <Skeleton className="h-10 w-full rounded-md" />
+      </div>
+      
+      <div className="mt-8 space-y-8">
+        {/* Top Chart / Placeholder Skeleton */}
+        <Skeleton className="h-[450px] w-full rounded-xl" />
+        
+        {/* Trend Chart Skeleton */}
+        <Skeleton className="h-[450px] w-full rounded-xl" />
       </div>
     </div>
   );
@@ -29,17 +38,30 @@ function Dashboard() {
     return getHourlyDistribution(alarms, activeCity);
   }, [alarms, activeCity]);
 
+  const globalDailyTrend = useMemo(() => {
+    return getDailyTrend(alarms);
+  }, [alarms]);
+
+  const cityDailyTrend = useMemo(() => {
+    if (!activeCity) return [];
+    return getDailyTrend(alarms, activeCity);
+  }, [alarms, activeCity]);
+
   return (
     <div className="w-full flex flex-col items-center" dir="rtl">
       <CitySearch cities={cities} onSearch={setActiveCity} selectedCity={activeCity} />
 
-      {activeCity ? (
-        <AlarmChart data={hourlyData} city={activeCity} />
-      ) : (
-        <div className="mt-12 text-center text-muted-foreground">
-          <p>בחר עיר מהרשימה כדי לצפות בהתפלגות האזעקות שלה.</p>
-        </div>
-      )}
+      <div className="w-full space-y-8 mt-8">
+        {activeCity ? (
+          <AlarmChart data={hourlyData} city={activeCity} />
+        ) : (
+          <div className="py-12 text-center text-muted-foreground bg-muted/20 rounded-xl border border-dashed">
+            <p>בחר עיר מהרשימה כדי לצפות בהתפלגות האזעקות השעתית שלה.</p>
+          </div>
+        )}
+
+        <DailyTrendChart data={globalDailyTrend} />
+      </div>
     </div>
   );
 }

@@ -17,12 +17,12 @@ An interactive dashboard for visualizing siren alert data in Israel, focusing on
 - **Styling**: Tailwind CSS 4
 - **Components**: shadcn/ui
 - **Charts**: Recharts (via shadcn Chart)
-- **Data Parsing**: PapaParse
+- **Data Parsing**: Native JSON fetch
 - **Icons**: Lucide React
 
 ## Data Source
 
-The data is fetched from the [yuval-harpaz/alarms](https://github.com/yuval-harpaz/alarms) repository, which tracks real-time alert data.
+The data is fetched from the [tzevaadom.co.il](https://www.tzevaadom.co.il/static/historical/all.json) historical data endpoint.
 
 ## Getting Started
 

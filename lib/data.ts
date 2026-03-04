@@ -1,4 +1,3 @@
-import Papa from 'papaparse';
 import { getCoordinatesForCity } from './geodata';
 
 export interface Alarm {
@@ -13,15 +12,12 @@ export interface MapData {
   lon: number;
 }
 
-interface RawAlarmRow {
-  time: string | number;
-  cities: string | number;
-  [key: string]: string | number | undefined;
-}
+// JSON Structure: [group_id, threat_id, [cities], unix_timestamp]
+type RawAlarmEntry = [number, number, string[], number];
 
-const CSV_URL = 'https://raw.githubusercontent.com/yuval-harpaz/alarms/master/data/alarms.csv';
-const FILTER_DATE = new Date('2026-02-28T00:00:00');
-const CACHE_KEY = 'alarms_cache_v1';
+const DATA_URL = 'https://www.tzevaadom.co.il/static/historical/all.json';
+const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
+const CACHE_KEY = 'alarms_cache_v2'; // Changed version to invalidate old CSV cache
 const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 export async function fetchAlarms(): Promise<Alarm[]> {
@@ -32,70 +28,62 @@ export async function fetchAlarms(): Promise<Alarm[]> {
       try {
         const { timestamp, data } = JSON.parse(cachedData);
         if (Date.now() - timestamp < CACHE_DURATION) {
-          // console.log('Serving from cache');
           return data;
         }
       } catch (e) {
-        // console.error('Cache parsing error', e);
+        // ignore error
       }
     }
   }
 
-  const response = await fetch(CSV_URL);
-  const csvText = await response.text();
+  const response = await fetch(DATA_URL);
+  const data: RawAlarmEntry[] = await response.json();
 
-  return new Promise((resolve, reject) => {
-    Papa.parse<RawAlarmRow>(csvText, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const uniqueAlarms = new Set<string>();
-        const alarms: Alarm[] = [];
+  const uniqueAlarms = new Set<string>();
+  const alarms: Alarm[] = [];
 
-        results.data.forEach((row) => {
-          if (!row.time || !row.cities) return;
-          
-          const datetime = String(row.time);
-          const alarmDate = new Date(datetime.replace(' ', 'T'));
-          
-          // Filter out old data and unnecessary 2019 data
-          if (alarmDate < FILTER_DATE) return;
+  // Sort by timestamp ascending for consistent display if needed
+  data.sort((a, b) => a[3] - b[3]);
 
-          // Normalize city name immediately
-          const normalizedCity = normalizeCityName(String(row.cities));
-          
-          // De-duplicate: A city has 1 alarm at a specific timestamp, even if multiple sectors were triggered.
-          const key = `${normalizedCity}|${datetime}`;
-          
-          if (!uniqueAlarms.has(key)) {
-            uniqueAlarms.add(key);
-            alarms.push({
-              datetime,
-              city: normalizedCity,
-            });
-          }
+  data.forEach(([, , cities, timestamp]) => {
+    if (timestamp < FILTER_DATE_UNIX) return;
+
+    const date = new Date(timestamp * 1000);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+
+    cities.forEach((city) => {
+      const normalizedCity = normalizeCityName(city);
+      const key = `${normalizedCity}|${datetime}`;
+
+      if (!uniqueAlarms.has(key)) {
+        uniqueAlarms.add(key);
+        alarms.push({
+          datetime,
+          city: normalizedCity,
         });
-
-        // Save to cache
-        if (typeof window !== 'undefined') {
-          try {
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-              timestamp: Date.now(),
-              data: alarms
-            }));
-          } catch (e) {
-            // console.error('Cache storage error', e);
-          }
-        }
-
-        resolve(alarms);
-      },
-      error: (error: Error) => {
-        reject(error);
-      },
+      }
     });
   });
+
+  // Save to cache
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        data: alarms
+      }));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return alarms;
 }
 
 export function normalizeCityName(city: string): string {

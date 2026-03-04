@@ -66,10 +66,10 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-4 px-2">
-        <ChartContainer config={chartConfig} className="h-[240px] w-full">
+        <ChartContainer config={chartConfig} className="h-60 w-full">
           <AreaChart 
             data={data}
-            margin={{ left: 10, right: 10, top: 10, bottom: 0 }}
+            margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
           >
             <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" strokeOpacity={0.5} />
             <XAxis
@@ -90,6 +90,7 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
               tickMargin={10}
               fontSize={12}
               tick={{ fill: 'var(--muted-foreground)' }}
+              width={20}
             />
             <ChartTooltip content={<ChartTooltipContent className="rounded-xl border-border" />} />
             <Area

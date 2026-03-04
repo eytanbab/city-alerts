@@ -11,7 +11,7 @@ interface LeaderboardProps {
 export function Leaderboard({ data, onSelect }: LeaderboardProps) {
   return (
     <Card className="h-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
-      <CardHeader className="pb-4">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
           <Trophy className="h-4 w-4 text-muted-foreground" />
           הערים המטווחות ביותר

@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, CircleMarker, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Tooltip, Polygon } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { MapData } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,11 +20,21 @@ export default function MapChart({ data }: MapChartProps) {
   // Center of Israel
   const center: [number, number] = [31.5, 34.75];
   
-  // Find max count for scaling radius
+  // Find max count for scaling color intensity or radius fallback
   const maxCount = useMemo(() => {
     if (data.length === 0) return 1;
     return Math.max(...data.map(d => d.count), 1);
   }, [data]);
+
+  const getStyle = (count: number) => {
+    const opacity = 0.2 + (count / maxCount) * 0.6;
+    return {
+      fillColor: '#ef4444',
+      color: '#b91c1c',
+      weight: 1,
+      fillOpacity: opacity,
+    };
+  };
 
   if (!isMounted) {
     return (
@@ -58,26 +68,40 @@ export default function MapChart({ data }: MapChartProps) {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          {data.map((item) => (
-            <CircleMarker
-              key={item.city}
-              center={[item.lat, item.lon]}
-              radius={Math.max(5, (item.count / maxCount) * 35)}
-              pathOptions={{
-                fillColor: '#ef4444',
-                color: '#b91c1c',
-                weight: 1,
-                fillOpacity: 0.6,
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -5]} opacity={1}>
-                <div className="text-right font-sans" dir="rtl">
-                  <div className="font-bold">{item.city}</div>
-                  <div className="text-sm text-muted-foreground">{item.count.toLocaleString()} אזעקות</div>
-                </div>
-              </Tooltip>
-            </CircleMarker>
-          ))}
+          {data.map((item) => {
+            if (item.polygon && item.polygon.length > 0) {
+              return (
+                <Polygon
+                  key={item.city}
+                  positions={item.polygon}
+                  pathOptions={getStyle(item.count)}
+                >
+                  <Tooltip direction="top" offset={[0, -5]} sticky>
+                    <div className="text-right font-sans" dir="rtl">
+                      <div className="font-bold">{item.city}</div>
+                      <div className="text-sm text-muted-foreground">{item.count.toLocaleString()} אזעקות</div>
+                    </div>
+                  </Tooltip>
+                </Polygon>
+              );
+            }
+            // Fallback to circle if no polygon data is available
+            return (
+              <CircleMarker
+                key={item.city}
+                center={[item.lat, item.lon]}
+                radius={Math.max(5, (item.count / maxCount) * 20)}
+                pathOptions={getStyle(item.count)}
+              >
+                <Tooltip direction="top" offset={[0, -5]} opacity={1}>
+                  <div className="text-right font-sans" dir="rtl">
+                    <div className="font-bold">{item.city}</div>
+                    <div className="text-sm text-muted-foreground">{item.count.toLocaleString()} אזעקות</div>
+                  </div>
+                </Tooltip>
+              </CircleMarker>
+            );
+          })}
         </MapContainer>
       </CardContent>
     </Card>

@@ -24,18 +24,42 @@ interface CitySearchProps {
   selectedCity?: string;
 }
 
+const ITEMS_PER_PAGE = 100;
+
 export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+  const [visibleCount, setVisibleCount] = React.useState(ITEMS_PER_PAGE);
 
-  // Virtualization-like optimization: Only render items that match the search term
-  // to avoid rendering thousands of items at once.
-  const filteredCities = React.useMemo(() => {
-    if (!searchTerm) return cities.slice(0, 50); // Show top 50 when empty
-    return cities
-      .filter((city) => city.includes(searchTerm))
-      .slice(0, 50); // Limit rendered items to 50
+  // Manual filtering of cities based on search term
+  const allFilteredCities = React.useMemo(() => {
+    const search = searchTerm.trim().toLowerCase();
+    if (!search) return cities;
+    return cities.filter((city) => city.toLowerCase().includes(search));
   }, [cities, searchTerm]);
+
+  // Subset of cities to actually render in the DOM
+  const visibleCities = React.useMemo(() => {
+    return allFilteredCities.slice(0, visibleCount);
+  }, [allFilteredCities, visibleCount]);
+
+  // Reset visible count when search term changes or dropdown opens
+  React.useEffect(() => {
+    setVisibleCount(ITEMS_PER_PAGE);
+  }, [searchTerm, open]);
+
+  // Handle scroll to load more items
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const threshold = 100; // px from the bottom
+    
+    if (target.scrollHeight - target.scrollTop - target.clientHeight < threshold) {
+      if (visibleCount < allFilteredCities.length) {
+        // Use functional update to avoid stale closure
+        setVisibleCount(prev => Math.min(prev + ITEMS_PER_PAGE, allFilteredCities.length));
+      }
+    }
+  };
 
   return (
     <div className="flex w-full max-w-md items-center gap-2" dir="rtl">
@@ -59,10 +83,10 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
               dir="rtl"
               onValueChange={setSearchTerm}
             />
-            <CommandList>
+            <CommandList className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
               <CommandEmpty>לא נמצאו ערים.</CommandEmpty>
               <CommandGroup>
-                {filteredCities.map((city) => (
+                {visibleCities.map((city) => (
                   <CommandItem
                     key={city}
                     value={city}
@@ -81,6 +105,11 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
                     />
                   </CommandItem>
                 ))}
+                {visibleCount < allFilteredCities.length && (
+                  <div className="py-2 text-center text-xs text-muted-foreground animate-pulse">
+                    טוען ערים נוספות...
+                  </div>
+                )}
               </CommandGroup>
             </CommandList>
           </Command>

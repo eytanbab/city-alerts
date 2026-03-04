@@ -45,11 +45,9 @@ function formatHourRanges(hours: string[]) {
     if (i < hourNums.length && hourNums[i] === end + 1) {
       end = hourNums[i];
     } else {
-      if (start === end) {
-        ranges.push(`${start.toString().padStart(2, '0')}:00`);
-      } else {
-        ranges.push(`${start.toString().padStart(2, '0')}:00-${end.toString().padStart(2, '0')}:00`);
-      }
+      const nextHour = (end + 1).toString().padStart(2, '0');
+      ranges.push(`${start.toString().padStart(2, '0')}:00-${nextHour}:00`);
+      
       if (i < hourNums.length) {
         start = hourNums[i];
         end = hourNums[i];

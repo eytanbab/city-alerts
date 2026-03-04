@@ -10,7 +10,7 @@ interface LeaderboardProps {
 
 export function Leaderboard({ data, onSelect }: LeaderboardProps) {
   return (
-    <Card className="h-full flex flex-col border shadow-sm min-h-[400px]" dir="rtl">
+    <Card className="h-full flex flex-col border shadow-sm min-h-100" dir="rtl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Trophy className="h-5 w-5 text-amber-500" />

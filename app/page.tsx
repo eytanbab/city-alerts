@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, use, useMemo, Suspense } from 'react';
+import { useState, use, useMemo, Suspense, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, getTopCities, getMapData } from '@/lib/data';
+import { fetchAlarms, getHourlyDistribution, getDailyTrend, getUniqueCities, getGlobalStats, getTopCities, getMapData, type Alarm } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
@@ -10,14 +10,12 @@ import { StatCards } from '@/components/StatCards';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon } from 'lucide-react';
+import { Search as SearchIcon, LayoutDashboard, MapPin } from 'lucide-react';
 
 const MapChart = dynamic(() => import('@/components/MapChart'), { 
   ssr: false,
   loading: () => <Skeleton className="w-full h-[600px] rounded-2xl" />
 });
-
-const alarmsPromise = fetchAlarms();
 
 function DashboardSkeleton() {
   return (
@@ -39,25 +37,46 @@ function DashboardSkeleton() {
   );
 }
 
-const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אילת'];
+const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אשקלון', 'אשדוד', 'אילת'];
 
 function Dashboard() {
-  const alarms = use(alarmsPromise);
-  const cities = useMemo(() => getUniqueCities(alarms), [alarms]);
-  const stats = useMemo(() => getGlobalStats(alarms), [alarms]);
-  const topCities = useMemo(() => getTopCities(alarms), [alarms]);
-  const mapData = useMemo(() => getMapData(alarms), [alarms]);
+  const [alarms, setAlarms] = useState<Alarm[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [activeCity, setActiveCity] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
 
+  useEffect(() => {
+    fetchAlarms()
+      .then(setAlarms)
+      .catch(err => {
+        console.error(err);
+        setError('נכשל בטעינת נתונים. אנא נסה שוב מאוחר יותר.');
+      });
+  }, []);
+
+  const cities = useMemo(() => alarms ? getUniqueCities(alarms) : [], [alarms]);
+  const stats = useMemo(() => alarms ? getGlobalStats(alarms) : null, [alarms]);
+  const topCities = useMemo(() => alarms ? getTopCities(alarms) : [], [alarms]);
+  const mapData = useMemo(() => alarms ? getMapData(alarms) : [], [alarms]);
+
   const hourlyData = useMemo(() => {
-    if (!activeCity) return [];
+    if (!alarms || !activeCity) return [];
     return getHourlyDistribution(alarms, activeCity);
   }, [alarms, activeCity]);
 
   const globalDailyTrend = useMemo(() => {
-    return getDailyTrend(alarms);
+    return alarms ? getDailyTrend(alarms) : [];
   }, [alarms]);
+
+  if (error) {
+    return (
+      <div className="w-full py-12 text-center text-destructive bg-destructive/10 rounded-2xl border border-destructive/20">
+        <p className="text-lg font-bold">{error}</p>
+      </div>
+    );
+  }
+
+  if (!alarms) return <DashboardSkeleton />;
 
   const handleCitySelect = (city: string) => {
     setActiveCity(city);
@@ -99,17 +118,17 @@ function Dashboard() {
         </section>
 
         <section className="flex flex-col gap-4 pt-6 border-t border-border/40">
-          <h2 className="text-xl font-bold tracking-tight px-1">מפת מוקדי אזעקות</h2>
+          <h2 className="text-xl font-bold tracking-tight px-1 text-right">מפת מוקדי אזעקות</h2>
           <MapChart data={mapData} />
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold tracking-tight px-1">מגמה ארצית</h2>
+          <h2 className="text-xl font-bold tracking-tight px-1 text-right">מגמה ארצית</h2>
           <DailyTrendChart data={globalDailyTrend} />
         </section>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-xl font-bold tracking-tight px-1">הערים המטווחות ביותר</h2>
+          <h2 className="text-xl font-bold tracking-tight px-1 text-right">הערים המטווחות ביותר</h2>
           <Leaderboard data={topCities} onSelect={(city) => {
             setActiveCity(city);
             document.getElementById('city-section')?.scrollIntoView({ behavior: 'smooth' });
@@ -200,10 +219,10 @@ export default function Home() {
       </Suspense>
       <footer className="text-sm text-muted-foreground text-center flex flex-col gap-3 w-full border-t border-border/40">
         <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6">
-          <p className="font-medium">הנתונים מתעדכנים על בסיס יומי</p>
+          <p className="font-medium">הנתונים מתעדכנים בזמן אמת</p>
           <span className="hidden md:block opacity-30">•</span>
           <p>
-            מקור: <a href="https://github.com/yuval-harpaz/alarms" className="underline underline-offset-4 hover:text-foreground transition-all font-medium" target="_blank" rel="noopener noreferrer">yuval-harpaz/alarms</a>
+            מקור: <a href="https://www.tzevaadom.co.il" className="underline underline-offset-4 hover:text-foreground transition-all font-medium" target="_blank" rel="noopener noreferrer">צבע אדום</a>
           </p>
           <span className="hidden md:block opacity-30">•</span>
           <p>

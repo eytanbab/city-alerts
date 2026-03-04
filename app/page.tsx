@@ -49,7 +49,7 @@ export default function Home() {
     <main className="container mx-auto px-4 py-8 max-w-4xl min-h-screen flex flex-col items-center" dir="rtl">
       <div className="w-full text-center mb-12">
         <h1 className="text-4xl font-bold tracking-tight mb-4">
-          התפלגות סירנות לפי עיר
+          התפלגות אזעקות במבצע שאגת הארי לפי עיר
         </h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
           ויזואליזציה של תדירות אזעקות שעתית לכל עיר החל מה-27 בפברואר 2026.

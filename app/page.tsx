@@ -33,7 +33,7 @@ function DashboardSkeleton() {
   );
 }
 
-const POPULAR_CITIES = ['אשקלון', 'תל אביב - יפו', 'באר שבע', 'שדרות', 'חיפה'];
+const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אילת'];
 
 function Dashboard() {
   const alarms = use(alarmsPromise);

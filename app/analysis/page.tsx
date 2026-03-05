@@ -7,13 +7,32 @@ import { type DashboardData } from "@/lib/data";
 
 import { type Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "ניתוח לפי עיר",
-  description:
-    "נתונים מפורטים, התפלגות שעתית ומגמות של אזעקות עבור כל עיר ויישוב בישראל.",
-};
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ city?: string }>;
+}): Promise<Metadata> {
+  const { city } = await searchParams;
+  if (!city) {
+    return {
+      title: "ניתוח לפי עיר",
+      description:
+        "נתונים מפורטים, התפלגות שעתית ומגמות של אזעקות עבור כל עיר ויישוב בישראל.",
+    };
+  }
 
-export default function AnalysisPage() {
+  return {
+    title: `ניתוח אזעקות: ${city}`,
+    description: `נתונים מפורטים, התפלגות שעתית ומגמות של אזעקות עבור ${city}.`,
+  };
+}
+
+export default async function AnalysisPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ city?: string }>;
+}) {
+  const { city } = await searchParams;
   const dataPromise = getDashboardData();
 
   return (
@@ -57,7 +76,7 @@ export default function AnalysisPage() {
             </div>
           }
         >
-          <CityAnalysisWrapper dataPromise={dataPromise} />
+          <CityAnalysisWrapper dataPromise={dataPromise} initialCity={city} />
         </Suspense>
       </div>
 

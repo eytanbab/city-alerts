@@ -28,6 +28,8 @@ export interface LeaderboardEntry {
 
 export interface DashboardData {
   alarms: Alarm[];
+  alarmsByCity: Record<string, Alarm[]>; // Grouped by normalized city name
+  lastSirenPerCity: Record<string, string>; // Latest siren datetime per normalized city
   polygons: Record<string, [number, number][]>;
   stats: GlobalStats | null;
   topCities: LeaderboardEntry[];

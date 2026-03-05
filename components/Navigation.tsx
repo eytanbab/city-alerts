@@ -5,27 +5,29 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+const navItems = [
+  {
+    label: 'מבט כללי',
+    href: '/',
+    icon: LayoutDashboard,
+  },
+  {
+    label: 'ניתוח לפי עיר',
+    href: '/analysis',
+    icon: MapPin,
+  },
+];
+
 export function Navigation() {
   const pathname = usePathname();
-
-  const navItems = [
-    {
-      label: 'מבט כללי',
-      href: '/',
-      icon: LayoutDashboard,
-    },
-    {
-      label: 'ניתוח לפי עיר',
-      href: '/analysis',
-      icon: MapPin,
-    },
-  ];
 
   return (
     <nav className="flex justify-center mb-8" dir="rtl">
       <div className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          // Direct comparison is sufficient; fallback to '/' handles initial hydration on the root
+          const isActive = (pathname ?? '/') === item.href;
+          
           return (
             <Link
               key={item.href}

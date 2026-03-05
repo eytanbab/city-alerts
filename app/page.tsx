@@ -32,35 +32,42 @@ const MapChart = dynamic(() => import('@/components/MapChart'), {
 
 function DashboardSkeleton() {
   return (
-    <div className="w-full flex flex-col gap-12 animate-pulse" dir="rtl">
-      {/* StatCards Skeleton: grid-px matches the approve sharp design */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border">
-        {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-background h-32 md:h-44 p-6 md:p-8 flex flex-col gap-6">
-            <div className="flex items-center justify-between">
-              <div className="h-3 w-20 bg-muted rounded-none" />
-              <div className="h-4 w-4 bg-muted/20 rounded-none" />
-            </div>
-            <div className="flex flex-col gap-2 mt-auto">
-              <div className="h-8 w-24 bg-muted rounded-none" />
-              <div className="h-3 w-32 bg-muted/20 rounded-none" />
-            </div>
-          </div>
-        ))}
-      </div>
-      
-      {/* Map Skeleton */}
-      <div className="w-full h-[600px] bg-muted/5 border border-border flex items-center justify-center">
-        <div className="flex flex-col items-center gap-3">
-          <MapIcon className="h-6 w-6 text-muted-foreground/20" />
-          <div className="h-3 w-24 bg-muted/20 rounded-none" />
-        </div>
+    <div className="w-full flex flex-col gap-8 md:gap-12 animate-pulse" dir="rtl">
+      {/* Tabs Skeleton - Desktop Only */}
+      <div className="hidden lg:flex justify-center">
+        <div className="h-12 w-full max-w-md bg-muted/50 rounded-xl border border-border/50" />
       </div>
 
-      {/* Charts Skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="h-[400px] border border-border bg-background" />
-        <div className="h-[400px] border border-border bg-background" />
+      <div className="flex flex-col gap-8 md:gap-12">
+        {/* StatCards Skeleton: grid-px matches the approve sharp design */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="bg-background h-32 md:h-44 p-6 md:p-8 flex flex-col gap-6">
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-20 bg-muted rounded-none" />
+                <div className="h-4 w-4 bg-muted/20 rounded-none" />
+              </div>
+              <div className="flex flex-col gap-2 mt-auto">
+                <div className="h-8 w-24 bg-muted rounded-none" />
+                <div className="h-3 w-32 bg-muted/20 rounded-none" />
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Map Skeleton */}
+        <div className="w-full h-[600px] bg-muted/5 border border-border flex items-center justify-center">
+          <div className="flex flex-col items-center gap-3">
+            <MapIcon className="h-6 w-6 text-muted-foreground/20" />
+            <div className="h-3 w-24 bg-muted/20 rounded-none" />
+          </div>
+        </div>
+
+        {/* Charts Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12">
+          <div className="h-[400px] border border-border bg-background" />
+          <div className="h-[400px] border border-border bg-background" />
+        </div>
       </div>
     </div>
   );

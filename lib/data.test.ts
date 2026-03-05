@@ -38,10 +38,11 @@ describe('Data Utility Functions (Optimized)', () => {
       'תל אביב - יפו': { id: 201, lat: 32.0, lng: 34.7 }
     };
 
-    const polygonsRaw = {
-      '101': [[32.8, 34.9], [32.81, 34.91]],
-      '201': [[32.0, 34.7], [32.01, 34.71]]
+    const polygonsRaw: Record<string, [number, number][]> = {
+      '101': [[32.0, 34.0], [32.1, 34.1]],
+      '201': [[32.5, 34.5], [32.6, 34.6]]
     };
+
 
     const filterDateUnix = 1772150400; // 2026-02-28 00:00:00
 

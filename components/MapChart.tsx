@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type L from 'leaflet';
 import { MapData } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -10,42 +11,38 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
  * We use vanilla Leaflet directly instead of react-leaflet components
  * to solve persistent hydration and route-transition DOM errors 
  * (appendChild of undefined / Map container is being reused).
- * 
- * This gives us 100% control over initialization and cleanup.
  */
 export default function MapChart({ data }: { data: MapData[] }) {
-  const mapRef = useRef<any>(null);
+  const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Only initialize on the client
     if (typeof window === 'undefined' || !containerRef.current) return;
 
-    let mapInstance: any = null;
+    let mapInstance: L.Map | null = null;
+    const container = containerRef.current;
 
     async function initMap() {
-      // Dynamically import Leaflet to ensure no SSR issues
-      const L = (await import('leaflet')).default;
+      const Leaflet = (await import('leaflet')).default;
 
-      if (!containerRef.current) return;
+      if (!container) return;
 
       // 1. Force cleanup of the container
-      const container = containerRef.current;
-      if ((container as any)._leaflet_id) {
-        delete (container as any)._leaflet_id;
+      if ((container as unknown as Record<string, unknown>)._leaflet_id) {
+        delete (container as unknown as Record<string, string>)._leaflet_id;
       }
       container.innerHTML = '';
 
       // 2. Initialize Map
-      mapInstance = L.map(container, {
+      mapInstance = Leaflet.map(container, {
         center: [31.5, 34.75],
         zoom: 8,
         scrollWheelZoom: true,
         attributionControl: true
       });
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }).addTo(mapInstance);
 
@@ -55,17 +52,16 @@ export default function MapChart({ data }: { data: MapData[] }) {
 
     initMap();
 
-    // 3. Robust Cleanup
+    // 3. Robust Cleanup using captured container variable
     return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
+      if (mapInstance) {
+        mapInstance.remove();
         mapRef.current = null;
       }
-      if (containerRef.current) {
-        const container = containerRef.current;
+      if (container) {
         container.innerHTML = '';
-        if ((container as any)._leaflet_id) {
-          delete (container as any)._leaflet_id;
+        if ((container as unknown as Record<string, unknown>)._leaflet_id) {
+          delete (container as unknown as Record<string, string>)._leaflet_id;
         }
       }
       setIsReady(false);
@@ -78,11 +74,13 @@ export default function MapChart({ data }: { data: MapData[] }) {
     if (!map || !isReady || !data) return;
 
     async function updateMarkers() {
-      const L = (await import('leaflet')).default;
+      const Leaflet = (await import('leaflet')).default;
       
+      if (!map) return;
+
       // Remove previous markers/polygons
-      map.eachLayer((layer: any) => {
-        if (layer instanceof L.CircleMarker || layer instanceof L.Polygon) {
+      map.eachLayer((layer: L.Layer) => {
+        if (layer instanceof Leaflet.CircleMarker || layer instanceof Leaflet.Polygon) {
           map.removeLayer(layer);
         }
       });
@@ -96,19 +94,19 @@ export default function MapChart({ data }: { data: MapData[] }) {
         const h = 240 + (25 - 240) * ratio;
         const color = `oklch(${l.toFixed(3)} ${c.toFixed(3)} ${h.toFixed(3)})`;
 
-        const style = {
+        const style: L.PathOptions = {
           fillColor: color,
           color: 'white',
           weight: 0.5,
           fillOpacity: 0.7,
         };
 
-        let layer: any;
+        let layer: L.Layer;
 
         if (item.polygon && item.polygon.length > 0) {
-          layer = L.polygon(item.polygon as any, style);
+          layer = Leaflet.polygon(item.polygon as L.LatLngExpression[], style);
         } else {
-          layer = L.circleMarker([item.lat, item.lon], {
+          layer = Leaflet.circleMarker([item.lat, item.lon], {
             ...style,
             radius: Math.max(4, (item.count / maxCount) * 20),
           });

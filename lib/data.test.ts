@@ -17,7 +17,7 @@ describe("Data Utility Functions (Optimized)", () => {
       { datetime: "2026-02-28 10:00:00", city: "חיפה" },
       { datetime: "2026-02-28 10:15:00", city: "חיפה" },
     ];
-    const dist = getHourlyDistribution(alarms, "חיפה");
+    const dist = getHourlyDistribution(alarms);
     const tenAm = dist.find((d) => d.hour === "10:00");
     expect(tenAm?.count).toBe(2);
 
@@ -25,7 +25,7 @@ describe("Data Utility Functions (Optimized)", () => {
       { datetime: "2026-02-28 10:00:00", city: "חיפה - א" },
       { datetime: "2026-02-28 10:00:30", city: "חיפה - ב" },
     ];
-    const sameMinDist = getHourlyDistribution(sameMinAlarms, "חיפה");
+    const sameMinDist = getHourlyDistribution(sameMinAlarms);
     expect(sameMinDist.find((d) => d.hour === "10:00")?.count).toBe(1);
   });
 

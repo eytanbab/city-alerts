@@ -10,7 +10,7 @@ import { StatCards } from '@/components/StatCards';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon } from 'lucide-react';
+import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon, Info } from 'lucide-react';
 import { ModeToggle } from '@/components/ModeToggle';
 
 const MapChart = dynamic(() => import('@/components/MapChart'), { 
@@ -112,6 +112,13 @@ function Dashboard() {
 
   return (
     <div className="w-full flex flex-col gap-6" dir="rtl">
+      {data.isFallback && (
+        <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 text-amber-600 dark:text-amber-400">
+          <Info className="h-5 w-5 shrink-0" />
+          <p className="text-sm font-bold">שימוש בנתונים שמורים: החיבור למקור הנתונים בזמן אמת נכשל. המידע המוצג עשוי להיות לא מעודכן.</p>
+        </div>
+      )}
+
       {/* Mobile View: Continuous Scroll */}
       <div className="lg:hidden flex flex-col gap-8">
         <div className="flex flex-col gap-2">

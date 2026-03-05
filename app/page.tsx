@@ -109,7 +109,12 @@ function Dashboard() {
     <div className="w-full flex flex-col gap-6" dir="rtl">
       {/* Mobile View: Continuous Scroll */}
       <div className="lg:hidden flex flex-col gap-8">
-        {stats && <StatCards stats={stats} />}
+        <div className="flex flex-col gap-2">
+          {stats && <StatCards stats={stats} />}
+          <div className="text-[10px] font-bold text-muted-foreground uppercase text-center">
+            עדכון אחרון: {data.lastUpdated}
+          </div>
+        </div>
         
         <section id="city-section" className="flex flex-col gap-6 pt-6 border-t border-border/40">
           <div className="flex flex-col items-center gap-4 text-center">
@@ -161,17 +166,22 @@ function Dashboard() {
       {/* Desktop View */}
       <div className="hidden lg:flex flex-col gap-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-8">
-          <div className="flex justify-center">
-            <TabsList className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
-              <TabsTrigger value="overview" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm">
-                <LayoutDashboard className="h-4 w-4" />
-                מבט כללי
-              </TabsTrigger>
-              <TabsTrigger value="city" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm">
-                <MapPin className="h-4 w-4" />
-                ניתוח לפי עיר
-              </TabsTrigger>
-            </TabsList>
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-center">
+              <TabsList className="grid w-full max-md max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
+                <TabsTrigger value="overview" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm">
+                  <LayoutDashboard className="h-4 w-4" />
+                  מבט כללי
+                </TabsTrigger>
+                <TabsTrigger value="city" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm">
+                  <MapPin className="h-4 w-4" />
+                  ניתוח לפי עיר
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            <div className="text-[10px] font-bold text-muted-foreground uppercase text-center">
+              עדכון אחרון: {data.lastUpdated}
+            </div>
           </div>
 
           <TabsContent value="overview" className="flex flex-col gap-8 mt-0 focus-visible:outline-none">

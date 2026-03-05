@@ -31,6 +31,13 @@ Use the historical JSON data located at: https://www.tzevaadom.co.il/static/hist
 4. Use Tailwind CSS 4 for styling.
 5. Use native `fetch` and JSON parsing for data.
 
+# Typing Constraints
+
+* You must never use the `any` type in any code examples or implementations.
+* Always enforce strict and explicit typing for all variables, parameters, interfaces, and return values.
+* If a type is genuinely unknown or highly dynamic, use the `unknown` type and apply proper type narrowing before use.
+* Do not bypass the type checker.
+
 **File Structure**
 * `lib/data.ts`: Handles fetching, parsing, and filtering (>= 2026-02-28).
 * `components/ui/chart.tsx`: Standard shadcn chart primitives.

@@ -11,6 +11,24 @@ function getMinuteKey(datetime: string): string {
   return datetime.substring(0, 16);
 }
 
+/**
+ * Highly optimized date formatting for Israel (Asia/Jerusalem).
+ * Replaces expensive Intl.DateTimeFormat.formatToParts in loops.
+ */
+function getIsraelTime(timestamp: number) {
+  // Israel is UTC+2, plus 1 if DST is active.
+  // We use a single Intl formatter just to get the string, and only once per unique timestamp if possible.
+  // For maximum speed while maintaining timezone correctness, we cache the results.
+  const date = new Date(timestamp * 1000);
+  
+  // Format: "YYYY-MM-DD HH:mm:ss"
+  // Using toLocaleString with Asia/Jerusalem is still faster than formatToParts
+  // but let's use a simple cache to handle the 19k records.
+  return date.toLocaleString('sv-SE', { timeZone: 'Asia/Jerusalem' });
+}
+
+const dateCache = new Map<number, { datetime: string; datePart: string }>();
+
 export function processRawAlarms(
   rawAlarms: [number, number, string[], number][], 
   citiesMetadata: Record<string, { id: number; lat: number; lng: number }>, 
@@ -18,6 +36,8 @@ export function processRawAlarms(
   filterDateUnix: number
 ): DashboardData {
   const alarms: Alarm[] = [];
+  const alarmsByCity: Record<string, Alarm[]> = {};
+  const lastSirenPerCity: Record<string, string> = {};
   const cityToPolygon: Record<string, [number, number][]> = {};
   const cityEventCounts: Record<string, number> = {};
   const seenEvents = new Set<string>();
@@ -26,42 +46,49 @@ export function processRawAlarms(
   const citySirenCounts: Record<string, { count: number; lat?: number; lon?: number }> = {};
   let maxTimestamp = 0;
 
-  rawAlarms.forEach(([, , cities, timestamp]) => {
-    if (timestamp < filterDateUnix) return;
+  // Clear cache for new data processing batch
+  dateCache.clear();
+
+  // Process in a single pass
+  for (let i = 0; i < rawAlarms.length; i++) {
+    const [, , cities, timestamp] = rawAlarms[i];
+    if (timestamp < filterDateUnix) continue;
 
     if (timestamp > maxTimestamp) maxTimestamp = timestamp;
 
-    const date = new Date(timestamp * 1000);
-    const formatter = new Intl.DateTimeFormat('he-IL', {
-      timeZone: 'Asia/Jerusalem',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false
-    });
+    let dateInfo = dateCache.get(timestamp);
+    if (!dateInfo) {
+      const datetime = getIsraelTime(timestamp);
+      dateInfo = { 
+        datetime, 
+        datePart: datetime.split(' ')[0] 
+      };
+      dateCache.set(timestamp, dateInfo);
+    }
     
-    const parts = formatter.formatToParts(date);
-    const getPart = (type: string) => parts.find(p => p.type === type)?.value;
-    
-    // Format: YYYY-MM-DD HH:mm:ss
-    const datetime = `${getPart('year')}-${getPart('month')}-${getPart('day')} ${getPart('hour')}:${getPart('minute')}:${getPart('second')}`;
-    const datePart = `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
+    const { datetime, datePart } = dateInfo;
     const minKey = datetime.substring(0, 16);
 
-    cities.forEach((cityName) => {
-      const city = cityName.trim();
+    for (let j = 0; j < cities.length; j++) {
+      const city = cities[j].trim();
       const baseCity = normalizeCityName(city);
       const meta = citiesMetadata[city];
       
-      alarms.push({
+      const alarmObj: Alarm = {
         datetime,
         city,
         lat: meta?.lat,
         lon: meta?.lng
-      });
+      };
+
+      alarms.push(alarmObj);
+      
+      if (!alarmsByCity[baseCity]) alarmsByCity[baseCity] = [];
+      alarmsByCity[baseCity].push(alarmObj);
+      
+      if (!lastSirenPerCity[baseCity] || datetime > lastSirenPerCity[baseCity]) {
+        lastSirenPerCity[baseCity] = datetime;
+      }
 
       if (meta?.id && polygonsRaw[meta.id] && !cityToPolygon[city]) {
         cityToPolygon[city] = polygonsRaw[meta.id];
@@ -79,8 +106,8 @@ export function processRawAlarms(
         cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
         dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
       }
-    });
-  });
+    }
+  }
 
   const sortedCityEvents = Object.entries(cityEventCounts).sort(([, a], [, b]) => b - a);
   const topCity = sortedCityEvents[0];
@@ -105,6 +132,8 @@ export function processRawAlarms(
 
   return {
     alarms,
+    alarmsByCity,
+    lastSirenPerCity,
     polygons: cityToPolygon,
     stats,
     topCities: sortedCityEvents.slice(0, 5).map(([name, count]) => ({ name, count })),
@@ -126,21 +155,19 @@ export function processRawAlarms(
   };
 }
 
-export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
+export function getHourlyDistribution(cityAlarms: Alarm[]) {
   const hourlyCounts = Array(24).fill(0);
-  const normalizedTarget = normalizeCityName(cityName);
   const seenMinutes = new Set<string>();
 
-  alarms.forEach(a => {
-    if (normalizeCityName(a.city) === normalizedTarget) {
-      const minKey = getMinuteKey(a.datetime);
-      if (!seenMinutes.has(minKey)) {
-        seenMinutes.add(minKey);
-        const hour = parseInt(a.datetime.split(' ')[1].split(':')[0], 10);
-        if (hour >= 0 && hour < 24) hourlyCounts[hour]++;
-      }
+  for (let i = 0; i < cityAlarms.length; i++) {
+    const a = cityAlarms[i];
+    const minKey = getMinuteKey(a.datetime);
+    if (!seenMinutes.has(minKey)) {
+      seenMinutes.add(minKey);
+      const hour = parseInt(a.datetime.substring(11, 13), 10);
+      if (hour >= 0 && hour < 24) hourlyCounts[hour]++;
     }
-  });
+  }
 
   return hourlyCounts.map((count, hour) => ({
     hour: `${hour.toString().padStart(2, '0')}:00`,
@@ -148,15 +175,16 @@ export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
   }));
 }
 
-export function getCityDailyTrend(alarms: Alarm[], cityName: string) {
+export function getCityDailyTrend(cityAlarms: Alarm[]) {
   const dailyCounts: Record<string, number> = {};
-  const normalizedTarget = normalizeCityName(cityName);
   const seenMinutes = new Set<string>();
 
+  // Only consider dates from the first alarm to now or fixed range
+  // We can't easily generate all dates without a start/end, 
+  // but we know the range starts from 2026-02-28
   const startDate = new Date('2026-02-28');
-  const endDate = new Date(); // Today
+  const endDate = new Date();
   
-  // Initialize all dates with 0
   const current = new Date(startDate);
   while (current <= endDate) {
     const dateStr = current.toISOString().split('T')[0];
@@ -164,18 +192,17 @@ export function getCityDailyTrend(alarms: Alarm[], cityName: string) {
     current.setDate(current.getDate() + 1);
   }
 
-  alarms.forEach(a => {
-    if (normalizeCityName(a.city) === normalizedTarget) {
-      const minKey = getMinuteKey(a.datetime);
-      if (!seenMinutes.has(minKey)) {
-        seenMinutes.add(minKey);
-        const datePart = a.datetime.split(' ')[0];
-        if (dailyCounts[datePart] !== undefined) {
-          dailyCounts[datePart]++;
-        }
+  for (let i = 0; i < cityAlarms.length; i++) {
+    const a = cityAlarms[i];
+    const minKey = getMinuteKey(a.datetime);
+    if (!seenMinutes.has(minKey)) {
+      seenMinutes.add(minKey);
+      const datePart = a.datetime.substring(0, 10);
+      if (dailyCounts[datePart] !== undefined) {
+        dailyCounts[datePart]++;
       }
     }
-  });
+  }
 
   return Object.entries(dailyCounts)
     .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))

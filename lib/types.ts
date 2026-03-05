@@ -40,4 +40,5 @@ export interface DashboardData {
   mapData: MapData[];
   globalDailyTrend: { date: string; count: number }[];
   citiesList: string[];
+  lastUpdated: string;
 }

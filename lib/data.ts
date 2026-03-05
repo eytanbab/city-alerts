@@ -3,11 +3,42 @@ import { type Alarm, type MapData, type DashboardData, type GlobalStats } from '
 export * from './types';
 
 const DATA_URL = '/api/alarms';
+const CACHE_KEY = 'alarms_cache_v9';
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 export async function fetchDashboardData(): Promise<DashboardData> {
+  // Try to load from cache
+  if (typeof window !== 'undefined') {
+    const cachedData = sessionStorage.getItem(CACHE_KEY);
+    if (cachedData) {
+      try {
+        const { timestamp, data } = JSON.parse(cachedData);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          return data;
+        }
+      } catch (e) {
+        // ignore error
+      }
+    }
+  }
+
   const response = await fetch(DATA_URL);
   if (!response.ok) throw new Error('Failed to fetch dashboard data');
-  return response.json();
+  const data = await response.json();
+
+  // Save to cache
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
+        timestamp: Date.now(),
+        data
+      }));
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return data;
 }
 
 export function normalizeCityName(city: string): string {
@@ -21,7 +52,7 @@ export function getMinuteKey(datetime: string): string {
 
 export function processRawAlarms(
   rawAlarms: [number, number, string[], number][], 
-  citiesMetadata: Record<string, any>, 
+  citiesMetadata: Record<string, { id: number; lat: number; lng: number }>, 
   polygonsRaw: Record<string, [number, number][]>,
   filterDateUnix: number
 ): DashboardData {
@@ -32,9 +63,12 @@ export function processRawAlarms(
   const uniqueBaseCities = new Set<string>();
   const dailyCounts: Record<string, number> = {};
   const citySirenCounts: Record<string, { count: number; lat?: number; lon?: number }> = {};
+  let maxTimestamp = 0;
 
   rawAlarms.forEach(([, , cities, timestamp]) => {
     if (timestamp < filterDateUnix) return;
+
+    if (timestamp > maxTimestamp) maxTimestamp = timestamp;
 
     const date = new Date(timestamp * 1000);
     const datetime = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
@@ -102,7 +136,16 @@ export function processRawAlarms(
     globalDailyTrend: Object.entries(dailyCounts)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, count]) => ({ date, count })),
-    citiesList: Array.from(uniqueBaseCities).sort((a, b) => a.localeCompare(b, 'he'))
+    citiesList: Array.from(uniqueBaseCities).sort((a, b) => a.localeCompare(b, 'he')),
+    lastUpdated: maxTimestamp > 0 
+      ? new Date(maxTimestamp * 1000).toLocaleString('he-IL', { 
+          hour: '2-digit', 
+          minute: '2-digit', 
+          day: '2-digit', 
+          month: '2-digit', 
+          year: '2-digit' 
+        })
+      : 'N/A'
   };
 }
 

@@ -12,16 +12,14 @@ const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
  * Server-side data fetching with Next.js 16 explicit caching.
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  // Use a shorter cache life to ensure data is fresh.
-  // 'seconds' typically revalidates every few seconds in most environments.
-  cacheLife('seconds'); 
+  // 'minutes' is the standard profile, usually revalidating every minute.
+  cacheLife('minutes'); 
 
-  const timestamp = Date.now();
   try {
     const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
-      fetch(`${DATA_URL}?t=${timestamp}`, { cache: 'no-store' }),
-      fetch(`${CITIES_URL}?t=${timestamp}`, { cache: 'no-store' }),
-      fetch(`${POLYGONS_URL}?t=${timestamp}`, { cache: 'no-store' })
+      fetch(DATA_URL, { cache: 'no-store' }),
+      fetch(CITIES_URL, { cache: 'no-store' }),
+      fetch(POLYGONS_URL, { cache: 'no-store' })
     ]);
 
     if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {
@@ -47,6 +45,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     // Return a minimal fallback object that OverviewContent can handle
     return {
       alarms: [],
+      alarmsByCity: {},
+      lastSirenPerCity: {},
       polygons: {},
       stats: null,
       topCities: [],

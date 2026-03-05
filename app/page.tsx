@@ -32,7 +32,7 @@ export default function Home() {
       </div>
 
       <div className="w-full">
-        <Navigation />
+        <Navigation currentPath="/" />
 
         <Suspense
           fallback={

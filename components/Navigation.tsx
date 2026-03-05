@@ -1,7 +1,4 @@
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { LayoutDashboard, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -18,14 +15,16 @@ const navItems = [
   },
 ];
 
-export function Navigation() {
-  const pathname = usePathname();
+interface NavigationProps {
+  currentPath: string;
+}
 
+export function Navigation({ currentPath }: NavigationProps) {
   return (
     <nav className="flex justify-center mb-2" dir="rtl">
       <div className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-card rounded-xl border">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = currentPath === item.href;
 
           return (
             <Link

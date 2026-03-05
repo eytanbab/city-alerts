@@ -28,7 +28,7 @@ export default function AnalysisPage() {
       </div>
 
       <div className="w-full">
-        <Navigation />
+        <Navigation currentPath="/analysis" />
 
         <Suspense
           fallback={

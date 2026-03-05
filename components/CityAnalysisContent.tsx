@@ -116,7 +116,7 @@ export function CityAnalysisContent({
               onClick={() => handleCityChange(city)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer ${
                 activeCity === city
-                  ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm"
                   : "bg-background hover:bg-accent text-muted-foreground border-input"
               }`}
             >

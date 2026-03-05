@@ -1,7 +1,11 @@
 import { Suspense, use } from "react";
 import { getDashboardData } from "@/lib/server-data";
 import { Navigation } from "@/components/Navigation";
-import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
+import {
+  TrendChartSkeleton,
+  CitySearchSkeleton,
+  QuickButtonsSkeleton,
+} from "@/components/DashboardSkeletons";
 import { CityAnalysisWrapper } from "@/components/CityAnalysisWrapper";
 import { type DashboardData } from "@/lib/data";
 
@@ -60,15 +64,8 @@ export default async function AnalysisPage({
         <Suspense
           fallback={
             <div className="w-full flex flex-col items-center gap-6">
-              <div className="h-12 w-full max-w-md bg-muted animate-pulse rounded-xl" />
-              <div className="flex flex-wrap justify-center gap-2">
-                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                  <div
-                    key={`btn-skeleton-${i}`}
-                    className="h-9 w-24 bg-muted animate-pulse rounded-full"
-                  />
-                ))}
-              </div>
+              <CitySearchSkeleton />
+              <QuickButtonsSkeleton />
               <div className="w-full max-w-5xl grid grid-cols-1 gap-8 mt-4">
                 <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />
                 <TrendChartSkeleton footerCols={3} />

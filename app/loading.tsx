@@ -1,4 +1,10 @@
-import { StatCardsSkeleton, MapSkeleton } from "@/components/DashboardSkeletons";
+import {
+  StatCardsSkeleton,
+  MapSkeleton,
+  LeaderboardSkeleton,
+  TrendChartSkeleton,
+  CitySearchSkeleton,
+} from "@/components/DashboardSkeletons";
 
 export default function Loading() {
   return (
@@ -17,15 +23,15 @@ export default function Loading() {
 
       <div className="w-full flex flex-col gap-8 md:gap-12">
         <div className="flex justify-center">
-          <div className="h-12 w-full max-w-md bg-muted/50 rounded-xl border border-border/50" />
+          <CitySearchSkeleton />
         </div>
 
         <div className="flex flex-col gap-8">
           <StatCardsSkeleton />
           <MapSkeleton />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="h-96 w-full bg-muted/10 rounded-xl" />
-            <div className="h-96 w-full bg-muted/10 rounded-xl" />
+            <LeaderboardSkeleton />
+            <TrendChartSkeleton />
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import { Leaderboard } from '@/components/Leaderboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon } from 'lucide-react';
+import { ModeToggle } from '@/components/ModeToggle';
 
 const MapChart = dynamic(() => import('@/components/MapChart'), { 
   ssr: false,
@@ -226,6 +227,9 @@ function Dashboard() {
 export default function Home() {
   return (
     <main className="container mx-auto px-4 py-6 md:py-10 max-w-6xl min-h-screen flex flex-col items-center gap-8 md:gap-12" dir="rtl">
+      <div className="w-full flex justify-end">
+        <ModeToggle />
+      </div>
       <div className="w-full text-center flex flex-col gap-3">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
           התפלגות אזעקות במבצע שאגת הארי

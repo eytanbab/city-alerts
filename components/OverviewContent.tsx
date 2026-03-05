@@ -1,19 +1,13 @@
 "use client";
 
 import { use } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { type DashboardData } from "@/lib/data";
 import { StatCards } from "@/components/StatCards";
 import { Leaderboard } from "@/components/Leaderboard";
 import { DailyTrendChart } from "@/components/DailyTrendChart";
-import { MapSkeleton } from "@/components/DashboardSkeletons";
+import MapChart from "@/components/MapChart";
 import { Info } from "lucide-react";
-
-const MapChart = dynamic(() => import("@/components/MapChart"), {
-  ssr: false,
-  loading: () => <MapSkeleton />,
-});
 
 interface OverviewContentProps {
   dataPromise: Promise<DashboardData>;

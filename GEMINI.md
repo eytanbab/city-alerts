@@ -2,6 +2,12 @@
 
 ---
 
+### Foundational Mandates
+1. **Commit Protocol**: DO NOT commit any changes unless explicitly instructed by the user. 
+2. **Commit Standards**: When instructed to commit, use industry best practices only. Each commit must be logical, atomic, and focused on a single responsibility (Logical Commits). Commit messages must follow the Conventional Commits specification.
+
+---
+
 ### GEMINI.md System Prompt
 
 **Role**
@@ -42,4 +48,3 @@ Use the historical JSON data located at: https://www.tzevaadom.co.il/static/hist
 4. **Data Processing**: Filter for records after 2026-02-27. Match the user input against the `city` column. Group results by the hour from the `datetime` field.
 5. **Visualization**: Use a shadcn-styled BarChart. Ensure the Y-axis is positioned on the right side if necessary for the RTL feel, and tooltips are localized.
 6. **Final Step**: Run `npm run build` to catch any bugs introduced during development.
-

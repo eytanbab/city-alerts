@@ -56,7 +56,7 @@ export default function MapChart({ data }: MapChartProps) {
   return (
     <Card className="w-full h-[600px] border border-border shadow-none rounded-sm overflow-hidden flex flex-col" dir="rtl">
       <CardHeader className="px-6 py-4 border-b border-border bg-muted/5">
-        <CardTitle className="text-sm font-black uppercase tracking-widest text-foreground">מפת מוקדי התרעות</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-lg font-bold">מפת מוקדי התרעות</CardTitle>
       </CardHeader>
       <CardContent className="p-0 flex-1 relative min-h-0" dir="ltr">
         <MapContainer 
@@ -81,8 +81,8 @@ export default function MapChart({ data }: MapChartProps) {
                 >
                   <Tooltip direction="top" offset={[0, -5]} sticky>
                     <div dir="rtl" className="text-right">
-                      <div className="text-[12px] font-bold text-foreground mb-1">{item.city}</div>
-                      <div className="text-[12px] font-bold text-muted-foreground tabular-nums">
+                      <div className="text-xs font-bold text-foreground dark:text-background mb-1">{item.city}</div>
+                      <div className="text-xs font-bold text-muted-foreground tabular-nums">
                         {item.count.toLocaleString()} אזעקות
                       </div>
                     </div>
@@ -99,8 +99,8 @@ export default function MapChart({ data }: MapChartProps) {
               >
                 <Tooltip direction="top" offset={[0, -5]}>
                   <div className="bg-background border border-border p-2 shadow-lg text-right" dir="rtl">
-                    <div className="text-[10px] font-black text-foreground mb-1">{item.city}</div>
-                    <div className="text-[10px] font-bold text-muted-foreground tabular-nums">
+                    <div className="text-xs font-bold text-foreground dark:text-background mb-1">{item.city}</div>
+                    <div className="text-xs font-bold text-muted-foreground tabular-nums">
                       {item.count.toLocaleString()} אזעקות
                     </div>
                   </div>

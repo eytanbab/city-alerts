@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useMemo, use } from 'react';
 import dynamic from 'next/dynamic';
 import { getHourlyDistribution, getCityDailyTrend, type DashboardData } from '@/lib/data';
@@ -26,36 +27,51 @@ interface CityAnalysisContentProps {
 
 export function CityAnalysisContent({ 
   dataPromise, 
-  activeCity, 
-  setActiveCity 
+  activeCity: initialCity, 
+  setActiveCity: updateUrl 
 }: CityAnalysisContentProps) {
   const data = use(dataPromise);
-  const { alarms, citiesList, isFallback } = data;
+  const { alarmsByCity, lastSirenPerCity, citiesList, isFallback } = data;
+
+  // Use local state for active city to ensure instantaneous switching
+  const [activeCity, setActiveCity] = React.useState(initialCity);
+
+  // Sync state with URL when it changes externally (e.g., back button)
+  React.useEffect(() => {
+    setActiveCity(initialCity);
+  }, [initialCity]);
+
+  const handleCityChange = (city: string) => {
+    setActiveCity(city); // Instant UI update
+    updateUrl(city);    // Update URL in background
+  };
+
+  const cityAlarms = useMemo(() => {
+    if (!activeCity || !alarmsByCity) return [];
+    return alarmsByCity[activeCity] || [];
+  }, [alarmsByCity, activeCity]);
 
   const hourlyData = useMemo(() => {
-    if (!alarms.length || !activeCity) return [];
-    return getHourlyDistribution(alarms, activeCity);
-  }, [alarms, activeCity]);
+    if (!cityAlarms.length) return [];
+    return getHourlyDistribution(cityAlarms);
+  }, [cityAlarms]);
 
   const cityDailyTrend = useMemo(() => {
-    if (!alarms.length || !activeCity) return [];
-    return getCityDailyTrend(alarms, activeCity);
-  }, [alarms, activeCity]);
+    if (!cityAlarms.length) return [];
+    return getCityDailyTrend(cityAlarms);
+  }, [cityAlarms]);
 
-  const lastSirenForCity = useMemo(() => {
-    if (!alarms.length || !activeCity) return null;
-    const cityAlarms = alarms.filter(a => a.city.includes(activeCity));
-    if (cityAlarms.length === 0) return null;
-    const latest = [...cityAlarms].sort((a, b) => b.datetime.localeCompare(a.datetime))[0];
-    const date = new Date(latest.datetime.replace(/-/g, '/'));
-    return date.toLocaleString('he-IL', {
-      day: '2-digit',
-      month: '2-digit',
-      year: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }, [alarms, activeCity]);
+  const lastSirenFormatted = useMemo(() => {
+    const rawDatetime = lastSirenPerCity?.[activeCity];
+    if (!rawDatetime) return null;
+    
+    // Convert YYYY-MM-DD HH:mm:ss to DD/MM/YY HH:mm
+    const [datePart, timePart] = rawDatetime.split(' ');
+    const [year, month, day] = datePart.split('-');
+    const [hour, minute] = timePart.split(':');
+    
+    return `${day}/${month}/${year.slice(2)} ${hour}:${minute}`;
+  }, [lastSirenPerCity, activeCity]);
 
   return (
     <div className="w-full flex flex-col items-center gap-6" dir="rtl">
@@ -67,12 +83,12 @@ export function CityAnalysisContent({
       )}
       
       <div className="w-full flex flex-col items-center gap-4">
-        <CitySearch cities={citiesList} onSearch={setActiveCity} selectedCity={activeCity} />
+        <CitySearch cities={citiesList} onSearch={handleCityChange} selectedCity={activeCity} />
         <div className="flex flex-wrap justify-center gap-2">
           {POPULAR_CITIES.map((city) => (
             <button
               key={city}
-              onClick={() => setActiveCity(city)}
+              onClick={() => handleCityChange(city)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer ${
                 activeCity === city ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105' : 'bg-background hover:bg-accent text-muted-foreground border-input'
               }`}
@@ -90,7 +106,7 @@ export function CityAnalysisContent({
               data={cityDailyTrend} 
               title={`מגמת אזעקות: ${activeCity}`} 
               description="כמות האזעקות בעיר לאורך זמן" 
-              lastSiren={lastSirenForCity}
+              lastSiren={lastSirenFormatted}
             />
           </div>
         ) : (

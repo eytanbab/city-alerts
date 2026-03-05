@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     "מבט על התפלגות האזעקות, מפת התרעות ומובילי האזעקות במבצע שאגת הארי.",
 };
 
-export default async function Home() {
+export default function Home() {
   const dataPromise = getDashboardData();
 
   return (

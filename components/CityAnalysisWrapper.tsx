@@ -7,29 +7,22 @@ import { type DashboardData } from "@/lib/data";
 
 interface CityAnalysisWrapperProps {
   dataPromise: Promise<DashboardData>;
-  initialCity?: string;
 }
 
-export function CityAnalysisWrapper({
-  dataPromise,
-  initialCity,
-}: CityAnalysisWrapperProps) {
+export function CityAnalysisWrapper({ dataPromise }: CityAnalysisWrapperProps) {
   return (
     <Suspense>
-      <CityAnalysisSync dataPromise={dataPromise} initialCity={initialCity} />
+      <CityAnalysisSync dataPromise={dataPromise} />
     </Suspense>
   );
 }
 
-function CityAnalysisSync({
-  dataPromise,
-  initialCity = "",
-}: CityAnalysisWrapperProps) {
+function CityAnalysisSync({ dataPromise }: CityAnalysisWrapperProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  const activeCity = searchParams.get("city") || initialCity;
+  const activeCity = searchParams.get("city") || "";
 
   const setActiveCity = (city: string) => {
     const params = new URLSearchParams(searchParams.toString());

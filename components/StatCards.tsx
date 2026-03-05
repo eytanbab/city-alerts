@@ -49,7 +49,7 @@ export function StatCards({ stats }: StatCardsProps) {
       {items.map((item) => (
         <Card
           key={item.label}
-          className="bg-background rounded-none border-none shadow-none p-6"
+          className="rounded-none border-none shadow-none p-6"
         >
           <CardContent className="p-0 flex flex-col gap-2">
             <div className="flex items-center justify-between">

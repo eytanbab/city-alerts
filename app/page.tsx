@@ -68,8 +68,15 @@ import { type DashboardData } from '@/lib/data';
 function LastUpdated({ dataPromise }: { dataPromise: Promise<DashboardData> }) {
   const data = use(dataPromise);
   return (
-    <div className="text-xs font-medium text-muted-foreground uppercase text-center mb-8">
-      עדכון אחרון: {data.lastUpdated}
+    <div className="flex flex-col gap-1 items-center mb-8">
+      <div className="text-xs font-medium text-muted-foreground uppercase text-center">
+        אזעקה אחרונה: {data.lastUpdated}
+      </div>
+      {data.lastSync && (
+        <div className="text-[10px] text-muted-foreground/60">
+          סנכרון אחרון: {data.lastSync}
+        </div>
+      )}
     </div>
   );
 }

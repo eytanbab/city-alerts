@@ -14,53 +14,47 @@
 You are an expert frontend developer specializing in Next.js 16, React 19, and Tailwind CSS 4.
 
 **Project Context**
-You are building a web application called **city-alerts** that visualizes siren data. The interface must be entirely in **Hebrew** and use a **Right-to-Left (RTL)** layout. The UI is built using shadcn components, including shadcn Chart for data visualization.
+You are building **city-alerts**, a visual dashboard for siren data in Israel. The application is entirely in **Hebrew** with a strict **Right-to-Left (RTL)** layout. It uses a multi-page architecture for better focus and performance on mobile/desktop.
 
 **Data Source**
-Use the historical JSON data located at: https://www.tzevaadom.co.il/static/historical/all.json
+* Primary: `https://www.tzevaadom.co.il/static/historical/all.json`
+* Filtering: Only include entries from **February 28th, 2026** onwards.
 
-**Core Logic**
-1. Filter the data to only include entries from February 28th, 2026, onwards.
-2. Provide a search interface where users enter a city name in Hebrew.
-3. Generate a frequency distribution of alarms grouped by hour (0–23) for the selected city.
+**Architecture & Routing**
+1. **National Overview (`/`)**: Displays aggregate statistics, an interactive map (Leaflet), a national daily trend chart, and a leaderboard of most targeted cities.
+2. **City Analysis (`/analysis`)**: Features a Hebrew search interface for city selection, an hourly frequency distribution (0–23), and a daily trend chart for the specific city.
+3. **Deep Linking**: Supports URL-based city selection via `?city=אשקלון` to enable direct sharing.
 
 **Technical Constraints**
-1. The application must support RTL (dir="rtl") throughout the layout.
-2. Use React 19 features (use hook or Server Components).
-3. Use shadcn Chart components for the visualization.
-4. Use Tailwind CSS 4 for styling.
-5. Use native `fetch` and JSON parsing for data.
+1. **Framework**: Next.js 16 (App Router) with React 19.
+2. **Styling**: Tailwind CSS 4 using native CSS variables.
+3. **RTL**: Global `dir="rtl"` with RTL-aware shadcn components.
+4. **Data Handling**: Use Next.js 16 `'use cache'` and `cacheLife` for data optimization.
+5. **Visualization**: Shadcn Chart (Recharts) for data distribution and Leaflet for geographical mapping.
+6. **Testing**: Vitest for unit/utility testing and Playwright for E2E verification.
 
 # Typing Constraints
+* **No `any`**: Explicit typing is mandatory for all variables and parameters.
+* **Strict Mode**: Use `unknown` with type narrowing for dynamic data.
+* **Interfaces**: Maintain clean, exported interfaces in `lib/types.ts`.
 
-* You must never use the `any` type in any code examples or implementations.
-* Always enforce strict and explicit typing for all variables, parameters, interfaces, and return values.
-* If a type is genuinely unknown or highly dynamic, use the `unknown` type and apply proper type narrowing before use.
-* Do not bypass the type checker.
+**Core File Structure**
+* `app/page.tsx`: National Overview route.
+* `app/analysis/page.tsx`: City Analysis route.
+* `lib/data.ts`: Core logic for fetching, parsing, and normalizing siren data.
+* `lib/server-data.ts`: Server-side data fetching with Next.js 16 caching.
+* `components/MapChart.tsx`: Client-side interactive map using Leaflet.
+* `components/CitySearch.tsx`: RTL-optimized Hebrew search (Combobox).
 
-**File Structure**
-* `lib/data.ts`: Handles fetching, parsing, and filtering (>= 2026-02-28).
-* `components/ui/chart.tsx`: Standard shadcn chart primitives.
-* `components/CitySearch.tsx`: RTL search input using shadcn.
-* `components/AlarmChart.tsx`: Implementation using `ChartContainer` to show hourly distribution.
-* `app/page.tsx`: Main RTL page managing state and layout.
-
-**Implementation Plan**
-1. **Setup**: Install `recharts` and `lucide-react`.
-2. **Shadcn & RTL**: Initialize shadcn. Ensure the `html` tag or main container has `dir="rtl"` and uses a font suitable for Hebrew (e.g., Assistant or Heebo).
-3. **Localization**: 
-    * Search Placeholder: "חפש עיר..."
-    * Button Text: "הצג נתונים"
-    * Chart Labels: "שעה" (X-axis) and "כמות אזעקות" (Y-axis).
-4. **Data Processing**: Filter for records after 2026-02-27. Match the user input against the `city` column. Group results by the hour from the `datetime` field.
-5. **Visualization**: Use a shadcn-styled BarChart. Ensure the Y-axis is positioned on the right side if necessary for the RTL feel, and tooltips are localized.
-6. **Final Step**: Run `npm run build` to catch any bugs introduced during development.
+**Localization Standards**
+* **Placeholder**: "חפש עיר..."
+* **Chart Labels**: "שעה" (X), "כמות אזעקות" (Y), "תאריך" (X).
+* **UI Text**: All labels, tooltips, and headers must be in natural, accurate Hebrew.
 
 # Post-Rewrite Verification
-
-* After completing any codebase rewrite or modification, you must execute the following checks in order:
-* 1. Run lint checks to verify code formatting and style compliance.
-* 2. Run type checks to confirm type safety and catch potential errors.
-* 3. Run a build check to ensure the project compiles successfully.
-* If any of these checks fail, you must fix the identified errors and rerun the sequence until all checks pass.
-* Do not consider the task complete until the lint, type, and build processes execute without errors.
+* After any modification, execute in order:
+* 1. **Lint**: `npm run lint`
+* 2. **Type Check**: `npx tsc --noEmit`
+* 3. **Build**: `npm run build`
+* 4. **Test**: `npm test` (Vitest) and `npx playwright test` (if applicable).
+* Do not consider a task complete until all checks pass successfully.

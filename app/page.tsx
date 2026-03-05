@@ -2,7 +2,7 @@
 
 import { useState, useMemo, Suspense, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { fetchDashboardData, getHourlyDistribution, type Alarm, type DashboardData } from '@/lib/data';
+import { fetchDashboardData, getHourlyDistribution, getCityDailyTrend, type DashboardData } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
 import { AlarmChart } from '@/components/AlarmChart';
 import { DailyTrendChart } from '@/components/DailyTrendChart';
@@ -90,6 +90,11 @@ function Dashboard() {
     return getHourlyDistribution(alarms, activeCity);
   }, [alarms, activeCity]);
 
+  const cityDailyTrend = useMemo(() => {
+    if (!alarms.length || !activeCity) return [];
+    return getCityDailyTrend(alarms, activeCity);
+  }, [alarms, activeCity]);
+
   if (error) {
     return (
       <div className="w-full py-12 text-center text-destructive bg-destructive/10 rounded-2xl border border-destructive/20">
@@ -135,7 +140,10 @@ function Dashboard() {
             </div>
           </div>
           {activeCity ? (
-            <AlarmChart data={hourlyData} city={activeCity} />
+            <div className="flex flex-col gap-6">
+              <AlarmChart data={hourlyData} city={activeCity} />
+              <DailyTrendChart data={cityDailyTrend} title={`מגמת אזעקות: ${activeCity}`} description="כמות האזעקות בעיר לאורך זמן" />
+            </div>
           ) : (
             <div className="py-12 text-center text-muted-foreground border border-dashed rounded-2xl bg-muted/5 flex flex-col items-center gap-3">
               <SearchIcon className="h-8 w-8 opacity-20" />
@@ -151,7 +159,7 @@ function Dashboard() {
 
         <section className="flex flex-col gap-4">
           <h2 className="text-xl font-bold tracking-tight px-1 text-right">מגמה ארצית</h2>
-          <DailyTrendChart data={globalDailyTrend} />
+          <DailyTrendChart data={globalDailyTrend} title="מגמת אזעקות יומית (ארצי)" description="כמות האזעקות בכל הארץ לאורך זמן" />
         </section>
 
         <section className="flex flex-col gap-4">
@@ -189,7 +197,7 @@ function Dashboard() {
             <MapChart data={mapData} />
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <Leaderboard data={topCities} onSelect={handleCitySelect} />
-              <DailyTrendChart data={globalDailyTrend} />
+              <DailyTrendChart data={globalDailyTrend} title="מגמת אזעקות יומית (ארצי)" description="כמות האזעקות בכל הארץ לאורך זמן" />
             </div>
           </TabsContent>
 
@@ -213,7 +221,10 @@ function Dashboard() {
               </div>
               <div className="w-full max-w-5xl">
                 {activeCity ? (
-                  <AlarmChart data={hourlyData} city={activeCity} />
+                  <div className="grid grid-cols-1 gap-8">
+                    <AlarmChart data={hourlyData} city={activeCity} />
+                    <DailyTrendChart data={cityDailyTrend} title={`מגמת אזעקות: ${activeCity}`} description="כמות האזעקות בעיר לאורך זמן" />
+                  </div>
                 ) : (
                   <div className="py-24 text-center text-muted-foreground border border-dashed rounded-3xl bg-muted/5 flex flex-col items-center gap-4">
                     <div className="p-4 bg-background rounded-full border shadow-sm">

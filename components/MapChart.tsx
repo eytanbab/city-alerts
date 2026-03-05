@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  */
 export default function MapChart({ data }: { data: MapData[] }) {
   const mapRef = useRef<L.Map | null>(null);
+  const layersRef = useRef<L.FeatureGroup | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isReady, setIsReady] = useState(false);
 
@@ -31,8 +32,8 @@ export default function MapChart({ data }: { data: MapData[] }) {
       const container = containerRef.current;
 
       // Force cleanup of any existing leaflet state on this DOM element
-      if ((container as any)._leaflet_id) {
-        delete (container as any)._leaflet_id;
+      if ((container as unknown as Record<string, unknown>)._leaflet_id) {
+        delete (container as unknown as Record<string, string>)._leaflet_id;
       }
       container.innerHTML = "";
 
@@ -48,6 +49,10 @@ export default function MapChart({ data }: { data: MapData[] }) {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(mapInstance);
+
+      // Initialize a dedicated group for data layers
+      const dataLayers = Leaflet.featureGroup().addTo(mapInstance);
+      layersRef.current = dataLayers;
 
       // If we unmounted while the map was being created, kill it immediately
       if (!isMounted) {
@@ -73,6 +78,7 @@ export default function MapChart({ data }: { data: MapData[] }) {
       if (mapInstance) {
         mapInstance.remove();
         mapRef.current = null;
+        layersRef.current = null;
       }
       setIsReady(false);
     };
@@ -81,22 +87,14 @@ export default function MapChart({ data }: { data: MapData[] }) {
   // 4. Reactive Data Updates
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !isReady || !data) return;
+    const dataLayers = layersRef.current;
+    if (!map || !dataLayers || !isReady || !data) return;
 
     async function updateMarkers() {
       const Leaflet = (await import("leaflet")).default;
 
-      if (!map) return;
-
-      // Remove previous markers/polygons
-      map.eachLayer((layer: L.Layer) => {
-        if (
-          layer instanceof Leaflet.CircleMarker ||
-          layer instanceof Leaflet.Polygon
-        ) {
-          map.removeLayer(layer);
-        }
-      });
+      // Simple: Clear the group instead of searching all map layers
+      dataLayers.clearLayers();
 
       const maxCount = Math.max(...data.map((d) => d.count), 1);
 
@@ -139,7 +137,7 @@ export default function MapChart({ data }: { data: MapData[] }) {
           className: "custom-map-tooltip",
         });
 
-        layer.addTo(map);
+        layer.addTo(dataLayers);
       });
     }
 

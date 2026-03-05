@@ -6,6 +6,13 @@ import { TrendChartSkeleton } from '@/components/DashboardSkeletons';
 import { CityAnalysisWrapper } from '@/components/CityAnalysisWrapper';
 import { type DashboardData } from '@/lib/data';
 
+import { type Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'ניתוח לפי עיר',
+  description: 'נתונים מפורטים, התפלגות שעתית ומגמות של אזעקות עבור כל עיר ויישוב בישראל.',
+};
+
 export default function AnalysisPage() {
   const dataPromise = getDashboardData();
 

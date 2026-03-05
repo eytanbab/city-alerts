@@ -5,6 +5,13 @@ import { ModeToggle } from '@/components/ModeToggle';
 import { Navigation } from '@/components/Navigation';
 import { StatCardsSkeleton, MapSkeleton, LeaderboardSkeleton, TrendChartSkeleton } from '@/components/DashboardSkeletons';
 
+import { type Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'סקירה כללית - מבצע שאגת הארי',
+  description: 'מבט על התפלגות האזעקות, מפת התרעות ומובילי האזעקות במבצע שאגת הארי.',
+};
+
 export default function Home() {
   const dataPromise = getDashboardData();
 

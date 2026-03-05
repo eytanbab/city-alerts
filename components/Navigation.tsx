@@ -25,8 +25,7 @@ export function Navigation() {
     <nav className="flex justify-center mb-8" dir="rtl">
       <div className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
         {navItems.map((item) => {
-          // Direct comparison is sufficient; fallback to '/' handles initial hydration on the root
-          const isActive = (pathname ?? '/') === item.href;
+          const isActive = pathname  === item.href;
           
           return (
             <Link

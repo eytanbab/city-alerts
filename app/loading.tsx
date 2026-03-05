@@ -19,7 +19,7 @@ export default function Loading() {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border">
           {[1, 2, 3, 4].map(i => (
-            <div key={i} className="bg-background h-32 md:h-44 p-6 md:p-8" />
+            <div key={`loading-skeleton-${i}`} className="bg-background h-32 md:h-44 p-6 md:p-8" />
           ))}
         </div>
       </div>

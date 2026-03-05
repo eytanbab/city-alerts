@@ -2,36 +2,12 @@ import { type Alarm, type MapData, type DashboardData, type GlobalStats } from '
 
 export * from './types';
 
-const DATA_URL = 'https://www.tzevaadom.co.il/static/historical/all.json';
-const CITIES_URL = 'https://www.tzevaadom.co.il/static/cities.json';
-const POLYGONS_URL = 'https://www.tzevaadom.co.il/static/polygons.json';
-const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
-
-// Server-side fetching logic
-export async function getDashboardData(): Promise<DashboardData> {
-  const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
-    fetch(DATA_URL, { next: { revalidate: 120 } }),
-    fetch(CITIES_URL, { next: { revalidate: 3600 } }),
-    fetch(POLYGONS_URL, { next: { revalidate: 3600 } })
-  ]);
-
-  if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {
-    throw new Error('Failed to fetch data from source');
-  }
-
-  const rawAlarms = await alarmsRes.json();
-  const citiesMetadata = (await citiesRes.json()).cities;
-  const polygonsRaw = await polygonsRes.json();
-
-  return processRawAlarms(rawAlarms, citiesMetadata, polygonsRaw, FILTER_DATE_UNIX);
-}
-
 export function normalizeCityName(city: string): string {
   // Removes sectors (after -) and parenthetical info
   return city.replace(/\(.*\)/g, '').split('-')[0].trim();
 }
 
-export function getMinuteKey(datetime: string): string {
+function getMinuteKey(datetime: string): string {
   return datetime.substring(0, 16);
 }
 

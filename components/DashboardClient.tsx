@@ -4,12 +4,33 @@ import { useState, useMemo, use, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { getHourlyDistribution, getCityDailyTrend, type DashboardData } from '@/lib/data';
 import { CitySearch } from '@/components/CitySearch';
-import { AlarmChart } from '@/components/AlarmChart';
-import { DailyTrendChart } from '@/components/DailyTrendChart';
+// Dynamically import charts to reduce initial bundle size
+const AlarmChart = dynamic(() => import('@/components/AlarmChart').then(mod => mod.AlarmChart), { 
+  ssr: false,
+  loading: () => <TrendChartSkeleton title="התפלגות שעתית" />
+});
+const DailyTrendChart = dynamic(() => import('@/components/DailyTrendChart').then(mod => mod.DailyTrendChart), { 
+  ssr: false,
+  loading: () => <TrendChartSkeleton />
+});
+
 import { StatCards } from '@/components/StatCards';
 import { Leaderboard } from '@/components/Leaderboard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search as SearchIcon, LayoutDashboard, MapPin, Map as MapIcon, Info, AlertTriangle, Trophy, TrendingUp } from 'lucide-react';
+
+// Direct ESM imports for Lucide icons
+import { 
+  Search as SearchIcon, 
+  LayoutDashboard, 
+  MapPin, 
+  Map as MapIcon, 
+  Info, 
+  AlertTriangle, 
+  Trophy, 
+  TrendingUp, 
+  Zap 
+} from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from './ui/card';
 
 const MapChart = dynamic(() => import('@/components/MapChart'), { 
@@ -21,9 +42,7 @@ function MapSkeleton() {
   return (
     <Card className="w-full h-[600px] border border-border shadow-none rounded-sm overflow-hidden flex flex-col" dir="rtl">
       <CardHeader className="px-6 py-4 border-b border-border bg-muted/5">
-        <CardTitle className="flex items-center gap-2 text-lg font-bold">
-          <div className="h-6 w-32 bg-muted animate-pulse rounded-md" />
-        </CardTitle>
+        <CardTitle className="flex items-center gap-2 text-lg font-bold">מפת מוקדי התרעות</CardTitle>
       </CardHeader>
       <div className="flex-1 bg-muted/10 animate-pulse flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
@@ -36,15 +55,18 @@ function MapSkeleton() {
 }
 
 function StatCardsSkeleton() {
+  const staticLabels = ["סה\"כ אזעקות", "העיר המטווחת", "ימי פעילות", "יישובים בטווח"];
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border" dir="rtl">
-      {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-background p-6 flex flex-col gap-6 animate-pulse">
+      {staticLabels.map((label, i) => (
+        <div key={`stat-skeleton-${label}`} className="bg-background p-6 flex flex-col gap-6">
           <div className="flex items-center justify-between">
-            <div className="h-3 w-20 bg-muted rounded-none" />
+            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {label}
+            </span>
             <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground/10" />
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 animate-pulse">
             <div className="h-10 w-24 bg-muted rounded-none" />
             <div className="h-3 w-32 bg-muted/20 rounded-none" />
           </div>
@@ -59,19 +81,19 @@ function LeaderboardSkeleton() {
     <Card className="h-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
-          <Trophy className="h-4 w-4 text-muted-foreground/20" />
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+          <Trophy className="h-4 w-4 text-muted-foreground" />
+          הערים המטווחות ביותר
         </CardTitle>
       </CardHeader>
       <CardContent className="px-2 pb-2">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 animate-pulse">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="w-full flex items-center justify-between p-3">
+            <div key={`leaderboard-item-skeleton-${i}`} className="w-full flex items-center justify-between p-3">
               <div className="flex items-center gap-3">
-                <div className="h-4 w-4 bg-muted animate-pulse rounded" />
-                <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+                <div className="h-4 w-4 bg-muted rounded" />
+                <div className="h-4 w-24 bg-muted rounded" />
               </div>
-              <div className="h-4 w-12 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-12 bg-muted rounded" />
             </div>
           ))}
         </div>
@@ -80,13 +102,13 @@ function LeaderboardSkeleton() {
   );
 }
 
-function TrendChartSkeleton() {
+function TrendChartSkeleton({ title = "מגמת אזעקות יומית" }: { title?: string }) {
   return (
     <Card className="h-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
-          <TrendingUp className="h-4 w-4 text-muted-foreground/20" />
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+          <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          {title}
         </CardTitle>
         <div className="h-3 w-48 bg-muted/50 animate-pulse rounded mt-1" />
       </CardHeader>
@@ -96,13 +118,13 @@ function TrendChartSkeleton() {
         </div>
       </CardContent>
       <CardFooter className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-        <div className="flex flex-col gap-1">
-          <div className="h-2 w-12 bg-muted/50 animate-pulse rounded" />
-          <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+        <div className="flex flex-col gap-1 animate-pulse">
+          <div className="h-2 w-12 bg-muted/50 rounded" />
+          <div className="h-4 w-20 bg-muted rounded" />
         </div>
-        <div className="flex flex-col gap-1">
-          <div className="h-2 w-12 bg-muted/50 animate-pulse rounded" />
-          <div className="h-4 w-20 bg-muted animate-pulse rounded" />
+        <div className="flex flex-col gap-1 animate-pulse">
+          <div className="h-2 w-12 bg-muted/50 rounded" />
+          <div className="h-4 w-20 bg-muted rounded" />
         </div>
       </CardFooter>
     </Card>
@@ -132,30 +154,32 @@ export function DashboardClient({ dataPromise }: DashboardClientProps) {
             
             <section className="flex flex-col gap-6 pt-6 border-t border-border/40">
               <div className="flex flex-col items-center gap-4">
-                <div className="h-7 w-32 bg-muted animate-pulse rounded-md" />
+                <h2 className="text-xl font-bold tracking-tight">ניתוח לפי עיר</h2>
                 <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md" />
                 <div className="flex flex-wrap justify-center gap-2">
-                  {[1,2,3,4,5,6,7].map(i => <div key={i} className="h-8 w-20 bg-muted animate-pulse rounded-full" />)}
+                  {POPULAR_CITIES.map((city) => (
+                    <div key={`popular-city-skeleton-${city}`} className="h-8 w-20 bg-muted animate-pulse rounded-full" />
+                  ))}
                 </div>
               </div>
               <div className="py-12 border border-dashed rounded-2xl bg-muted/5 flex flex-col items-center gap-3">
                 <SearchIcon className="h-8 w-8 text-muted-foreground/10" />
-                <div className="h-4 w-48 bg-muted/20 animate-pulse rounded" />
+                <p className="text-base font-medium text-muted-foreground/20">חפש עיר כדי לצפות בנתונים מפורטים.</p>
               </div>
             </section>
 
             <section className="flex flex-col gap-4 pt-6 border-t border-border/40">
-              <div className="h-7 w-40 bg-muted animate-pulse rounded-md mr-1" />
+              <h2 className="text-xl font-bold tracking-tight px-1 text-right">מפת מוקדי אזעקות</h2>
               <MapSkeleton />
             </section>
 
             <section className="flex flex-col gap-4">
-              <div className="h-7 w-32 bg-muted animate-pulse rounded-md mr-1" />
+              <h2 className="text-xl font-bold tracking-tight px-1 text-right">מגמה ארצית</h2>
               <TrendChartSkeleton />
             </section>
 
             <section className="flex flex-col gap-4">
-              <div className="h-7 w-48 bg-muted animate-pulse rounded-md mr-1" />
+              <h2 className="text-xl font-bold tracking-tight px-1 text-right">הערים המטווחות ביותר</h2>
               <LeaderboardSkeleton />
             </section>
           </div>
@@ -174,11 +198,11 @@ export function DashboardClient({ dataPromise }: DashboardClientProps) {
           <div className="flex flex-col gap-4">
             <div className="flex justify-center">
               <TabsList className="grid w-full max-md max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
-                <TabsTrigger value="overview" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm">
+                <TabsTrigger value="overview" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm cursor-pointer">
                   <LayoutDashboard className="h-4 w-4" />
                   מבט כללי
                 </TabsTrigger>
-                <TabsTrigger value="city" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm">
+                <TabsTrigger value="city" className="gap-2 text-sm font-semibold rounded-lg data-[state=active]:shadow-sm cursor-pointer">
                   <MapPin className="h-4 w-4" />
                   ניתוח לפי עיר
                 </TabsTrigger>
@@ -210,12 +234,16 @@ export function DashboardClient({ dataPromise }: DashboardClientProps) {
           <TabsContent value="city" className="flex flex-col gap-8 mt-0 focus-visible:outline-none">
             <Suspense fallback={
               <div className="w-full flex flex-col items-center gap-6">
-                <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md" />
-                <div className="flex flex-wrap justify-center gap-2">
-                  {[1,2,3,4,5,6,7].map(i => <div key={i} className="h-8 w-20 bg-muted animate-pulse rounded-full" />)}
+                <div className="w-full flex flex-col items-center gap-4">
+                  <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md" />
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {POPULAR_CITIES.map((city) => (
+                      <div key={`desktop-popular-city-skeleton-${city}`} className="h-8 w-20 bg-muted animate-pulse rounded-full" />
+                    ))}
+                  </div>
                 </div>
                 <div className="w-full max-w-5xl grid grid-cols-1 gap-8">
-                   <div className="h-[400px] w-full bg-muted animate-pulse rounded-sm" />
+                   <TrendChartSkeleton title="התפלגות שעתית" />
                    <TrendChartSkeleton />
                 </div>
               </div>

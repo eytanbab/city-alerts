@@ -1,4 +1,4 @@
-import { getDashboardData } from '@/lib/data';
+import { getDashboardData } from '@/lib/server-data';
 import { DashboardClient } from '@/components/DashboardClient';
 import { ModeToggle } from '@/components/ModeToggle';
 

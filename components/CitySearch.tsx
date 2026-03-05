@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -61,6 +63,8 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
     }
   };
 
+  const listId = React.useId();
+
   return (
     <div className="flex w-full max-w-md items-center gap-2" dir="rtl">
       <Popover open={open} onOpenChange={setOpen}>
@@ -69,6 +73,7 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-controls={listId}
             className="w-full justify-between text-right font-normal cursor-pointer"
           >
             {selectedCity ? selectedCity : "חפש עיר..."}
@@ -83,7 +88,7 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
               dir="rtl"
               onValueChange={setSearchTerm}
             />
-            <CommandList className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
+            <CommandList id={listId} className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
               <CommandEmpty>לא נמצאו ערים.</CommandEmpty>
               <CommandGroup>
                 {visibleCities.map((city) => (

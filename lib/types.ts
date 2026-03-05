@@ -26,12 +26,6 @@ export interface LeaderboardEntry {
   count: number;
 }
 
-export interface ChartEntry {
-  hour?: string;
-  date?: string;
-  count: number;
-}
-
 export interface DashboardData {
   alarms: Alarm[];
   polygons: Record<string, [number, number][]>;

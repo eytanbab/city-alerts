@@ -1,57 +1,19 @@
-# City Alerts Visualization - Development Plan
+# Refactoring & Optimization Plan
 
-This document outlines the roadmap for future enhancements to the city-alerts visualization platform.
+## Phase 1: Performance & Bundle Optimization
+- [x] **Dynamic Chart Loading**: Move `AlarmChart` and `DailyTrendChart` to `next/dynamic` with `ssr: false` in `DashboardClient.tsx`.
+- [x] **Optimized Icon Imports**: Grouped lucide-react imports for efficient Next.js tree-shaking.
+- [x] **Stable Skeleton Keys**: Replace `key={i}` in `DashboardClient.tsx` and `app/loading.tsx` skeletons with unique, stable keys.
+- [x] **Static Shell Rendering**: Refactor skeletons to render static card titles, headers, and icons immediately, using skeletons only for the dynamic numbers and chart areas.
 
----
+## Phase 2: Accessibility & Correctness
+- [x] **ARIA Compliance**: Fix `CitySearch.tsx` combobox role by adding missing `aria-controls` and `aria-expanded` attributes.
+- [x] **React Doctor Audit**: Resolved diagnostics (Audit Score: 99/100).
 
-## 1. UI/UX Improvements (Priority: High)
+## Phase 3: Code Readability & Maintenance
+- [x] **Dead Code Removal**: Delete unused UI components (e.g., `components/ui/input.tsx`) and unused exports (`getMinuteKey`).
+- [x] **Type Consolidation**: Clean up `lib/types.ts` and ensure strict typing across all shared utilities.
 
-### At a Glance Metric Cards
-Display high-level summary cards at the top of the dashboard to give users immediate context.
-- **Total Alarms**: Cumulative count of sirens since Feb 27th.
-- **Most Targeted City**: The city with the highest total siren frequency.
-- **Active Days**: Total number of days since the start of data tracking.
-- **Cities Affected**: Number of unique cities that have triggered sirens.
-
-### Popular Cities "Quick-Select"
-Add interactive "chips" or "tags" for frequently searched cities (e.g., Ashkelon, Tel Aviv, Sderot, Haifa) for one-click access.
-
-### Refined Layout & Visual Polish
-- **Grid-Based Dashboard**: Transition from a single vertical list to a responsive grid.
-- **Enhanced Empty States**: Replace the dashed placeholder with a "Getting Started" guide or a "Recent Alarms" list.
-- **Interactive Feedback**: Add hover effects and tooltips to charts to make data exploration more intuitive.
-- **Consistency**: Use a unified color palette for siren intensity (e.g., shades of red/orange).
-
----
-
-## 2. Advanced Feature Roadmap
-
-### Geospatial Visualization (Map View)
-Since the dataset includes Latitude/Longitude, a map is essential for regional context.
-- **Nationwide Heatmap**: Visualize siren density hotspots across the country.
-- **Interactive Markers**: Clickable markers that sync with the city-specific charts.
-- **Defense Zone Overlays**: Display the `area` (defense zones) boundaries.
-
-### Regional & Area-Based Analytics
-- **Area Leaderboard**: Ranking of defense zones (e.g., Gush Dan vs. Haifa) by siren count.
-- **North/South Split**: A comparative chart showing the volume of sirens in the northern vs. southern regions.
-
-### Comparative Mode
-Enable users to compare two cities directly.
-- **Overlay Charts**: View the daily trends of two cities on a single graph.
-- **Relative Statistics**: Percentage comparisons between cities.
-
-### Temporal Analysis ("Punch Card" View)
-A 2D heatmap showing Days of the Week vs. Hours of the Day.
-- **Pattern Recognition**: Identify if specific times or days are statistically more prone to alerts.
-
-### Date Range & Event Markers
-- **Custom Date Selection**: A date picker to filter data for specific periods.
-- **Event Milestones**: Annotate the trend line with significant dates or events (e.g., "Operation Start", "Specific Offensive").
-
----
-
-## 3. Technical Debt & Performance
-- **Data Caching**: Implement local storage caching for the parsed CSV to avoid repeated fetches.
-- **Virtualization**: If the "Recent Alarms" list grows, use virtualization for smooth scrolling.
-- **Testing**: Add unit tests for the data parsing and distribution logic in `lib/data.ts`.
+## Phase 4: Next.js 16 Expert Patterns
+- [x] **Granular Cache Life**: Implemented Next.js 16 `'use cache'` and `cacheLife` in `lib/server-data.ts`.
+- [x] **Strict Client Boundaries**: Audited third-party library usage (Leaflet, Recharts) to ensure perfect isolation from SSR.

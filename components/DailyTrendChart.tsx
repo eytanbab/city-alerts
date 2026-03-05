@@ -15,11 +15,13 @@ import {
   ChartTooltip, 
   ChartTooltipContent 
 } from '@/components/ui/chart';
-import { TrendingUp, Calendar, Hash } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 interface DailyTrendChartProps {
   data: { date: string; count: number }[];
   city?: string;
+  title?: string;
+  description?: string;
 }
 
 const chartConfig = {
@@ -33,11 +35,15 @@ function formatDate(dateStr: string) {
   if (!dateStr) return "";
   const parts = dateStr.split('-');
   if (parts.length < 3) return dateStr;
-  const [year, month, day] = parts;
+  const [, month, day] = parts;
   return `${day}/${month}`;
 }
 
-export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
+export function DailyTrendChart({ 
+  data, 
+  title = "מגמת אזעקות יומית", 
+  description = "כמות האזעקות לאורך זמן" 
+}: DailyTrendChartProps) {
   const total = data.reduce((acc, curr) => acc + curr.count, 0);
 
   const insights = useMemo(() => {
@@ -59,10 +65,10 @@ export function DailyTrendChart({ data, city }: DailyTrendChartProps) {
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          מגמת אזעקות יומית
+          {title}
         </CardTitle>
         <CardDescription className="text-sm font-normal">
-          כמות האזעקות בכל הארץ לאורך זמן
+          {description}
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-4 px-2">

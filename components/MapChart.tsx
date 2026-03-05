@@ -93,8 +93,11 @@ export default function MapChart({ data }: { data: MapData[] }) {
     async function updateMarkers() {
       const Leaflet = (await import("leaflet")).default;
 
+      if (!layersRef.current) return;
+      const dataLayersInstance = layersRef.current;
+
       // Simple: Clear the group instead of searching all map layers
-      dataLayers.clearLayers();
+      dataLayersInstance.clearLayers();
 
       const maxCount = Math.max(...data.map((d) => d.count), 1);
 
@@ -124,9 +127,9 @@ export default function MapChart({ data }: { data: MapData[] }) {
         }
 
         const tooltipContent = `
-          <div dir="rtl" style="text-align: right; font-family: system-ui, -apple-system, sans-serif; padding: 2px;">
-            <div style="font-weight: 800; font-size: 13px; margin-bottom: 2px; color: #111;">${item.city}</div>
-            <div style="font-weight: 600; font-size: 11px; color: #666;">${item.count.toLocaleString()} אזעקות</div>
+          <div dir="rtl" style="text-align: right; padding: 2px;">
+            <div style="font-weight: 600; font-size: 14px; margin-bottom: 2px; color: #111;">${item.city}</div>
+            <div style="font-weight: 600; font-size: 12px; color: #666;">${item.count.toLocaleString()} אזעקות</div>
           </div>
         `;
 
@@ -137,7 +140,7 @@ export default function MapChart({ data }: { data: MapData[] }) {
           className: "custom-map-tooltip",
         });
 
-        layer.addTo(dataLayers);
+        layer.addTo(dataLayersInstance);
       });
     }
 
@@ -158,7 +161,7 @@ export default function MapChart({ data }: { data: MapData[] }) {
         <div ref={containerRef} className="w-full h-full z-0" />
         {!isReady && (
           <div className="absolute inset-0 bg-muted/5 flex items-center justify-center z-10">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+            <span className="text-sm font-semibold uppercase tracking-widest text-muted-foreground/40">
               טעינת מפה...
             </span>
           </div>

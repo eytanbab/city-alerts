@@ -23,7 +23,7 @@ export function Navigation() {
 
   return (
     <nav className="flex justify-center mb-2" dir="rtl">
-      <div className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
+      <div className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-card rounded-xl border">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
 
@@ -32,9 +32,9 @@ export function Navigation() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center justify-center gap-2 text-sm font-semibold rounded-lg transition-all",
+                "flex items-center justify-center gap-2 text-sm font-semibold rounded-lg transition-colors",
                 isActive
-                  ? "bg-background text-foreground shadow-sm"
+                  ? "bg-background text-foreground border"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >

@@ -12,21 +12,48 @@ const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
  * Server-side data fetching with Next.js 16 explicit caching.
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  cacheLife('minutes'); 
+  // Use a shorter cache life to ensure data is fresh.
+  // 'seconds' typically revalidates every few seconds in most environments.
+  cacheLife('seconds'); 
 
-  const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
-    fetch(DATA_URL, { cache: 'no-store' }),
-    fetch(CITIES_URL, { cache: 'no-store' }),
-    fetch(POLYGONS_URL, { cache: 'no-store' })
-  ]);
+  const timestamp = Date.now();
+  try {
+    const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
+      fetch(`${DATA_URL}?t=${timestamp}`, { cache: 'no-store' }),
+      fetch(`${CITIES_URL}?t=${timestamp}`, { cache: 'no-store' }),
+      fetch(`${POLYGONS_URL}?t=${timestamp}`, { cache: 'no-store' })
+    ]);
 
-  if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {
-    throw new Error('Failed to fetch data from source');
+    if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {
+      throw new Error('Failed to fetch data from source');
+    }
+
+    const rawAlarms = await alarmsRes.json();
+    const citiesMetadata = (await citiesRes.json()).cities;
+    const polygonsRaw = await polygonsRes.json();
+
+    const result = processRawAlarms(rawAlarms, citiesMetadata, polygonsRaw, FILTER_DATE_UNIX);
+    return {
+      ...result,
+      lastSync: new Date().toLocaleString('he-IL', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit'
+      })
+    };
+  } catch (error) {
+    console.error('Data fetch error:', error);
+    // Return a minimal fallback object that OverviewContent can handle
+    return {
+      alarms: [],
+      polygons: {},
+      stats: null,
+      topCities: [],
+      mapData: [],
+      globalDailyTrend: [],
+      citiesList: [],
+      lastUpdated: 'שגיאת התחברות - נתונים שמורים עשויים להיות מוצגים',
+      isFallback: true
+    };
   }
-
-  const rawAlarms = await alarmsRes.json();
-  const citiesMetadata = (await citiesRes.json()).cities;
-  const polygonsRaw = await polygonsRes.json();
-
-  return processRawAlarms(rawAlarms, citiesMetadata, polygonsRaw, FILTER_DATE_UNIX);
 }

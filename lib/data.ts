@@ -2,43 +2,28 @@ import { type Alarm, type MapData, type DashboardData, type GlobalStats } from '
 
 export * from './types';
 
-const DATA_URL = '/api/alarms';
-const CACHE_KEY = 'alarms_cache_v9';
-const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+const DATA_URL = 'https://www.tzevaadom.co.il/static/historical/all.json';
+const CITIES_URL = 'https://www.tzevaadom.co.il/static/cities.json';
+const POLYGONS_URL = 'https://www.tzevaadom.co.il/static/polygons.json';
+const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
 
-export async function fetchDashboardData(): Promise<DashboardData> {
-  // Try to load from cache
-  if (typeof window !== 'undefined') {
-    const cachedData = sessionStorage.getItem(CACHE_KEY);
-    if (cachedData) {
-      try {
-        const { timestamp, data } = JSON.parse(cachedData);
-        if (Date.now() - timestamp < CACHE_DURATION) {
-          return data;
-        }
-      } catch {
-        // ignore error
-      }
-    }
+// Server-side fetching logic
+export async function getDashboardData(): Promise<DashboardData> {
+  const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
+    fetch(DATA_URL, { next: { revalidate: 120 } }),
+    fetch(CITIES_URL, { next: { revalidate: 3600 } }),
+    fetch(POLYGONS_URL, { next: { revalidate: 3600 } })
+  ]);
+
+  if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {
+    throw new Error('Failed to fetch data from source');
   }
 
-  const response = await fetch(DATA_URL);
-  if (!response.ok) throw new Error('Failed to fetch dashboard data');
-  const data = await response.json();
+  const rawAlarms = await alarmsRes.json();
+  const citiesMetadata = (await citiesRes.json()).cities;
+  const polygonsRaw = await polygonsRes.json();
 
-  // Save to cache
-  if (typeof window !== 'undefined') {
-    try {
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify({
-        timestamp: Date.now(),
-        data
-      }));
-    } catch {
-      // ignore
-    }
-  }
-
-  return data;
+  return processRawAlarms(rawAlarms, citiesMetadata, polygonsRaw, FILTER_DATE_UNIX);
 }
 
 export function normalizeCityName(city: string): string {

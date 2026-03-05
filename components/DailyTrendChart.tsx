@@ -22,6 +22,7 @@ interface DailyTrendChartProps {
   city?: string;
   title?: string;
   description?: string;
+  lastSiren?: string | null;
 }
 
 const chartConfig = {
@@ -39,10 +40,13 @@ function formatDate(dateStr: string) {
   return `${day}/${month}`;
 }
 
+const formatNumber = (num: number) => new Intl.NumberFormat('he-IL').format(num);
+
 export function DailyTrendChart({ 
   data, 
   title = "מגמת אזעקות יומית", 
-  description = "כמות האזעקות לאורך זמן" 
+  description = "כמות האזעקות לאורך זמן",
+  lastSiren
 }: DailyTrendChartProps) {
   const total = data.reduce((acc, curr) => acc + curr.count, 0);
 
@@ -97,8 +101,9 @@ export function DailyTrendChart({
               fontSize={12}
               tick={{ fill: 'var(--muted-foreground)' }}
               width={20}
+              tickFormatter={formatNumber}
             />
-            <ChartTooltip content={<ChartTooltipContent className="rounded-xl border-border" />} />
+            <ChartTooltip content={<ChartTooltipContent className="rounded-xl border-border" labelFormatter={formatDate} valueFormatter={formatNumber} />} />
             <Area
               type="monotone"
               dataKey="count"
@@ -112,15 +117,21 @@ export function DailyTrendChart({
         </ChartContainer>
       </CardContent>
       {insights && (
-        <CardFooter className="grid grid-cols-2 gap-4 pt-4 border-t border-border">
+        <CardFooter className={`grid ${lastSiren ? 'grid-cols-3' : 'grid-cols-2'} gap-4 pt-4 border-t border-border`}>
           <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">יום שיא</span>
-            <span className="text-sm font-bold text-foreground">{insights.peakDay} ({insights.peakCount})</span>
+            <span className="text-sm font-bold text-foreground">{insights.peakDay} ({formatNumber(insights.peakCount)})</span>
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">ממוצע יומי</span>
-            <span className="text-sm font-bold text-foreground">{insights.avgCount} אזעקות</span>
+            <span className="text-sm font-bold text-foreground">{formatNumber(insights.avgCount)} אזעקות</span>
           </div>
+          {lastSiren && (
+            <div className="flex flex-col gap-1 border-r pr-4 border-border/50">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">אזעקה אחרונה</span>
+              <span className="text-sm font-bold text-foreground">{lastSiren}</span>
+            </div>
+          )}
         </CardFooter>
       )}
     </Card>

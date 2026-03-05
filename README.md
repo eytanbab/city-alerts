@@ -1,46 +1,47 @@
-# City Alerts - Siren Visualization
+# City Alerts Dashboard
 
-An interactive dashboard for visualizing siren alert data in Israel, focusing on "Lion's Roar" operation (מבצע שאגת הארי) starting February 28, 2026.
+An interactive visualization platform for monitoring siren alert data in Israel, focused on the "Lion's Roar" (מבצע שאגת הארי) operation. The dashboard provides a real-time, RTL-native interface for analyzing national alert trends and granular city-level statistics.
 
-## Features
+## Key Features
 
-- **Global Statistics**: Real-time overview of total alarms, most targeted cities, and active days.
-- **Hourly Distribution**: Detailed analysis of siren frequency by hour for specific cities.
-- **National Trends**: Daily trend visualization of sirens across the country.
-- **City Search & Leaderboard**: Quick access to data for 1,400+ cities and a ranking of the most targeted locations.
-- **RTL Support**: Full Hebrew interface with Right-to-Left layout.
+*   **Geospatial Analysis**: Interactive mapping of alert clusters and city polygons using Leaflet.
+*   **Temporal Insights**: Hourly frequency distribution and daily trend tracking for 1,400+ cities.
+*   **Real-time Stats**: Global counters for total alarms, active days, and most-targeted locations.
+*   **RTL-Native UX**: Fully localized Hebrew interface with support for Right-to-Left layouts.
 
 ## Tech Stack
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS 4
-- **Components**: shadcn/ui
-- **Charts**: Recharts (via shadcn Chart)
-- **Data Parsing**: Native JSON fetch
-- **Icons**: Lucide React
-
-## Data Source
-
-The data is fetched from the [tzevaadom.co.il](https://www.tzevaadom.co.il/static/historical/all.json) historical data endpoint.
+*   **Framework**: Next.js 16 (App Router) & React 19
+*   **Data Handling**: Server-side fetching with explicit `'use cache'` logic
+*   **Styling**: Tailwind CSS 4 & shadcn/ui
+*   **Visualization**: Recharts & React Leaflet
+*   **Testing**: Vitest
 
 ## Getting Started
 
-1. Install dependencies:
-   ```bash
-   npm install
-   ```
+### Installation
+```bash
+npm install
+```
 
-2. Run the development server:
-   ```bash
-   npm run dev
-   ```
+### Development
+```bash
+# Start development server
+npm run dev
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+# Run unit tests
+npm test
+
+# Build for production
+npm run build
+```
 
 ## Project Structure
 
-- `app/`: Next.js app directory and page layouts.
-- `components/`: React components including charts and search.
-- `lib/`: Data fetching, parsing, and utility functions.
-- `public/`: Static assets.
+*   `app/`: Routing and server-side page entries.
+*   `components/`: Modular UI, charts, and interactive maps.
+*   `lib/`: Core logic, data normalization, and shared utilities.
+*   `public/`: Static assets and markers.
+
+---
+Data provided by [tzevaadom.co.il](https://www.tzevaadom.co.il).

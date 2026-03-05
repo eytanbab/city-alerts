@@ -22,7 +22,7 @@ export function Navigation() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex justify-center mb-8" dir="rtl">
+    <nav className="flex justify-center mb-2" dir="rtl">
       <div className="grid w-full max-w-md grid-cols-2 h-12 p-1 bg-muted/50 rounded-xl border border-border/50">
         {navItems.map((item) => {
           const isActive = pathname === item.href;

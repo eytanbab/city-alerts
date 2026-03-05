@@ -21,10 +21,7 @@ export default function Home() {
   const dataPromise = getDashboardData();
 
   return (
-    <main
-      className="container mx-auto px-4 py-6 md:py-10 max-w-6xl min-h-screen flex flex-col items-center gap-8 md:gap-12"
-      dir="rtl"
-    >
+    <>
       <div className="w-full text-center flex flex-col gap-3">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
           התפלגות אזעקות במבצע שאגת הארי
@@ -90,7 +87,7 @@ export default function Home() {
           </p>
         </div>
       </footer>
-    </main>
+    </>
   );
 }
 

@@ -113,7 +113,7 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
       <CardContent className="pb-4 px-2">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-62.5 w-full"
+          className="aspect-auto h-60 w-full"
         >
           <BarChart
             data={data}

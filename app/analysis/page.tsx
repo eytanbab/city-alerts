@@ -36,7 +36,7 @@ export default function AnalysisPage() {
 
         <Suspense
           fallback={
-            <div className="h-3 w-24 bg-muted mx-auto animate-pulse rounded mb-8" />
+            <div className="h-4 w-40 bg-muted mx-auto animate-pulse rounded mb-8" />
           }
         >
           <LastUpdated dataPromise={dataPromise} />
@@ -47,9 +47,9 @@ export default function AnalysisPage() {
             <div className="w-full flex flex-col items-center gap-6">
               <CitySearchSkeleton />
               <QuickButtonsSkeleton />
-              <div className="w-full max-w-5xl grid grid-cols-1 gap-8 mt-4">
+              <div className="w-full max-w-5xl grid grid-cols-1 gap-8">
                 <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />
-                <TrendChartSkeleton footerCols={3} />
+                <TrendChartSkeleton footerCols={2} />
               </div>
             </div>
           }
@@ -95,13 +95,13 @@ function LastUpdated({ dataPromise }: { dataPromise: Promise<DashboardData> }) {
   const data = use(dataPromise);
   return (
     <div className="flex flex-col gap-1 items-center mb-8">
-      <div className="text-xs font-medium text-muted-foreground uppercase text-center">
+      <span className="text-xs font-medium text-muted-foreground uppercase text-center">
         אזעקה אחרונה: {data.lastUpdated}
-      </div>
+      </span>
       {data.lastSync && (
-        <div className="text-[10px] text-muted-foreground/60">
+        <span className="text-[11px] text-muted-foreground/60">
           סנכרון אחרון: {data.lastSync}
-        </div>
+        </span>
       )}
     </div>
   );

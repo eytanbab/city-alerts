@@ -29,7 +29,10 @@ export function MapSkeleton() {
           מפת מוקדי התרעות
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-0 flex-1 relative overflow-hidden bg-muted/5" dir="ltr">
+      <CardContent
+        className="p-0 flex-1 relative overflow-hidden bg-muted/5"
+        dir="ltr"
+      >
         <div className="absolute inset-0 flex items-center justify-center z-10 animate-pulse">
           <div className="flex flex-col items-center gap-2">
             <MapIcon className="h-10 w-10 text-muted-foreground/20" />
@@ -45,10 +48,10 @@ export function MapSkeleton() {
 
 export function StatCardsSkeleton() {
   const staticLabels = [
-    { label: 'סה"כ אזעקות', icon: AlertTriangle },
-    { label: "העיר המטווחת", icon: MapPin },
-    { label: "ימי פעילות", icon: Calendar },
-    { label: "יישובים בטווח", icon: Hash },
+    { label: 'סה"כ אזעקות', icon: AlertTriangle, subValue: "אירועים מתועדים" },
+    { label: "העיר המטווחת", icon: MapPin, subValue: "63 אירועים" },
+    { label: "ימי פעילות", icon: Calendar, subValue: "מתחילת המבצע" },
+    { label: "יישובים בטווח", icon: Hash, subValue: "נקודות ציון" },
   ];
   return (
     <div
@@ -68,8 +71,10 @@ export function StatCardsSkeleton() {
               <item.icon className="h-3.5 w-3.5 text-muted-foreground/20" />
             </div>
             <div className="flex flex-col gap-1.5 animate-pulse">
-              <div className="h-10 md:h-12 w-20 bg-muted rounded-md" />
-              <div className="h-4 w-28 bg-muted/20 rounded-md" />
+              <div className="h-12 md:h-12 w-20 bg-muted rounded-md" />
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-tight">
+                {item.subValue}
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -114,7 +119,7 @@ export function LeaderboardSkeleton() {
 }
 
 export function TrendChartSkeleton({
-  title = "מגמת אזעקות יומית",
+  title = "מגמת אזעקות",
   footerCols = 2,
 }: {
   title?: string;
@@ -138,6 +143,7 @@ export function TrendChartSkeleton({
                 <>
                   <TrendingUp className="h-4 w-4 text-muted-foreground" />
                   {title}
+                  <div className="h-5 w-24 bg-muted animate-pulse rounded inline-block" />
                 </>
               )}
             </CardTitle>
@@ -151,17 +157,22 @@ export function TrendChartSkeleton({
       <CardContent className="pb-4 px-2">
         <div className="h-60 w-full bg-muted/5 animate-pulse rounded-md border border-dashed border-border/50 flex items-end justify-between px-8 py-4">
           {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
-            <div 
-              key={`bar-skeleton-${i}`} 
-              className="w-8 bg-muted/10 rounded-t-md" 
+            <div
+              key={`bar-skeleton-${i}`}
+              className="w-8 bg-muted/10 rounded-t-md"
               style={{ height: `${h}%` }}
             />
           ))}
         </div>
       </CardContent>
-      <CardFooter className={`grid grid-cols-1 md:grid-cols-${footerCols} gap-4 pt-4 border-t border-border`}>
+      <CardFooter
+        className={`grid grid-cols-1 md:grid-cols-${footerCols} gap-4 pt-4 border-t border-border`}
+      >
         {Array.from({ length: footerCols }).map((_, i) => (
-          <div key={`footer-item-skeleton-${i}`} className="flex flex-col gap-1.5 animate-pulse">
+          <div
+            key={`footer-item-skeleton-${i}`}
+            className="flex flex-col gap-1.5 animate-pulse"
+          >
             <div className="h-3 w-16 bg-muted/40 rounded" />
             <div className="h-4 w-32 bg-muted rounded" />
           </div>
@@ -174,7 +185,7 @@ export function TrendChartSkeleton({
 export function CitySearchSkeleton() {
   return (
     <div className="w-full flex justify-center animate-pulse">
-      <div className="h-10 w-full max-w-md bg-muted/50 rounded-xl border border-border/50" />
+      <div className="h-9 w-full max-w-md bg-muted/50 rounded-xl border border-border/50" />
     </div>
   );
 }
@@ -185,7 +196,7 @@ export function QuickButtonsSkeleton() {
       {[1, 2, 3, 4, 5, 6, 7].map((i) => (
         <div
           key={`btn-skeleton-${i}`}
-          className="h-9 w-24 bg-muted/40 rounded-full"
+          className="h-9 w-20 bg-muted/40 rounded-full"
         />
       ))}
     </div>

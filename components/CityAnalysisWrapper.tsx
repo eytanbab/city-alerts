@@ -1,6 +1,5 @@
 "use client";
 
-import { Suspense } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { CityAnalysisContent } from "@/components/CityAnalysisContent";
 import { type DashboardData } from "@/lib/data";
@@ -10,11 +9,7 @@ interface CityAnalysisWrapperProps {
 }
 
 export function CityAnalysisWrapper({ dataPromise }: CityAnalysisWrapperProps) {
-  return (
-    <Suspense>
-      <CityAnalysisSync dataPromise={dataPromise} />
-    </Suspense>
-  );
+  return <CityAnalysisSync dataPromise={dataPromise} />;
 }
 
 function CityAnalysisSync({ dataPromise }: CityAnalysisWrapperProps) {

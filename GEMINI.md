@@ -55,3 +55,12 @@ Use the historical JSON data located at: https://www.tzevaadom.co.il/static/hist
 4. **Data Processing**: Filter for records after 2026-02-27. Match the user input against the `city` column. Group results by the hour from the `datetime` field.
 5. **Visualization**: Use a shadcn-styled BarChart. Ensure the Y-axis is positioned on the right side if necessary for the RTL feel, and tooltips are localized.
 6. **Final Step**: Run `npm run build` to catch any bugs introduced during development.
+
+# Post-Rewrite Verification
+
+* After completing any codebase rewrite or modification, you must execute the following checks in order:
+* 1. Run lint checks to verify code formatting and style compliance.
+* 2. Run type checks to confirm type safety and catch potential errors.
+* 3. Run a build check to ensure the project compiles successfully.
+* If any of these checks fail, you must fix the identified errors and rerun the sequence until all checks pass.
+* Do not consider the task complete until the lint, type, and build processes execute without errors.

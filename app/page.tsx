@@ -2,8 +2,8 @@ import { getDashboardData } from '@/lib/data';
 import { DashboardClient } from '@/components/DashboardClient';
 import { ModeToggle } from '@/components/ModeToggle';
 
-export default async function Home() {
-  const data = await getDashboardData();
+export default function Home() {
+  const dataPromise = getDashboardData();
 
   return (
     <main className="container mx-auto px-4 py-6 md:py-10 max-w-6xl min-h-screen flex flex-col items-center gap-8 md:gap-12" dir="rtl">
@@ -19,7 +19,7 @@ export default async function Home() {
         </p>
       </div>
 
-      <DashboardClient initialData={data} />
+      <DashboardClient dataPromise={dataPromise} />
       
       <footer className="text-sm text-muted-foreground text-center flex flex-col gap-3 w-full border-t border-border/40">
         <div className="flex flex-col md:flex-row items-center justify-center p-4 gap-2 md:gap-6">

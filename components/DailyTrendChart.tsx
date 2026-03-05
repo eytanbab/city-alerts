@@ -103,7 +103,7 @@ export function DailyTrendChart({
               width={20}
               tickFormatter={formatNumber}
             />
-            <ChartTooltip content={<ChartTooltipContent className="rounded-xl border-border" labelFormatter={formatDate} valueFormatter={formatNumber} />} />
+            <ChartTooltip content={<ChartTooltipContent className="rounded-xl border-border" labelFormatter={formatDate} formatter={(val) => formatNumber(Number(val))} />} />
             <Area
               type="monotone"
               dataKey="count"

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, MapPin, Calendar, Hash } from "lucide-react";
@@ -16,7 +16,7 @@ interface StatCardsProps {
 export function StatCards({ stats }: StatCardsProps) {
   const items = [
     {
-      label: "סה\"כ אזעקות",
+      label: 'סה"כ אזעקות',
       value: stats.totalAlarms.toLocaleString(),
       subValue: "אירועים מתועדים",
       icon: AlertTriangle,
@@ -42,9 +42,15 @@ export function StatCards({ stats }: StatCardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border" dir="rtl">
+    <div
+      className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border"
+      dir="rtl"
+    >
       {items.map((item) => (
-        <Card key={item.label} className="bg-background rounded-none border-none shadow-none p-6">
+        <Card
+          key={item.label}
+          className="bg-background rounded-none border-none shadow-none p-6"
+        >
           <CardContent className="p-0 flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <span className="text-md font-semibold uppercase text-muted-foreground">

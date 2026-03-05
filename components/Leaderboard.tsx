@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Trophy } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Trophy } from "lucide-react";
 
 interface LeaderboardProps {
   data: { name: string; count: number }[];
@@ -10,7 +10,10 @@ interface LeaderboardProps {
 
 export function Leaderboard({ data, onSelect }: LeaderboardProps) {
   return (
-    <Card className="h-full bg-card border-none shadow-sm ring-1 ring-border/50" dir="rtl">
+    <Card
+      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
+      dir="rtl"
+    >
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
           <Trophy className="h-4 w-4 text-muted-foreground" />
@@ -20,9 +23,9 @@ export function Leaderboard({ data, onSelect }: LeaderboardProps) {
       <CardContent className="px-2 pb-2">
         <div className="flex flex-col">
           {data.map((city, index) => (
-            <button 
-              key={city.name} 
-              className="group w-full flex items-center justify-between p-3 rounded-md transition-colors hover:bg-accent text-right cursor-pointer" 
+            <button
+              key={city.name}
+              className="group w-full flex items-center justify-between p-3 rounded-md transition-colors hover:bg-accent text-right cursor-pointer"
               onClick={() => onSelect(city.name)}
             >
               <div className="flex items-center gap-3">
@@ -33,7 +36,7 @@ export function Leaderboard({ data, onSelect }: LeaderboardProps) {
                   {city.name}
                 </span>
               </div>
-              
+
               <div className="flex items-baseline gap-1.5">
                 <span className="text-base font-bold text-foreground tabular-nums">
                   {city.count.toLocaleString()}

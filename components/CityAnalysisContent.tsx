@@ -1,23 +1,42 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useMemo, use } from 'react';
-import dynamic from 'next/dynamic';
-import { getHourlyDistribution, getCityDailyTrend, type DashboardData } from '@/lib/data';
-import { CitySearch } from '@/components/CitySearch';
-import { TrendChartSkeleton } from '@/components/DashboardSkeletons';
-import { Search as SearchIcon, Info } from 'lucide-react';
+import * as React from "react";
+import { useMemo, use } from "react";
+import dynamic from "next/dynamic";
+import {
+  getHourlyDistribution,
+  getCityDailyTrend,
+  type DashboardData,
+} from "@/lib/data";
+import { CitySearch } from "@/components/CitySearch";
+import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
+import { Search as SearchIcon, Info } from "lucide-react";
 
-const AlarmChart = dynamic(() => import('@/components/AlarmChart').then(mod => mod.AlarmChart), { 
-  ssr: false,
-  loading: () => <TrendChartSkeleton title="התפלגות שעתית" />
-});
-const DailyTrendChart = dynamic(() => import('@/components/DailyTrendChart').then(mod => mod.DailyTrendChart), { 
-  ssr: false,
-  loading: () => <TrendChartSkeleton />
-});
+const AlarmChart = dynamic(
+  () => import("@/components/AlarmChart").then((mod) => mod.AlarmChart),
+  {
+    ssr: false,
+    loading: () => <TrendChartSkeleton title="התפלגות שעתית" />,
+  },
+);
+const DailyTrendChart = dynamic(
+  () =>
+    import("@/components/DailyTrendChart").then((mod) => mod.DailyTrendChart),
+  {
+    ssr: false,
+    loading: () => <TrendChartSkeleton />,
+  },
+);
 
-const POPULAR_CITIES = ['ירושלים', 'תל אביב', 'באר שבע', 'חיפה', 'אשקלון', 'אשדוד', 'אילת'];
+const POPULAR_CITIES = [
+  "ירושלים",
+  "תל אביב",
+  "באר שבע",
+  "חיפה",
+  "אשקלון",
+  "אשדוד",
+  "אילת",
+];
 
 interface CityAnalysisContentProps {
   dataPromise: Promise<DashboardData>;
@@ -25,10 +44,10 @@ interface CityAnalysisContentProps {
   setActiveCity: (city: string) => void;
 }
 
-export function CityAnalysisContent({ 
-  dataPromise, 
-  activeCity: initialCity, 
-  setActiveCity: updateUrl 
+export function CityAnalysisContent({
+  dataPromise,
+  activeCity: initialCity,
+  setActiveCity: updateUrl,
 }: CityAnalysisContentProps) {
   const data = use(dataPromise);
   const { alarmsByCity, lastSirenPerCity, citiesList, isFallback } = data;
@@ -43,7 +62,7 @@ export function CityAnalysisContent({
 
   const handleCityChange = (city: string) => {
     setActiveCity(city); // Instant UI update
-    updateUrl(city);    // Update URL in background
+    updateUrl(city); // Update URL in background
   };
 
   const cityAlarms = useMemo(() => {
@@ -64,12 +83,12 @@ export function CityAnalysisContent({
   const lastSirenFormatted = useMemo(() => {
     const rawDatetime = lastSirenPerCity?.[activeCity];
     if (!rawDatetime) return null;
-    
+
     // Convert YYYY-MM-DD HH:mm:ss to DD/MM/YY HH:mm
-    const [datePart, timePart] = rawDatetime.split(' ');
-    const [year, month, day] = datePart.split('-');
-    const [hour, minute] = timePart.split(':');
-    
+    const [datePart, timePart] = rawDatetime.split(" ");
+    const [year, month, day] = datePart.split("-");
+    const [hour, minute] = timePart.split(":");
+
     return `${day}/${month}/${year.slice(2)} ${hour}:${minute}`;
   }, [lastSirenPerCity, activeCity]);
 
@@ -78,19 +97,27 @@ export function CityAnalysisContent({
       {isFallback && (
         <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 text-amber-600 dark:text-amber-400">
           <Info className="h-5 w-5 shrink-0" />
-          <p className="text-sm font-bold">שימוש בנתונים שמורים: החיבור למקור הנתונים בזמן אמת נכשל.</p>
+          <p className="text-sm font-bold">
+            שימוש בנתונים שמורים: החיבור למקור הנתונים בזמן אמת נכשל.
+          </p>
         </div>
       )}
-      
+
       <div className="w-full flex flex-col items-center gap-4">
-        <CitySearch cities={citiesList} onSearch={handleCityChange} selectedCity={activeCity} />
+        <CitySearch
+          cities={citiesList}
+          onSearch={handleCityChange}
+          selectedCity={activeCity}
+        />
         <div className="flex flex-wrap justify-center gap-2">
           {POPULAR_CITIES.map((city) => (
             <button
               key={city}
               onClick={() => handleCityChange(city)}
               className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-all duration-200 cursor-pointer ${
-                activeCity === city ? 'bg-primary text-primary-foreground border-primary shadow-sm scale-105' : 'bg-background hover:bg-accent text-muted-foreground border-input'
+                activeCity === city
+                  ? "bg-primary text-primary-foreground border-primary shadow-sm scale-105"
+                  : "bg-background hover:bg-accent text-muted-foreground border-input"
               }`}
             >
               {city}
@@ -102,10 +129,10 @@ export function CityAnalysisContent({
         {activeCity ? (
           <div className="grid grid-cols-1 gap-8">
             <AlarmChart data={hourlyData} city={activeCity} />
-            <DailyTrendChart 
-              data={cityDailyTrend} 
-              title={`מגמת אזעקות: ${activeCity}`} 
-              description="כמות האזעקות בעיר לאורך זמן" 
+            <DailyTrendChart
+              data={cityDailyTrend}
+              title={`מגמת אזעקות: ${activeCity}`}
+              description="כמות האזעקות בעיר לאורך זמן"
               lastSiren={lastSirenFormatted}
             />
           </div>
@@ -116,7 +143,9 @@ export function CityAnalysisContent({
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-xl font-bold text-foreground">טרם נבחרה עיר</p>
-              <p className="text-base font-medium">חפש עיר או בחר מהרשימה המהירה כדי לצפות בנתונים מפורטים.</p>
+              <p className="text-base font-medium">
+                חפש עיר או בחר מהרשימה המהירה כדי לצפות בנתונים מפורטים.
+              </p>
             </div>
           </div>
         )}

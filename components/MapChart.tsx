@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState } from 'react';
-import type L from 'leaflet';
-import { MapData } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useRef, useState } from "react";
+import type L from "leaflet";
+import { MapData } from "@/lib/data";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /**
  * MapChart - Manual Leaflet Implementation
- * 
+ *
  * We use vanilla Leaflet directly instead of react-leaflet components
- * to solve persistent hydration and route-transition DOM errors 
+ * to solve persistent hydration and route-transition DOM errors
  * (appendChild of undefined / Map container is being reused).
  */
 export default function MapChart({ data }: { data: MapData[] }) {
@@ -18,14 +18,14 @@ export default function MapChart({ data }: { data: MapData[] }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
     let mapInstance: L.Map | null = null;
     let isMounted = true;
 
     async function initMap() {
-      const Leaflet = (await import('leaflet')).default;
-      
+      const Leaflet = (await import("leaflet")).default;
+
       if (!isMounted || !containerRef.current) return;
 
       const container = containerRef.current;
@@ -34,18 +34,19 @@ export default function MapChart({ data }: { data: MapData[] }) {
       if ((container as any)._leaflet_id) {
         delete (container as any)._leaflet_id;
       }
-      container.innerHTML = '';
+      container.innerHTML = "";
 
       // Initialize Map
       mapInstance = Leaflet.map(container, {
         center: [31.5, 34.75],
         zoom: 8,
         scrollWheelZoom: true,
-        attributionControl: true
+        attributionControl: true,
       });
 
-      Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      Leaflet.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       }).addTo(mapInstance);
 
       // If we unmounted while the map was being created, kill it immediately
@@ -83,18 +84,21 @@ export default function MapChart({ data }: { data: MapData[] }) {
     if (!map || !isReady || !data) return;
 
     async function updateMarkers() {
-      const Leaflet = (await import('leaflet')).default;
-      
+      const Leaflet = (await import("leaflet")).default;
+
       if (!map) return;
 
       // Remove previous markers/polygons
       map.eachLayer((layer: L.Layer) => {
-        if (layer instanceof Leaflet.CircleMarker || layer instanceof Leaflet.Polygon) {
+        if (
+          layer instanceof Leaflet.CircleMarker ||
+          layer instanceof Leaflet.Polygon
+        ) {
           map.removeLayer(layer);
         }
       });
 
-      const maxCount = Math.max(...data.map(d => d.count), 1);
+      const maxCount = Math.max(...data.map((d) => d.count), 1);
 
       data.forEach((item) => {
         const ratio = item.count / maxCount;
@@ -105,7 +109,7 @@ export default function MapChart({ data }: { data: MapData[] }) {
 
         const style: L.PathOptions = {
           fillColor: color,
-          color: 'white',
+          color: "white",
           weight: 0.5,
           fillOpacity: 0.7,
         };
@@ -128,11 +132,11 @@ export default function MapChart({ data }: { data: MapData[] }) {
           </div>
         `;
 
-        layer.bindTooltip(tooltipContent, { 
-          sticky: true, 
-          direction: 'top', 
+        layer.bindTooltip(tooltipContent, {
+          sticky: true,
+          direction: "top",
           offset: [0, -5],
-          className: 'custom-map-tooltip'
+          className: "custom-map-tooltip",
         });
 
         layer.addTo(map);
@@ -143,15 +147,22 @@ export default function MapChart({ data }: { data: MapData[] }) {
   }, [data, isReady]);
 
   return (
-    <Card className="w-full h-150 border border-border shadow-none rounded-sm overflow-hidden flex flex-col" dir="rtl">
+    <Card
+      className="w-full h-150 border border-border shadow-none rounded-sm overflow-hidden flex flex-col"
+      dir="rtl"
+    >
       <CardHeader className="px-6 py-4 border-b border-border bg-muted/5">
-        <CardTitle className="flex items-center gap-2 text-lg font-bold">מפת מוקדי התרעות</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-lg font-bold">
+          מפת מוקדי התרעות
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-0 flex-1 relative overflow-hidden" dir="ltr">
         <div ref={containerRef} className="w-full h-full z-0" />
         {!isReady && (
           <div className="absolute inset-0 bg-muted/5 flex items-center justify-center z-10">
-            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">טעינת מפה...</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground/40">
+              טעינת מפה...
+            </span>
           </div>
         )}
       </CardContent>

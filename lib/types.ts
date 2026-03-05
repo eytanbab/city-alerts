@@ -37,6 +37,6 @@ export interface DashboardData {
   globalDailyTrend: { date: string; count: number }[];
   citiesList: string[];
   lastUpdated: string; // This is the timestamp of the latest alarm
-  lastSync?: string;    // This is the time the data was fetched from the server
+  lastSync?: string; // This is the time the data was fetched from the server
   isFallback?: boolean;
 }

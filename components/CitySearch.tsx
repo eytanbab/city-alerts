@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
@@ -28,7 +28,11 @@ interface CitySearchProps {
 
 const ITEMS_PER_PAGE = 100;
 
-export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) {
+export function CitySearch({
+  cities,
+  onSearch,
+  selectedCity,
+}: CitySearchProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [visibleCount, setVisibleCount] = React.useState(ITEMS_PER_PAGE);
@@ -54,11 +58,16 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     const threshold = 100; // px from the bottom
-    
-    if (target.scrollHeight - target.scrollTop - target.clientHeight < threshold) {
+
+    if (
+      target.scrollHeight - target.scrollTop - target.clientHeight <
+      threshold
+    ) {
       if (visibleCount < allFilteredCities.length) {
         // Use functional update to avoid stale closure
-        setVisibleCount(prev => Math.min(prev + ITEMS_PER_PAGE, allFilteredCities.length));
+        setVisibleCount((prev) =>
+          Math.min(prev + ITEMS_PER_PAGE, allFilteredCities.length),
+        );
       }
     }
   };
@@ -80,15 +89,22 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
             <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+        <PopoverContent
+          className="w-[var(--radix-popover-trigger-width)] p-0"
+          align="start"
+        >
           <Command shouldFilter={false}>
-            <CommandInput 
-              placeholder="הקלד שם עיר..." 
-              className="h-9 text-right" 
+            <CommandInput
+              placeholder="הקלד שם עיר..."
+              className="h-9 text-right"
               dir="rtl"
               onValueChange={setSearchTerm}
             />
-            <CommandList id={listId} className="max-h-[300px] overflow-y-auto" onScroll={handleScroll}>
+            <CommandList
+              id={listId}
+              className="max-h-[300px] overflow-y-auto"
+              onScroll={handleScroll}
+            >
               <CommandEmpty>לא נמצאו ערים.</CommandEmpty>
               <CommandGroup>
                 {visibleCities.map((city) => (
@@ -105,7 +121,7 @@ export function CitySearch({ cities, onSearch, selectedCity }: CitySearchProps) 
                     <Check
                       className={cn(
                         "ml-2 h-4 w-4",
-                        selectedCity === city ? "opacity-100" : "opacity-0"
+                        selectedCity === city ? "opacity-100" : "opacity-0",
                       )}
                     />
                   </CommandItem>

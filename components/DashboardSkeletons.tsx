@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 
 export function MapSkeleton() {
   return (
-    <Card className="w-full h-[600px] border border-border shadow-none rounded-sm overflow-hidden flex flex-col" dir="rtl">
+    <Card className="w-full h-150 border border-border shadow-none rounded-sm overflow-hidden flex flex-col" dir="rtl">
       <CardHeader className="px-6 py-4 border-b border-border bg-muted/5">
         <CardTitle className="flex items-center gap-2 text-lg font-bold">מפת מוקדי התרעות</CardTitle>
       </CardHeader>

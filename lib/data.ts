@@ -32,9 +32,24 @@ export function processRawAlarms(
     if (timestamp > maxTimestamp) maxTimestamp = timestamp;
 
     const date = new Date(timestamp * 1000);
-    const datetime = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
-    const datePart = datetime.split(' ')[0];
-    const minKey = getMinuteKey(datetime);
+    const formatter = new Intl.DateTimeFormat('he-IL', {
+      timeZone: 'Asia/Jerusalem',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    const parts = formatter.formatToParts(date);
+    const getPart = (type: string) => parts.find(p => p.type === type)?.value;
+    
+    // Format: YYYY-MM-DD HH:mm:ss
+    const datetime = `${getPart('year')}-${getPart('month')}-${getPart('day')} ${getPart('hour')}:${getPart('minute')}:${getPart('second')}`;
+    const datePart = `${getPart('year')}-${getPart('month')}-${getPart('day')}`;
+    const minKey = datetime.substring(0, 16);
 
     cities.forEach((cityName) => {
       const city = cityName.trim();
@@ -100,6 +115,7 @@ export function processRawAlarms(
     citiesList: Array.from(uniqueBaseCities).sort((a, b) => a.localeCompare(b, 'he')),
     lastUpdated: maxTimestamp > 0 
       ? new Date(maxTimestamp * 1000).toLocaleString('he-IL', { 
+          timeZone: 'Asia/Jerusalem',
           hour: '2-digit', 
           minute: '2-digit', 
           day: '2-digit', 

@@ -18,23 +18,25 @@ export default function MapChart({ data }: { data: MapData[] }) {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !containerRef.current) return;
+    if (typeof window === 'undefined') return;
 
     let mapInstance: L.Map | null = null;
-    const container = containerRef.current;
+    let isMounted = true;
 
     async function initMap() {
       const Leaflet = (await import('leaflet')).default;
+      
+      if (!isMounted || !containerRef.current) return;
 
-      if (!container) return;
+      const container = containerRef.current;
 
-      // 1. Force cleanup of the container
-      if ((container as unknown as Record<string, unknown>)._leaflet_id) {
-        delete (container as unknown as Record<string, string>)._leaflet_id;
+      // Force cleanup of any existing leaflet state on this DOM element
+      if ((container as any)._leaflet_id) {
+        delete (container as any)._leaflet_id;
       }
       container.innerHTML = '';
 
-      // 2. Initialize Map
+      // Initialize Map
       mapInstance = Leaflet.map(container, {
         center: [31.5, 34.75],
         zoom: 8,
@@ -46,23 +48,30 @@ export default function MapChart({ data }: { data: MapData[] }) {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }).addTo(mapInstance);
 
+      // If we unmounted while the map was being created, kill it immediately
+      if (!isMounted) {
+        mapInstance.remove();
+        return;
+      }
+
       mapRef.current = mapInstance;
       setIsReady(true);
+
+      // Ensure the map recognizes its container size
+      setTimeout(() => {
+        if (isMounted && mapInstance) {
+          mapInstance.invalidateSize();
+        }
+      }, 100);
     }
 
     initMap();
 
-    // 3. Robust Cleanup using captured container variable
     return () => {
+      isMounted = false;
       if (mapInstance) {
         mapInstance.remove();
         mapRef.current = null;
-      }
-      if (container) {
-        container.innerHTML = '';
-        if ((container as unknown as Record<string, unknown>)._leaflet_id) {
-          delete (container as unknown as Record<string, string>)._leaflet_id;
-        }
       }
       setIsReady(false);
     };

@@ -90,7 +90,7 @@ export function CitySearch({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-[var(--radix-popover-trigger-width)] p-0"
+          className="w-(--radix-popover-trigger-width) p-0"
           align="start"
         >
           <Command shouldFilter={false}>
@@ -102,7 +102,7 @@ export function CitySearch({
             />
             <CommandList
               id={listId}
-              className="max-h-[300px] overflow-y-auto"
+              className="max-h-75 overflow-y-auto"
               onScroll={handleScroll}
             >
               <CommandEmpty>לא נמצאו ערים.</CommandEmpty>

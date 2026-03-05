@@ -12,13 +12,12 @@ const FILTER_DATE_UNIX = new Date('2026-02-28T00:00:00').getTime() / 1000;
  * Server-side data fetching with Next.js 16 explicit caching.
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  // Use a custom cache profile or a built-in one
   cacheLife('minutes'); 
 
   const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
-    fetch(DATA_URL),
-    fetch(CITIES_URL),
-    fetch(POLYGONS_URL)
+    fetch(DATA_URL, { cache: 'no-store' }),
+    fetch(CITIES_URL, { cache: 'no-store' }),
+    fetch(POLYGONS_URL, { cache: 'no-store' })
   ]);
 
   if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {

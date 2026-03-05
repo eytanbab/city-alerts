@@ -1,11 +1,12 @@
-import { Suspense } from 'react';
+import { Suspense, use } from 'react';
 import { getDashboardData } from '@/lib/server-data';
-import { OverviewContent } from '@/components/OverviewContent';
 import { ModeToggle } from '@/components/ModeToggle';
 import { Navigation } from '@/components/Navigation';
-import { StatCardsSkeleton, MapSkeleton, LeaderboardSkeleton, TrendChartSkeleton } from '@/components/DashboardSkeletons';
+import { TrendChartSkeleton } from '@/components/DashboardSkeletons';
+import { CityAnalysisWrapper } from '@/components/CityAnalysisWrapper';
+import { type DashboardData } from '@/lib/data';
 
-export default function Home() {
+export default function AnalysisPage() {
   const dataPromise = getDashboardData();
 
   return (
@@ -15,16 +16,16 @@ export default function Home() {
       </div>
       <div className="w-full text-center flex flex-col gap-3">
         <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-foreground leading-tight">
-          התפלגות אזעקות במבצע שאגת הארי
+          ניתוח לפי עיר
         </h1>
         <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
-          ויזואליזציה של תדירות אזעקות ומגמות עם נתונים מעודכנים לכל עיר ויישוב.
+          מידע מפורט על התפלגות אזעקות ומגמות עבור כל עיר ויישוב.
         </p>
       </div>
 
       <div className="w-full">
         <Navigation />
-        
+
         <Suspense fallback={
           <div className="h-3 w-24 bg-muted mx-auto animate-pulse rounded mb-8" />
         }>
@@ -32,16 +33,18 @@ export default function Home() {
         </Suspense>
 
         <Suspense fallback={
-          <div className="flex flex-col gap-8">
-            <StatCardsSkeleton />
-            <MapSkeleton />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <LeaderboardSkeleton />
-              <TrendChartSkeleton />
+          <div className="w-full flex flex-col items-center gap-6">
+            <div className="h-10 w-full max-w-md bg-muted animate-pulse rounded-md" />
+            <div className="flex flex-wrap justify-center gap-2">
+              {[1,2,3,4,5,6,7].map(i => <div key={`btn-skeleton-${i}`} className="h-8 w-20 bg-muted animate-pulse rounded-full" />)}
+            </div>
+            <div className="w-full max-w-5xl grid grid-cols-1 gap-8">
+               <TrendChartSkeleton title="התפלגות שעתית" />
+               <TrendChartSkeleton />
             </div>
           </div>
         }>
-          <OverviewContent dataPromise={dataPromise} />
+          <CityAnalysisWrapper dataPromise={dataPromise} />
         </Suspense>
       </div>
       
@@ -61,9 +64,6 @@ export default function Home() {
     </main>
   );
 }
-
-import { use } from 'react';
-import { type DashboardData } from '@/lib/data';
 
 function LastUpdated({ dataPromise }: { dataPromise: Promise<DashboardData> }) {
   const data = use(dataPromise);

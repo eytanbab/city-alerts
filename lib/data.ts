@@ -16,7 +16,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
         if (Date.now() - timestamp < CACHE_DURATION) {
           return data;
         }
-      } catch (e) {
+      } catch {
         // ignore error
       }
     }
@@ -33,7 +33,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
         timestamp: Date.now(),
         data
       }));
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -169,4 +169,38 @@ export function getHourlyDistribution(alarms: Alarm[], cityName: string) {
     hour: `${hour.toString().padStart(2, '0')}:00`,
     count,
   }));
+}
+
+export function getCityDailyTrend(alarms: Alarm[], cityName: string) {
+  const dailyCounts: Record<string, number> = {};
+  const normalizedTarget = normalizeCityName(cityName);
+  const seenMinutes = new Set<string>();
+
+  const startDate = new Date('2026-02-28');
+  const endDate = new Date(); // Today
+  
+  // Initialize all dates with 0
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    const dateStr = current.toISOString().split('T')[0];
+    dailyCounts[dateStr] = 0;
+    current.setDate(current.getDate() + 1);
+  }
+
+  alarms.forEach(a => {
+    if (normalizeCityName(a.city) === normalizedTarget) {
+      const minKey = getMinuteKey(a.datetime);
+      if (!seenMinutes.has(minKey)) {
+        seenMinutes.add(minKey);
+        const datePart = a.datetime.split(' ')[0];
+        if (dailyCounts[datePart] !== undefined) {
+          dailyCounts[datePart]++;
+        }
+      }
+    }
+  });
+
+  return Object.entries(dailyCounts)
+    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+    .map(([date, count]) => ({ date, count }));
 }

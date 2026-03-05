@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getDashboardData } from "@/lib/server-data";
 import { OverviewContent } from "@/components/OverviewContent";
-import { ModeToggle } from "@/components/ModeToggle";
 import { Navigation } from "@/components/Navigation";
 import {
   StatCardsSkeleton,

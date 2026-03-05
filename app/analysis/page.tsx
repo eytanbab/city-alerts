@@ -1,6 +1,5 @@
 import { Suspense, use } from "react";
 import { getDashboardData } from "@/lib/server-data";
-import { ModeToggle } from "@/components/ModeToggle";
 import { Navigation } from "@/components/Navigation";
 import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
 import { CityAnalysisWrapper } from "@/components/CityAnalysisWrapper";

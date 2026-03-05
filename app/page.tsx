@@ -22,7 +22,7 @@ export default async function Home() {
       <DashboardClient initialData={data} />
       
       <footer className="text-sm text-muted-foreground text-center flex flex-col gap-3 w-full border-t border-border/40">
-        <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6">
+        <div className="flex flex-col md:flex-row items-center justify-center p-4 gap-2 md:gap-6">
           <p className="font-medium">הנתונים מתעדכנים בזמן אמת</p>
           <span className="hidden md:block opacity-30">•</span>
           <p>

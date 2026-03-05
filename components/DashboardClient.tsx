@@ -87,7 +87,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       <div className="lg:hidden flex flex-col gap-8">
         <div className="flex flex-col gap-2">
           {stats && <StatCards stats={stats} />}
-          <div className="text-[10px] font-bold text-muted-foreground uppercase text-center">
+          <div className="text-xs font-medium text-muted-foreground uppercase text-center">
             עדכון אחרון: {lastUpdated}
           </div>
         </div>
@@ -163,7 +163,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
                 </TabsTrigger>
               </TabsList>
             </div>
-            <div className="text-[10px] font-bold text-muted-foreground uppercase text-center">
+            <div className="text-xs font-medium text-muted-foreground uppercase text-center">
               עדכון אחרון: {lastUpdated}
             </div>
           </div>

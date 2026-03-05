@@ -4,7 +4,7 @@ export * from './types';
 
 const DATA_URL = '/api/alarms';
 const CACHE_KEY = 'alarms_cache_v9';
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
 
 export async function fetchDashboardData(): Promise<DashboardData> {
   // Try to load from cache

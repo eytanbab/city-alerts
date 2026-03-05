@@ -41,4 +41,5 @@ export interface DashboardData {
   globalDailyTrend: { date: string; count: number }[];
   citiesList: string[];
   lastUpdated: string;
+  isFallback?: boolean;
 }

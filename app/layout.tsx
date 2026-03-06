@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ModeToggle";
 
+import Script from "next/script";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -49,6 +51,20 @@ export default function RootLayout({
               <ModeToggle />
             </div>
             {children}
+            <Script
+              id="bmc-widget"
+              src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+              data-name="BMC-Widget"
+              data-cfasync="false"
+              data-id="cityalerts"
+              data-description="Support me on Buy me a coffee!"
+              data-message="If you found this helpful, feel free to buy me a coffee."
+              data-color="#5F7FFF"
+              data-position="Right"
+              data-x_margin="18"
+              data-y_margin="18"
+              strategy="afterInteractive"
+            />
           </main>
           <Analytics />
         </ThemeProvider>

@@ -28,4 +28,10 @@
 - [x] **Multi-Page Routing**: Split the dashboard into `/` (National Overview) and `/analysis` (City Analysis).
 - [x] **Deep Linking**: Implement URL-based city selection (e.g., `/analysis?city=אשקלון`).
 - [x] **Navigation UX**: Implement a consistent Header/Navigation component.
-- [x] **Bulletproof Map Stability**: Replaced `react-leaflet` with a manual vanilla Leaflet implementation in `MapChart.tsx` to resolve persistent DOM/Hydration errors (`appendChild`, `Map container is being reused`) during route transitions.
+- [x] **Bulletproof Map Stability**: Replaced `react-leaflet` with a manual vanilla Leaflet implementation in `MapChart.tsx` to resolve persistent DOM/Hydration errors.
+
+## Phase 6: Quality Assurance & Testing
+
+- [x] **Unit Testing**: Implement Vitest suite for data utilities and core UI components.
+- [ ] **E2E Testing**: Implement Playwright verification for critical user journeys.
+- [x] **Post-Rewrite Verification**: Establish automated linting, type-checking, and build validation.

@@ -14,6 +14,8 @@ interface StatCardsProps {
 }
 
 export function StatCards({ stats }: StatCardsProps) {
+  if (!stats) return null;
+
   const items = [
     {
       label: 'סה"כ אזעקות',

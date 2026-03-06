@@ -20,3 +20,13 @@ const sessionStorageMock = (() => {
 Object.defineProperty(window, "sessionStorage", {
   value: sessionStorageMock,
 });
+
+// Mock ResizeObserver for Radix UI / CMDK
+class ResizeObserverMock {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+
+window.ResizeObserver = ResizeObserverMock;
+

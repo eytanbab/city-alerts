@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { CityAnalysisContent } from "@/components/CityAnalysisContent";
 import { type DashboardData } from "@/lib/data";
 
@@ -14,8 +14,6 @@ export function CityAnalysisWrapper({ dataPromise }: CityAnalysisWrapperProps) {
 
 function CityAnalysisSync({ dataPromise }: CityAnalysisWrapperProps) {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const pathname = usePathname();
 
   const activeCity = searchParams.get("city") || "";
 

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   normalizeCityName,
   getHourlyDistribution,
+  getCityDailyTrend,
   processRawAlarms,
   Alarm,
 } from "./data";
@@ -83,5 +84,24 @@ describe("Data Utility Functions (Optimized)", () => {
     // Daily Trend (minute-based unique events)
     // 2026-02-28: חיפה (10:00), תל אביב (10:01) = 2 total events
     expect(result.globalDailyTrend[0].count).toBe(2);
+  });
+
+  it("should generate city daily trend correctly within specified range", () => {
+    const alarms: Alarm[] = [
+      { datetime: "2026-03-01 12:00:00", city: "אשקלון" },
+      { datetime: "2026-03-01 12:01:00", city: "אשקלון" },
+      { datetime: "2026-03-03 15:00:00", city: "אשקלון" },
+    ];
+
+    // Using a fixed "now" date to ensure stable test
+    const now = "2026-03-05";
+    const trend = getCityDailyTrend(alarms, now);
+
+    // Range: 2026-02-28 to 2026-03-05
+    expect(trend).toHaveLength(6);
+    expect(trend.find((t) => t.date === "2026-03-01")?.count).toBe(2);
+    expect(trend.find((t) => t.date === "2026-03-02")?.count).toBe(0);
+    expect(trend.find((t) => t.date === "2026-03-03")?.count).toBe(1);
+    expect(trend.find((t) => t.date === "2026-03-05")?.count).toBe(0);
   });
 });

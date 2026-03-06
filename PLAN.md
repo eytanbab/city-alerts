@@ -34,4 +34,32 @@
 
 - [x] **Unit Testing**: Implement Vitest suite for data utilities and core UI components.
 - [ ] **E2E Testing**: Implement Playwright verification for critical user journeys.
+  - [ ] **Infrastructure Setup**:
+    - [ ] Install `@playwright/test` and browsers.
+    - [ ] Configure `playwright.config.ts` (BaseURL, WebServer, Reporters).
+    - [ ] Initialize `e2e/` directory structure.
+  - [ ] **Page Object Model (POM) Implementation**:
+    - [ ] Create `NavigationPage` for global layout checks.
+    - [ ] Create `AnalysisPage` for city-specific interactions.
+  - [ ] **Critical Path Tests**:
+    - [ ] **Smoke Tests**: Verify app boots and `dir="rtl"` is applied globally.
+    - [ ] **Navigation & Leaderboard**: 
+      - [ ] Test header navigation between `/` and `/analysis`.
+      - [ ] Verify clicking a city in the National Leaderboard navigates to filtered `/analysis`.
+    - [ ] **National Dashboard**: Validate aggregate stats cards and Map presence.
+    - [ ] **City Search Flow**: Test Hebrew input, virtualized list scrolling, and city selection.
+    - [ ] **Deep Linking**: Verify `?city=...` correctly hydrates the UI without manual interaction.
+    - [ ] **Data Resilience (Network Interception)**:
+      - [ ] Intercept `all.json` request and return 500 to verify "Fallback Data" banner visibility.
+    - [ ] **Responsive & Theme**:
+      - [ ] Verify layout stability on mobile viewports (390x844).
+      - [ ] Verify `ModeToggle` correctly switches dark/light classes.
+  - [ ] **Visual & Behavioral Verification**:
+    - [ ] Verify Charts (Recharts) render via SVG path checks.
+    - [ ] Verify Map markers/popups are interactable.
+  - **Success Criteria**:
+    - 100% pass rate for critical path tests.
+    - Automated verification of Hebrew text rendering and RTL layout.
+    - Deep linking correctly recovers application state from URL.
+    - Maps and charts verified to be present and interactive.
 - [x] **Post-Rewrite Verification**: Establish automated linting, type-checking, and build validation.

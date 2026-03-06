@@ -37,7 +37,6 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
         </div>
       )}
       {stats && <StatCards stats={stats} />}
-      <MapChart data={mapData} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <Leaderboard data={topCities} onSelect={handleCitySelect} />
         <DailyTrendChart
@@ -46,6 +45,7 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
           description="כמות האזעקות בכל הארץ לאורך זמן"
         />
       </div>
+      <MapChart data={mapData} />
     </div>
   );
 }

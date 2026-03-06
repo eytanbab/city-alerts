@@ -44,11 +44,11 @@ export default function Home() {
           fallback={
             <div className="flex flex-col gap-8">
               <StatCardsSkeleton />
-              <MapSkeleton />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <LeaderboardSkeleton />
                 <TrendChartSkeleton />
               </div>
+              <MapSkeleton />
             </div>
           }
         >

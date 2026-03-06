@@ -20,13 +20,13 @@ function CityAnalysisSync({ dataPromise }: CityAnalysisWrapperProps) {
   const activeCity = searchParams.get("city") || "";
 
   const setActiveCity = (city: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const url = new URL(window.location.href);
     if (city) {
-      params.set("city", city);
+      url.searchParams.set("city", city);
     } else {
-      params.delete("city");
+      url.searchParams.delete("city");
     }
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    window.history.pushState(null, "", url.toString());
   };
 
   return (

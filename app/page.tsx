@@ -2,11 +2,13 @@ import { Suspense } from "react";
 import { getDashboardData } from "@/lib/server-data";
 import { OverviewContent } from "@/components/OverviewContent";
 import { Navigation } from "@/components/Navigation";
+import { LastUpdated } from "@/components/LastUpdated";
 import {
   StatCardsSkeleton,
   MapSkeleton,
   LeaderboardSkeleton,
   TrendChartSkeleton,
+  LastUpdatedSkeleton,
 } from "@/components/DashboardSkeletons";
 
 import { type Metadata } from "next";
@@ -34,25 +36,7 @@ export default function Home() {
       <div className="w-full">
         <Navigation currentPath="/" />
 
-        <Suspense
-          fallback={
-            <div className="flex flex-col gap-1 items-center mb-8">
-              <div className="flex gap-1">
-                <span className="text-xs font-medium text-muted-foreground uppercase text-center">
-                  אזעקה אחרונה:
-                </span>
-                <div className="w-20 h-4 bg-muted animate-pulse rounded" />
-              </div>
-
-              <div className="flex gap-1">
-                <span className="text-[10px] text-muted-foreground/60">
-                  סנכרון אחרון:
-                </span>
-                <div className="w-11 h-3.75 bg-muted animate-pulse rounded" />
-              </div>
-            </div>
-          }
-        >
+        <Suspense fallback={<LastUpdatedSkeleton />}>
           <LastUpdated dataPromise={dataPromise} />
         </Suspense>
 
@@ -102,24 +86,5 @@ export default function Home() {
         </div>
       </footer>
     </>
-  );
-}
-
-import { use } from "react";
-import { type DashboardData } from "@/lib/data";
-
-function LastUpdated({ dataPromise }: { dataPromise: Promise<DashboardData> }) {
-  const data = use(dataPromise);
-  return (
-    <div className="flex flex-col gap-1 items-center mb-8">
-      <div className="text-xs font-medium text-muted-foreground uppercase text-center">
-        אזעקה אחרונה: {data.lastUpdated}
-      </div>
-      {data.lastSync && (
-        <div className="text-[10px] text-muted-foreground/60">
-          סנכרון אחרון: {data.lastSync}
-        </div>
-      )}
-    </div>
   );
 }

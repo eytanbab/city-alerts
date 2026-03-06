@@ -1,13 +1,14 @@
-import { Suspense, use } from "react";
+import { Suspense } from "react";
 import { getDashboardData } from "@/lib/server-data";
 import { Navigation } from "@/components/Navigation";
+import { LastUpdated } from "@/components/LastUpdated";
 import {
   TrendChartSkeleton,
   CitySearchSkeleton,
   QuickButtonsSkeleton,
+  LastUpdatedSkeleton,
 } from "@/components/DashboardSkeletons";
 import { CityAnalysisWrapper } from "@/components/CityAnalysisWrapper";
-import { type DashboardData } from "@/lib/data";
 
 import { type Metadata } from "next";
 
@@ -34,11 +35,7 @@ export default function AnalysisPage() {
       <div className="w-full">
         <Navigation currentPath="/analysis" />
 
-        <Suspense
-          fallback={
-            <div className="h-4 w-40 bg-muted mx-auto animate-pulse rounded mb-8" />
-          }
-        >
+        <Suspense fallback={<LastUpdatedSkeleton />}>
           <LastUpdated dataPromise={dataPromise} />
         </Suspense>
 
@@ -88,21 +85,5 @@ export default function AnalysisPage() {
         </div>
       </footer>
     </>
-  );
-}
-
-function LastUpdated({ dataPromise }: { dataPromise: Promise<DashboardData> }) {
-  const data = use(dataPromise);
-  return (
-    <div className="flex flex-col gap-1 items-center mb-8">
-      <span className="text-xs font-medium text-muted-foreground uppercase text-center">
-        אזעקה אחרונה: {data.lastUpdated}
-      </span>
-      {data.lastSync && (
-        <span className="text-[11px] text-muted-foreground/60">
-          סנכרון אחרון: {data.lastSync}
-        </span>
-      )}
-    </div>
   );
 }

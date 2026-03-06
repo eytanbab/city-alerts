@@ -3,10 +3,12 @@
 import { headers } from "next/headers";
 import { type DashboardData } from "./types";
 import { processRawAlarms } from "./data";
+import fs from "fs";
+import path from "path";
 
 const DATA_URL = "https://www.tzevaadom.co.il/static/historical/all.json";
-const CITIES_URL = "https://www.tzevaadom.co.il/static/cities.json";
-const POLYGONS_URL = "https://www.tzevaadom.co.il/static/polygons.json";
+const CITIES_PATH = path.join(process.cwd(), "lib/data/cities.json");
+const POLYGONS_PATH = path.join(process.cwd(), "lib/data/polygons.json");
 
 /**
  * Server-side data fetching - CACHING TEMPORARILY DISABLED FOR TESTING
@@ -19,19 +21,19 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   try {
     const filterDateUnix = new Date("2026-02-28T00:00:00").getTime() / 1000;
-    const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
-      fetch(DATA_URL, { cache: "no-store" }),
-      fetch(CITIES_URL, { cache: "no-store" }),
-      fetch(POLYGONS_URL, { cache: "no-store" }),
-    ]);
 
-    if (!alarmsRes.ok || !citiesRes.ok || !polygonsRes.ok) {
-      throw new Error("Failed to fetch data from source");
+    // Load static data from local disk
+    const citiesMetadata = JSON.parse(fs.readFileSync(CITIES_PATH, "utf8")).cities;
+    const polygonsRaw = JSON.parse(fs.readFileSync(POLYGONS_PATH, "utf8"));
+
+    // Fetch dynamic alarms from source
+    const alarmsRes = await fetch(DATA_URL, { cache: "no-store" });
+
+    if (!alarmsRes.ok) {
+      throw new Error("Failed to fetch alarms from source");
     }
 
     const rawAlarms = await alarmsRes.json();
-    const citiesMetadata = (await citiesRes.json()).cities;
-    const polygonsRaw = await polygonsRes.json();
 
     const result = processRawAlarms(
       rawAlarms,

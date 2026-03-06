@@ -1,21 +1,24 @@
-"use cache";
-import { cacheLife } from "next/cache";
+//"use cache";
+// import { cacheLife } from "next/cache";
+import { headers } from "next/headers";
 import { type DashboardData } from "./types";
 import { processRawAlarms } from "./data";
 
 const DATA_URL = "https://www.tzevaadom.co.il/static/historical/all.json";
 const CITIES_URL = "https://www.tzevaadom.co.il/static/cities.json";
 const POLYGONS_URL = "https://www.tzevaadom.co.il/static/polygons.json";
-const FILTER_DATE_UNIX = new Date("2026-02-28T00:00:00").getTime() / 1000;
 
 /**
- * Server-side data fetching with Next.js 16 explicit caching.
+ * Server-side data fetching - CACHING TEMPORARILY DISABLED FOR TESTING
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  // 'minutes' is the standard profile, usually revalidating every minute.
-  cacheLife("minutes");
+  // cacheLife("minutes");
+
+  // Force dynamic rendering to allow new Date() usage
+  await headers();
 
   try {
+    const filterDateUnix = new Date("2026-02-28T00:00:00").getTime() / 1000;
     const [alarmsRes, citiesRes, polygonsRes] = await Promise.all([
       fetch(DATA_URL, { cache: "no-store" }),
       fetch(CITIES_URL, { cache: "no-store" }),
@@ -34,7 +37,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       rawAlarms,
       citiesMetadata,
       polygonsRaw,
-      FILTER_DATE_UNIX,
+      filterDateUnix,
     );
 
     const lastSync = new Date().toLocaleString("he-IL", {

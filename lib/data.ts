@@ -199,7 +199,7 @@ export function getHourlyDistribution(cityAlarms: Alarm[]) {
   }));
 }
 
-export function getCityDailyTrend(cityAlarms: Alarm[]) {
+export function getCityDailyTrend(cityAlarms: Alarm[], nowInput?: string) {
   const dailyCounts: Record<string, number> = {};
   const seenMinutes = new Set<string>();
 
@@ -207,7 +207,7 @@ export function getCityDailyTrend(cityAlarms: Alarm[]) {
   // We can't easily generate all dates without a start/end,
   // but we know the range starts from 2026-02-28
   const startDate = new Date("2026-02-28");
-  const endDate = new Date();
+  const endDate = nowInput ? new Date(nowInput) : new Date();
 
   const current = new Date(startDate);
   while (current <= endDate) {

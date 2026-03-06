@@ -36,14 +36,17 @@ export async function getDashboardData(): Promise<DashboardData> {
       polygonsRaw,
       FILTER_DATE_UNIX,
     );
+
+    const lastSync = new Date().toLocaleString("he-IL", {
+      timeZone: "Asia/Jerusalem",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
     return {
       ...result,
-      lastSync: new Date().toLocaleString("he-IL", {
-        timeZone: "Asia/Jerusalem",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      }),
+      lastSync,
     };
   } catch (error) {
     console.error("Data fetch error:", error);

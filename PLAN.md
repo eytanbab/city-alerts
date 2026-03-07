@@ -1,65 +1,52 @@
-# Refactoring & Optimization Plan
+# city-alerts - Feature Roadmap
 
-## Phase 1: Performance & Bundle Optimization
+This document outlines the planned functional enhancements for the **city-alerts** dashboard. Each feature is designed to provide deeper insights and better utility for users monitoring alert data during the "Lion's Roar" (שאגת הארי) operation.
 
-- [x] **Dynamic Chart Loading**: Move `AlarmChart` and `DailyTrendChart` to `next/dynamic` with `ssr: false`.
-- [x] **Optimized Icon Imports**: Grouped lucide-react imports for efficient Next.js tree-shaking.
-- [x] **Stable Skeleton Keys**: Replace `key={i}` in skeletons with unique, stable keys.
-- [x] **Static Shell Rendering**: Refactor skeletons to render static card titles, headers, and icons immediately.
+---
 
-## Phase 2: Accessibility & Correctness
+## 1. Comparative Analysis Mode (City vs. City)
 
-- [x] **ARIA Compliance**: Fix `CitySearch.tsx` combobox role by adding missing `aria-controls` and `aria-expanded` attributes.
-- [x] **React Doctor Audit**: Resolved diagnostics (Audit Score: 99/100).
-- [x] **Hydration Fix**: Resolved hydration mismatches from browser extensions using `suppressHydrationWarning`.
+**Description**: Allow users to select two or more cities and compare their alert frequencies on the same chart.
 
-## Phase 3: Code Readability & Maintenance
+- **Why it's useful**: Helps users and researchers understand regional disparities and relative risk levels between neighboring or similar cities.
+- **Implementation Strategy**:
+  - Update `CityAnalysisWrapper` to support multiple `city` parameters in the URL (e.g., `?city=אשקלון&city=אשדוד`).
+  - Modify `AlarmChart` to render multiple data series with distinct colors.
+  - **Skill**: `url-state-management` for syncing complex selections to the URL.
 
-- [x] **Dead Code Removal**: Delete unused UI components and unused exports.
-- [x] **Type Consolidation**: Clean up `lib/types.ts` and ensure strict typing across all shared utilities.
+## 2. Regional Breakdown & Risk Zones
 
-## Phase 4: Next.js 16 Expert Patterns
+**Description**: Group city-level data into broader Home Front Command regions (e.g., גוש דן, עוטף עזה, גליל עליון).
 
-- [x] **Granular Cache Life**: Implemented Next.js 16 `'use cache'` and `cacheLife` in `lib/server-data.ts`.
-- [x] **Strict Client Boundaries**: Audited third-party library usage to ensure perfect isolation from SSR.
+- **Why it's useful**: Users often think in terms of their broader residential area. This provides a "Macro View" that complements the "Micro View" of individual cities.
+- **Implementation Strategy**:
+  - Map individual city IDs to their respective regions in a new metadata file.
+  - Add a "Region" filter to the National Overview (`/`) and City Analysis (`/analysis`) pages.
+  - **Skill**: `large-scale-map-visualization` for rendering regional polygons efficiently.
 
-## Phase 5: Architectural Refactoring
+## 3. "Safe Interval" & Intensity Scoring
 
-- [x] **Multi-Page Routing**: Split the dashboard into `/` (National Overview) and `/analysis` (City Analysis).
-- [x] **Deep Linking**: Implement URL-based city selection (e.g., `/analysis?city=אשקלון`).
-- [x] **Navigation UX**: Implement a consistent Header/Navigation component.
-- [x] **Bulletproof Map Stability**: Replaced `react-leaflet` with a manual vanilla Leaflet implementation in `MapChart.tsx` to resolve persistent DOM/Hydration errors.
+**Description**: A new metric calculating the "Quiet Time" (average/max time between sirens) and "Peak Intensity" (most sirens in a 10-minute window) for a specific city.
 
-## Phase 6: Quality Assurance & Testing
+- **Why it's useful**: Provides psychological and tactical context beyond simple counters. It answers: "How often are the breaks?" and "How intense was the worst moment?"
+- **Implementation Strategy**:
+  - Add calculation logic to `lib/data.ts` to iterate through timestamps and find the largest gaps and highest density clusters.
+  - Display these metrics as "Quick Stats" cards on the City Analysis page.
 
-- [x] **Unit Testing**: Implement Vitest suite for data utilities and core UI components.
-- [ ] **E2E Testing**: Implement Playwright verification for critical user journeys.
-  - [ ] **Infrastructure Setup**:
-    - [ ] Install `@playwright/test` and browsers.
-    - [ ] Configure `playwright.config.ts` (BaseURL, WebServer, Reporters).
-    - [ ] Initialize `e2e/` directory structure.
-  - [ ] **Page Object Model (POM) Implementation**:
-    - [ ] Create `NavigationPage` for global layout checks.
-    - [ ] Create `AnalysisPage` for city-specific interactions.
-  - [ ] **Critical Path Tests**:
-    - [ ] **Smoke Tests**: Verify app boots and `dir="rtl"` is applied globally.
-    - [ ] **Navigation & Leaderboard**: 
-      - [ ] Test header navigation between `/` and `/analysis`.
-      - [ ] Verify clicking a city in the National Leaderboard navigates to filtered `/analysis`.
-    - [ ] **National Dashboard**: Validate aggregate stats cards and Map presence.
-    - [ ] **City Search Flow**: Test Hebrew input, virtualized list scrolling, and city selection.
-    - [ ] **Deep Linking**: Verify `?city=...` correctly hydrates the UI without manual interaction.
-    - [ ] **Data Resilience (Network Interception)**:
-      - [ ] Intercept `all.json` request and return 500 to verify "Fallback Data" banner visibility.
-    - [ ] **Responsive & Theme**:
-      - [ ] Verify layout stability on mobile viewports (390x844).
-      - [ ] Verify `ModeToggle` correctly switches dark/light classes.
-  - [ ] **Visual & Behavioral Verification**:
-    - [ ] Verify Charts (Recharts) render via SVG path checks.
-    - [ ] Verify Map markers/popups are interactable.
-  - **Success Criteria**:
-    - 100% pass rate for critical path tests.
-    - Automated verification of Hebrew text rendering and RTL layout.
-    - Deep linking correctly recovers application state from URL.
-    - Maps and charts verified to be present and interactive.
-- [x] **Post-Rewrite Verification**: Establish automated linting, type-checking, and build validation.
+## 4. Conflict Timeline Slider (Interactive History)
+
+**Description**: An interactive slider on the National Map (`/`) that allows users to "play back" the operation day by day.
+
+- **Why it's useful**: Visualizes the geographical shift of the conflict over time (e.g., movement of fire from the South to the Center or North).
+- **Implementation Strategy**:
+  - Add a Range Slider component to the map interface.
+  - Filter the `mapData` based on the selected date range in real-time.
+  - **Skill**: `large-scale-map-visualization` to handle dynamic filtering of 19,000+ records without lag.
+
+---
+
+## Recommended Skills for Implementation
+
+- **`url-state-management`**: Essential for handling multi-city comparisons and deep-linkable filters.
+- **`large-scale-map-visualization`**: Critical for the timeline slider and regional heatmaps to ensure smooth performance on mobile and desktop.
+- **`rsc-data-optimizer`**: Recommended as the dataset grows to ensure that server-side calculations for regions and intervals remain fast.

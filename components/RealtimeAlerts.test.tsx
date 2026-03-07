@@ -6,7 +6,8 @@ import { toast } from "sonner";
 // Mock sonner
 vi.mock("sonner", () => {
   const mockToast = vi.fn();
-  (mockToast as any).error = vi.fn();
+  // @ts-expect-error adding property to function
+  mockToast.error = vi.fn();
   return { toast: mockToast };
 });
 

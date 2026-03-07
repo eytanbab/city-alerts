@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { ThreatType, type WebSocketAlert } from "@/lib/types";
 import {
@@ -23,6 +23,7 @@ declare global {
 }
 
 const WEBSOCKET_URL = "wss://ws.tzevaadom.co.il/socket?platform=WEB";
+const PROXY_API_URL = "/api/alerts";
 
 const THREAT_CONFIG: Record<
   ThreatType,
@@ -81,7 +82,22 @@ const THREAT_CONFIG: Record<
 };
 
 export function RealtimeAlerts() {
+  const seenIds = useRef<Set<string>>(new Set());
+
   const handleAlert = useCallback((alert: WebSocketAlert) => {
+    // Basic deduplication
+    const alertId =
+      alert.notificationId ||
+      `${alert.threat}-${alert.cities.sort().join(",")}-${Math.floor(Date.now() / 15000)}`;
+
+    if (seenIds.current.has(alertId)) return;
+
+    seenIds.current.add(alertId);
+    if (seenIds.current.size > 100) {
+      const firstValue = seenIds.current.values().next().value;
+      if (firstValue) seenIds.current.delete(firstValue);
+    }
+
     const config =
       THREAT_CONFIG[alert.threat] || THREAT_CONFIG[ThreatType.GeneralAlert];
     const Icon = config.icon;
@@ -92,7 +108,7 @@ export function RealtimeAlerts() {
         <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
           <div className="flex items-center gap-2">
             <div className={`p-1 rounded-md bg-muted ${config.accentColor}`}>
-              <Icon className="w-4 h-4" />
+              <Icon className="w-5 h-5" />
             </div>
             <h3
               className={`text-sm font-bold leading-none ${config.accentColor}`}
@@ -132,7 +148,6 @@ export function RealtimeAlerts() {
       </div>,
       {
         duration: 15000,
-        // Removed position: "top-center" to inherit from Toaster
         className: `
         !w-[calc(100vw-2rem)] md:!w-full md:!max-w-[400px]
         !bg-card !text-card-foreground 
@@ -147,42 +162,78 @@ export function RealtimeAlerts() {
   useEffect(() => {
     let socket: WebSocket | null = null;
     let reconnectTimeout: NodeJS.Timeout;
+    let pollingTimeout: NodeJS.Timeout | null = null;
     let retryCount = 0;
-    const maxDelay = 60000; // Maximum delay of 1 minute
+    const maxDelay = 60000;
+    let isMounted = true;
+
+    const startPollingFallback = () => {
+      if (pollingTimeout) return;
+      console.log("WebSocket unavailable. Starting proxy-based backup polling...");
+
+      const poll = async () => {
+        if (!isMounted) return;
+        try {
+          const response = await fetch(PROXY_API_URL);
+          if (response.ok) {
+            const alerts = await response.json();
+            if (Array.isArray(alerts)) {
+              alerts.forEach((a: WebSocketAlert) => handleAlert(a));
+            }
+          }
+        } catch {
+          // Fail silently
+        } finally {
+          if (isMounted) {
+            pollingTimeout = setTimeout(poll, 5000);
+          }
+        }
+      };
+      poll();
+    };
+
+    const stopPollingFallback = () => {
+      if (pollingTimeout) {
+        clearTimeout(pollingTimeout);
+        pollingTimeout = null;
+      }
+    };
 
     const connect = () => {
-      socket = new WebSocket(WEBSOCKET_URL);
+      try {
+        socket = new WebSocket(WEBSOCKET_URL);
 
-      socket.onmessage = (event) => {
-        try {
-          const payload = JSON.parse(event.data);
-          if (payload.type === "ALERT") {
-            handleAlert(payload.data as WebSocketAlert);
+        socket.onmessage = (event) => {
+          try {
+            const payload = JSON.parse(event.data);
+            if (payload.type === "ALERT") {
+              handleAlert(payload.data as WebSocketAlert);
+            }
+          } catch (error) {
+            console.error("Failed to parse websocket message", error);
           }
-        } catch (error) {
-          console.error("Failed to parse websocket message", error);
-        }
-      };
+        };
 
-      socket.onopen = () => {
-        retryCount = 0; // Reset on successful connection
-      };
+        socket.onopen = () => {
+          console.log("WebSocket connected.");
+          retryCount = 0;
+          stopPollingFallback();
+        };
 
-      socket.onclose = () => {
-        const delay = Math.min(5000 * Math.pow(2, retryCount), maxDelay);
-        if (retryCount === 0) {
-          console.log(
-            `WebSocket connection closed. Retrying in ${delay / 1000}s...`,
-          );
-        }
+        socket.onclose = () => {
+          if (!isMounted) return;
+          const delay = Math.min(5000 * Math.pow(2, retryCount), maxDelay);
+          startPollingFallback();
+          retryCount++;
+          reconnectTimeout = setTimeout(connect, delay);
+        };
 
-        retryCount++;
-        reconnectTimeout = setTimeout(connect, delay);
-      };
-
-      socket.onerror = () => {
-        socket?.close();
-      };
+        socket.onerror = () => {
+          socket?.close();
+        };
+      } catch {
+        startPollingFallback();
+      }
     };
 
     connect();
@@ -211,10 +262,12 @@ export function RealtimeAlerts() {
     }
 
     return () => {
+      isMounted = false;
       if (socket) {
         socket.onclose = null;
         socket.close();
       }
+      stopPollingFallback();
       clearTimeout(reconnectTimeout);
     };
   }, [handleAlert]);

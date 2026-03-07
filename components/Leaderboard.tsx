@@ -11,7 +11,7 @@ interface LeaderboardProps {
 export function Leaderboard({ data, onSelect }: LeaderboardProps) {
   return (
     <Card
-      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
+      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50 gap-1"
       dir="rtl"
     >
       <CardHeader>

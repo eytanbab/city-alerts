@@ -34,10 +34,10 @@ export function CityMetricsCards({ metrics }: CityMetricsCardsProps) {
       icon: Zap,
     },
     {
-      label: "סה\"כ אירועים",
+      label: 'סה"כ התרעות',
       value: metrics.totalEvents,
-      unit: "דקות",
-      subValue: "עם התרעות בעיר",
+      unit: "אזעקות",
+      subValue: "מתחילת המבצע",
       icon: Activity,
     },
   ];
@@ -68,7 +68,7 @@ export function CityMetricsCards({ metrics }: CityMetricsCardsProps) {
                   {item.unit}
                 </span>
               </div>
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-tight">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-tight">
                 {item.subValue}
               </span>
             </div>

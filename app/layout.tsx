@@ -5,6 +5,8 @@ import { Analytics } from "@vercel/analytics/next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ModeToggle";
+import { Toaster } from "@/components/ui/sonner";
+import { RealtimeAlerts } from "@/components/RealtimeAlerts";
 
 import Script from "next/script";
 
@@ -68,6 +70,8 @@ export default function RootLayout({
                 strategy="afterInteractive"
               />
             </main>
+            <Toaster richColors closeButton dir="rtl" position="top-right" expand={true} />
+            <RealtimeAlerts />
             <Analytics />
           </ThemeProvider>
         </NuqsAdapter>

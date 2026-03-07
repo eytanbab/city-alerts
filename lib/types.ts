@@ -57,3 +57,23 @@ export interface DashboardData {
   lastSync?: string; // This is the time the data was fetched from the server
   isFallback?: boolean;
 }
+
+export enum ThreatType {
+  Rockets = 0,
+  HazardousMaterials = 1,
+  Terrorists = 2,
+  Earthquake = 3,
+  Tsunami = 4,
+  UnmannedAircraft = 5,
+  NonConventionalMissile = 6,
+  Radiological = 7,
+  GeneralAlert = 8,
+  Drill = 9,
+}
+
+export interface WebSocketAlert {
+  cities: string[];
+  threat: ThreatType;
+  isDrill: boolean;
+  notificationId?: string;
+}

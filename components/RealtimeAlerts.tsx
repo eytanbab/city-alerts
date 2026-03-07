@@ -201,37 +201,44 @@ export function RealtimeAlerts() {
 
     const connect = () => {
       try {
+        console.log("WebSocket: Attempting to connect to", WEBSOCKET_URL);
         socket = new WebSocket(WEBSOCKET_URL);
 
         socket.onmessage = (event) => {
           try {
             const payload = JSON.parse(event.data);
             if (payload.type === "ALERT") {
+              console.log("WebSocket: Received ALERT payload", payload.data);
               handleAlert(payload.data as WebSocketAlert);
             }
           } catch (error) {
-            console.error("Failed to parse websocket message", error);
+            console.error("WebSocket: Failed to parse message", error);
           }
         };
 
         socket.onopen = () => {
-          console.log("WebSocket connected.");
+          console.log("WebSocket: Connection established successfully.");
           retryCount = 0;
           stopPollingFallback();
         };
 
-        socket.onclose = () => {
+        socket.onclose = (event) => {
           if (!isMounted) return;
-          const delay = Math.min(5000 * Math.pow(2, retryCount), maxDelay);
+          console.warn(`WebSocket: Connection closed (Code: ${event.code}, Reason: ${event.reason || "None"}).`);
+          
           startPollingFallback();
-          retryCount++;
+          
+          const delay = 3000; // Fixed 3 second delay
+          console.log(`WebSocket: Reconnecting in 3s...`);
           reconnectTimeout = setTimeout(connect, delay);
         };
 
-        socket.onerror = () => {
+        socket.onerror = (error) => {
+          console.error("WebSocket: Error occurred", error);
           socket?.close();
         };
-      } catch {
+      } catch (err) {
+        console.error("WebSocket: Exception during initialization", err);
         startPollingFallback();
       }
     };

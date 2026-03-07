@@ -226,9 +226,7 @@ export function RegionSelectSkeleton() {
   return (
     <div className="w-fit animate-pulse bg-muted mx-auto rounded-lg">
       {Array.from({ length: 4 }).map((_, i) => (
-        <>
-          <div key={`tab-${i + 1}`} className="inline-block w-12 h-8"></div>
-        </>
+        <div key={`tab-${i + 1}`} className="inline-block w-12 h-8"></div>
       ))}
     </div>
   );

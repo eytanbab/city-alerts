@@ -227,7 +227,7 @@ export function CityAnalysisContent({
       <div className="w-full max-w-5xl">
         {activeCities.length > 0 ? (
           <div className="grid grid-cols-1 gap-8">
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-8">
               {multiCityData.map((d) => (
                 <div key={d.city} className="flex flex-col gap-2">
                   <div className="flex items-center gap-2 px-2">

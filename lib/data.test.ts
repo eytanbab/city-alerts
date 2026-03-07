@@ -5,6 +5,7 @@ import {
   getCityDailyTrend,
   processRawAlarms,
   getRegionForArea,
+  getCitySummary,
   Alarm,
 } from "./data";
 
@@ -137,5 +138,17 @@ describe("Data Utility Functions (Optimized)", () => {
     expect(trend.find((t) => t.date === "2026-03-02")?.count).toBe(0);
     expect(trend.find((t) => t.date === "2026-03-03")?.count).toBe(1);
     expect(trend.find((t) => t.date === "2026-03-05")?.count).toBe(0);
+  });
+
+  it("should generate city summary correctly", () => {
+    const alarms: Alarm[] = [
+      { datetime: "2026-03-01 12:00:00", city: "אשקלון" },
+      { datetime: "2026-03-01 12:01:00", city: "אשקלון" },
+    ];
+
+    const summary = getCitySummary(alarms, "אשקלון");
+    expect(summary.last24h).toBeDefined();
+    expect(summary.summaryText).toContain("אשקלון");
+    expect(summary.weeklyAvg).toBeGreaterThan(0);
   });
 });

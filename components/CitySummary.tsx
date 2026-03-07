@@ -28,7 +28,7 @@ export function CitySummary({ data, city }: CitySummaryProps) {
 
   return (
     <Card
-      className="w-full bg-card border border-border overflow-hidden mt-6"
+      className="w-full bg-card border border-border overflow-hidden"
       dir="rtl"
     >
       <CardHeader>

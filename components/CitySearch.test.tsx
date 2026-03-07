@@ -15,7 +15,7 @@ describe("CitySearch Component", () => {
   });
 
   it("should show the selected city label", () => {
-    render(<CitySearch cities={mockCities} onSearch={onSearchMock} selectedCity="חיפה" />);
+    render(<CitySearch cities={mockCities} onSearch={onSearchMock} selectedCities={["חיפה"]} />);
     expect(screen.getByText("חיפה")).toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe("CitySearch Component", () => {
     expect(screen.queryByText("חיפה")).not.toBeInTheDocument();
   });
 
-  it("should call onSearch and close when a city is selected", () => {
+  it("should call onSearch and stay open when a city is selected (multi-select)", () => {
     render(<CitySearch cities={mockCities} onSearch={onSearchMock} />);
     const trigger = screen.getByRole("combobox");
     fireEvent.click(trigger);
@@ -53,7 +53,7 @@ describe("CitySearch Component", () => {
     fireEvent.click(cityItem);
     
     expect(onSearchMock).toHaveBeenCalledWith("ירושלים");
-    // Popover should be closed, input should be gone
-    expect(screen.queryByPlaceholderText("הקלד שם עיר...")).not.toBeInTheDocument();
+    // Popover should stay open for multi-select
+    expect(screen.getByPlaceholderText("הקלד שם עיר...")).toBeInTheDocument();
   });
 });

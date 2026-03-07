@@ -22,7 +22,7 @@ describe("AlarmChart Component", () => {
 
   it("should render the chart with city title", () => {
     render(<AlarmChart data={mockData} city="חיפה" />);
-    expect(screen.getByText("התפלגות שעתית: חיפה")).toBeInTheDocument();
+    expect(screen.getByText(/התפלגות שעתית.*חיפה/)).toBeInTheDocument();
     expect(screen.getByText("סך הכל: 15 אזעקות בתקופה")).toBeInTheDocument();
   });
 

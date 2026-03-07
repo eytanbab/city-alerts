@@ -62,7 +62,6 @@ describe("Data Utility Functions (Optimized)", () => {
       mockCitiesMetadata,
       mockPolygonsRaw,
       filterDateUnix,
-      {},
     );
 
     // Total Sirens (raw count) = 2 (entry 1) + 1 (entry 2) + 1 (entry 3) = 4

@@ -9,53 +9,70 @@ import {
 export * from "./types";
 
 export function normalizeCityName(city: string): string {
-  // Removes sectors (after -) and parenthetical info
-  return city
-    .replace(/\(.*\)/g, "")
-    .split("-")[0]
-    .trim();
-}
-
-function getMinuteKey(datetime: string): string {
-  return datetime.substring(0, 16);
-}
-
-/**
- * Highly optimized date formatting for Israel (Asia/Jerusalem).
- * Replaces expensive Intl.DateTimeFormat.formatToParts in loops.
- */
-function getIsraelTime(timestamp: number) {
-  // Israel is UTC+2, plus 1 if DST is active.
-  // We use a single Intl formatter just to get the string, and only once per unique timestamp if possible.
-  // For maximum speed while maintaining timezone correctness, we cache the results.
-  const date = new Date(timestamp * 1000);
-
-  // Format: "YYYY-MM-DD HH:mm:ss"
-  // Using toLocaleString with Asia/Jerusalem is still faster than formatToParts
-  // but let's use a simple cache to handle the 19k records.
-  return date.toLocaleString("sv-SE", { timeZone: "Asia/Jerusalem" });
+  // Removes sectors (after -) and parentheses
+  let name = city.split("-")[0].trim();
+  name = name.split("(")[0].trim();
+  return name;
 }
 
 const dateCache = new Map<number, { datetime: string; datePart: string }>();
+
+export function getIsraelTime(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleString("en-CA", {
+    timeZone: "Asia/Jerusalem",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).replace(/,/g, "");
+}
+
+export function getHourlyDistribution(alarms: Alarm[]): { hour: string; count: number }[] {
+  const hourlyCounts: Record<string, Set<string>> = {};
+  for (let i = 0; i < 24; i++) {
+    hourlyCounts[`${i.toString().padStart(2, "0")}:00`] = new Set();
+  }
+
+  for (const alarm of alarms) {
+    const parts = alarm.datetime.split(" ");
+    const datePart = parts[0];
+    const timePart = parts[1];
+    const hourPart = timePart.substring(0, 2);
+    const minPart = timePart.substring(3, 5);
+    const hourKey = `${hourPart}:00`;
+    
+    // Aggregation: count unique city+date+minute events
+    const baseCity = normalizeCityName(alarm.city);
+    const eventKey = `${baseCity}|${datePart}|${hourPart}:${minPart}`;
+    if (hourlyCounts[hourKey]) {
+      hourlyCounts[hourKey].add(eventKey);
+    }
+  }
+
+  return Object.entries(hourlyCounts).map(([hour, events]) => ({
+    hour,
+    count: events.size,
+  }));
+}
 
 export function processRawAlarms(
   rawAlarms: [number, number, string[], number][],
   citiesMetadata: Record<string, { id: number; lat: number; lng: number; area?: number }>,
   polygonsRaw: Record<string, [number, number][]>,
   filterDateUnix: number,
-  regionsMetadata: Record<string, string>,
 ): DashboardData {
   const alarms: Alarm[] = [];
   const alarmsByCity: Record<string, Alarm[]> = {};
-  const alarmsByRegion: Record<string, Alarm[]> = {};
   const lastSirenPerCity: Record<string, string> = {};
-  const cityToRegion: Record<string, string> = {};
   const cityToPolygon: Record<string, [number, number][]> = {};
   const cityEventCounts: Record<string, number> = {};
   const cityEventTimestamps: Record<string, number[]> = {};
   const seenEvents = new Set<string>();
   const uniqueBaseCities = new Set<string>();
-  const uniqueRegions = new Set<string>();
   const dailyCounts: Record<string, number> = {};
   const citySirenCounts: Record<
     string,
@@ -90,7 +107,6 @@ export function processRawAlarms(
       const city = cities[j].trim();
       const baseCity = normalizeCityName(city);
       const meta = citiesMetadata[city];
-      const region = meta?.area ? regionsMetadata[meta.area.toString()] : undefined;
 
       const alarmObj: Alarm = {
         datetime,
@@ -103,13 +119,6 @@ export function processRawAlarms(
 
       if (!alarmsByCity[baseCity]) alarmsByCity[baseCity] = [];
       alarmsByCity[baseCity].push(alarmObj);
-
-      if (region) {
-        if (!alarmsByRegion[region]) alarmsByRegion[region] = [];
-        alarmsByRegion[region].push(alarmObj);
-        cityToRegion[baseCity] = region;
-        uniqueRegions.add(region);
-      }
 
       if (
         !lastSirenPerCity[baseCity] ||
@@ -144,26 +153,21 @@ export function processRawAlarms(
   const now = Math.floor(Date.now() / 1000);
 
   for (const [baseCity, timestamps] of Object.entries(cityEventTimestamps)) {
-    // ... rest of the metric calculation logic
-    // Timestamps might not be sorted if input isn't
     const sorted = timestamps.sort((a, b) => a - b);
     let totalGap = 0;
     let maxGap = 0;
     let peakIntensity = 0;
 
-    // Gaps between consecutive sirens
     for (let k = 1; k < sorted.length; k++) {
       const gap = sorted[k] - sorted[k - 1];
       totalGap += gap;
       if (gap > maxGap) maxGap = gap;
     }
 
-    // Gap from last siren to "now" (or max timestamp in data)
     const endTimestamp = Math.min(now, maxTimestamp);
     const lastGap = endTimestamp - sorted[sorted.length - 1];
     if (lastGap > maxGap) maxGap = lastGap;
 
-    // Sliding window for 10 min (600 seconds)
     let left = 0;
     for (let right = 0; right < sorted.length; right++) {
       while (sorted[right] - sorted[left] > 600) {
@@ -203,6 +207,7 @@ export function processRawAlarms(
           totalAlarms: alarms.length,
           topCityName: topCity?.[0] || "N/A",
           topCityCount: topCity?.[1] || 0,
+          statsDate: new Date(maxTimestamp * 1000).toLocaleDateString("he-IL"),
           activeDays: Object.keys(dailyCounts).length,
           affectedCitiesCount: uniqueBaseCities.size,
         }
@@ -211,10 +216,8 @@ export function processRawAlarms(
   return {
     alarms,
     alarmsByCity,
-    alarmsByRegion,
     cityMetrics,
     lastSirenPerCity,
-    cityToRegion,
     polygons: cityToPolygon,
     stats,
     topCities: sortedCityEvents
@@ -225,9 +228,6 @@ export function processRawAlarms(
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, count]) => ({ date, count })),
     citiesList: Array.from(uniqueBaseCities).sort((a, b) =>
-      a.localeCompare(b, "he"),
-    ),
-    regionsList: Array.from(uniqueRegions).sort((a, b) =>
       a.localeCompare(b, "he"),
     ),
     lastUpdated:
@@ -244,56 +244,44 @@ export function processRawAlarms(
   };
 }
 
-export function getHourlyDistribution(cityAlarms: Alarm[]) {
-  const hourlyCounts = Array(24).fill(0);
-  const seenMinutes = new Set<string>();
-
-  for (let i = 0; i < cityAlarms.length; i++) {
-    const a = cityAlarms[i];
-    const minKey = getMinuteKey(a.datetime);
-    if (!seenMinutes.has(minKey)) {
-      seenMinutes.add(minKey);
-      const hour = parseInt(a.datetime.substring(11, 13), 10);
-      if (hour >= 0 && hour < 24) hourlyCounts[hour]++;
-    }
+export function getCityDailyTrend(alarms: Alarm[], nowStr?: string): { date: string; count: number }[] {
+  const dailyCounts: Record<string, Set<string>> = {};
+  const startDate = new Date("2026-02-28T00:00:00");
+  
+  // Parse nowStr as local date part to avoid UTC issues
+  let endDate: Date;
+  if (nowStr) {
+    const [y, m, d] = nowStr.split("-").map(Number);
+    endDate = new Date(y, m - 1, d);
+  } else {
+    endDate = new Date();
   }
+  
+  const current = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
 
-  return hourlyCounts.map((count, hour) => ({
-    hour: `${hour.toString().padStart(2, "0")}:00`,
-    count,
-  }));
-}
-
-export function getCityDailyTrend(cityAlarms: Alarm[], nowInput?: string) {
-  const dailyCounts: Record<string, number> = {};
-  const seenMinutes = new Set<string>();
-
-  // Only consider dates from the first alarm to now or fixed range
-  // We can't easily generate all dates without a start/end,
-  // but we know the range starts from 2026-02-28
-  const startDate = new Date("2026-02-28");
-  const endDate = nowInput ? new Date(nowInput) : new Date();
-
-  const current = new Date(startDate);
-  while (current <= endDate) {
-    const dateStr = current.toISOString().split("T")[0];
-    dailyCounts[dateStr] = 0;
+  while (current <= end) {
+    const y = current.getFullYear();
+    const m = (current.getMonth() + 1).toString().padStart(2, "0");
+    const d = current.getDate().toString().padStart(2, "0");
+    const datePart = `${y}-${m}-${d}`;
+    dailyCounts[datePart] = new Set();
     current.setDate(current.getDate() + 1);
   }
 
-  for (let i = 0; i < cityAlarms.length; i++) {
-    const a = cityAlarms[i];
-    const minKey = getMinuteKey(a.datetime);
-    if (!seenMinutes.has(minKey)) {
-      seenMinutes.add(minKey);
-      const datePart = a.datetime.substring(0, 10);
-      if (dailyCounts[datePart] !== undefined) {
-        dailyCounts[datePart]++;
-      }
+  for (const alarm of alarms) {
+    const parts = alarm.datetime.split(" ");
+    const datePart = parts[0];
+    const timePart = parts[1].substring(0, 5); // HH:mm
+    const baseCity = normalizeCityName(alarm.city);
+    const eventKey = `${baseCity}|${timePart}`;
+    
+    if (dailyCounts[datePart]) {
+      dailyCounts[datePart].add(eventKey);
     }
   }
 
   return Object.entries(dailyCounts)
     .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-    .map(([date, count]) => ({ date, count }));
+    .map(([date, events]) => ({ date, count: events.size }));
 }

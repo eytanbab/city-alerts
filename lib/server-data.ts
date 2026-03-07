@@ -9,7 +9,6 @@ import path from "path";
 const DATA_URL = "https://www.tzevaadom.co.il/static/historical/all.json";
 const CITIES_PATH = path.join(process.cwd(), "lib/data/cities.json");
 const POLYGONS_PATH = path.join(process.cwd(), "lib/data/polygons.json");
-const REGIONS_PATH = path.join(process.cwd(), "lib/data/regions.json");
 
 /**
  * Server-side data fetching - CACHING TEMPORARILY DISABLED FOR TESTING
@@ -26,7 +25,6 @@ export async function getDashboardData(): Promise<DashboardData> {
     // Load static data from local disk
     const citiesMetadata = JSON.parse(fs.readFileSync(CITIES_PATH, "utf8")).cities;
     const polygonsRaw = JSON.parse(fs.readFileSync(POLYGONS_PATH, "utf8"));
-    const regionsMetadata = JSON.parse(fs.readFileSync(REGIONS_PATH, "utf8"));
 
     // Fetch dynamic alarms from source
     const alarmsRes = await fetch(DATA_URL, { cache: "no-store" });
@@ -42,7 +40,6 @@ export async function getDashboardData(): Promise<DashboardData> {
       citiesMetadata,
       polygonsRaw,
       filterDateUnix,
-      regionsMetadata,
     );
 
     const lastSync = new Date().toLocaleString("he-IL", {
@@ -62,17 +59,14 @@ export async function getDashboardData(): Promise<DashboardData> {
     return {
       alarms: [],
       alarmsByCity: {},
-      alarmsByRegion: {},
       cityMetrics: {},
       lastSirenPerCity: {},
-      cityToRegion: {},
       polygons: {},
       stats: null,
       topCities: [],
       mapData: [],
       globalDailyTrend: [],
       citiesList: [],
-      regionsList: [],
       lastUpdated: "שגיאת התחברות - נתונים שמורים עשויים להיות מוצגים",
       isFallback: true,
     };

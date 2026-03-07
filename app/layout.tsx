@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ModeToggle";
 
@@ -37,37 +38,39 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main
-            className="container mx-auto px-4 py-6 md:py-10 max-w-6xl min-h-screen flex flex-col items-center gap-8 md:gap-12"
-            dir="rtl"
+        <NuqsAdapter>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
           >
-            <div className="w-full flex justify-end">
-              <ModeToggle />
-            </div>
-            {children}
-            <Script
-              id="bmc-widget"
-              src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
-              data-name="BMC-Widget"
-              data-cfasync="false"
-              data-id="cityalerts"
-              data-description="Support me on Buy me a coffee!"
-              data-message="If you found this helpful, feel free to buy me a coffee."
-              data-color="#5F7FFF"
-              data-position="Right"
-              data-x_margin="18"
-              data-y_margin="18"
-              strategy="afterInteractive"
-            />
-          </main>
-          <Analytics />
-        </ThemeProvider>
+            <main
+              className="container mx-auto px-4 py-6 md:py-10 max-w-6xl min-h-screen flex flex-col items-center gap-8 md:gap-12"
+              dir="rtl"
+            >
+              <div className="w-full flex justify-end">
+                <ModeToggle />
+              </div>
+              {children}
+              <Script
+                id="bmc-widget"
+                src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+                data-name="BMC-Widget"
+                data-cfasync="false"
+                data-id="cityalerts"
+                data-description="Support me on Buy me a coffee!"
+                data-message="If you found this helpful, feel free to buy me a coffee."
+                data-color="#5F7FFF"
+                data-position="Right"
+                data-x_margin="18"
+                data-y_margin="18"
+                strategy="afterInteractive"
+              />
+            </main>
+            <Analytics />
+          </ThemeProvider>
+        </NuqsAdapter>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@ import {
   type MapData,
   type DashboardData,
   type GlobalStats,
+  type CityMetrics,
 } from "./types";
 
 export * from "./types";
@@ -39,17 +40,22 @@ const dateCache = new Map<number, { datetime: string; datePart: string }>();
 
 export function processRawAlarms(
   rawAlarms: [number, number, string[], number][],
-  citiesMetadata: Record<string, { id: number; lat: number; lng: number }>,
+  citiesMetadata: Record<string, { id: number; lat: number; lng: number; area?: number }>,
   polygonsRaw: Record<string, [number, number][]>,
   filterDateUnix: number,
+  regionsMetadata: Record<string, string>,
 ): DashboardData {
   const alarms: Alarm[] = [];
   const alarmsByCity: Record<string, Alarm[]> = {};
+  const alarmsByRegion: Record<string, Alarm[]> = {};
   const lastSirenPerCity: Record<string, string> = {};
+  const cityToRegion: Record<string, string> = {};
   const cityToPolygon: Record<string, [number, number][]> = {};
   const cityEventCounts: Record<string, number> = {};
+  const cityEventTimestamps: Record<string, number[]> = {};
   const seenEvents = new Set<string>();
   const uniqueBaseCities = new Set<string>();
+  const uniqueRegions = new Set<string>();
   const dailyCounts: Record<string, number> = {};
   const citySirenCounts: Record<
     string,
@@ -84,6 +90,7 @@ export function processRawAlarms(
       const city = cities[j].trim();
       const baseCity = normalizeCityName(city);
       const meta = citiesMetadata[city];
+      const region = meta?.area ? regionsMetadata[meta.area.toString()] : undefined;
 
       const alarmObj: Alarm = {
         datetime,
@@ -96,6 +103,13 @@ export function processRawAlarms(
 
       if (!alarmsByCity[baseCity]) alarmsByCity[baseCity] = [];
       alarmsByCity[baseCity].push(alarmObj);
+
+      if (region) {
+        if (!alarmsByRegion[region]) alarmsByRegion[region] = [];
+        alarmsByRegion[region].push(alarmObj);
+        cityToRegion[baseCity] = region;
+        uniqueRegions.add(region);
+      }
 
       if (
         !lastSirenPerCity[baseCity] ||
@@ -119,8 +133,53 @@ export function processRawAlarms(
         seenEvents.add(eventKey);
         cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
         dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
+
+        if (!cityEventTimestamps[baseCity]) cityEventTimestamps[baseCity] = [];
+        cityEventTimestamps[baseCity].push(timestamp);
       }
     }
+  }
+
+  const cityMetrics: Record<string, CityMetrics> = {};
+  const now = Math.floor(Date.now() / 1000);
+
+  for (const [baseCity, timestamps] of Object.entries(cityEventTimestamps)) {
+    // ... rest of the metric calculation logic
+    // Timestamps might not be sorted if input isn't
+    const sorted = timestamps.sort((a, b) => a - b);
+    let totalGap = 0;
+    let maxGap = 0;
+    let peakIntensity = 0;
+
+    // Gaps between consecutive sirens
+    for (let k = 1; k < sorted.length; k++) {
+      const gap = sorted[k] - sorted[k - 1];
+      totalGap += gap;
+      if (gap > maxGap) maxGap = gap;
+    }
+
+    // Gap from last siren to "now" (or max timestamp in data)
+    const endTimestamp = Math.min(now, maxTimestamp);
+    const lastGap = endTimestamp - sorted[sorted.length - 1];
+    if (lastGap > maxGap) maxGap = lastGap;
+
+    // Sliding window for 10 min (600 seconds)
+    let left = 0;
+    for (let right = 0; right < sorted.length; right++) {
+      while (sorted[right] - sorted[left] > 600) {
+        left++;
+      }
+      const count = right - left + 1;
+      if (count > peakIntensity) peakIntensity = count;
+    }
+
+    cityMetrics[baseCity] = {
+      avgQuietTimeHours:
+        sorted.length > 1 ? totalGap / (sorted.length - 1) / 3600 : 0,
+      maxQuietTimeHours: maxGap / 3600,
+      peakIntensity10Min: peakIntensity,
+      totalEvents: sorted.length,
+    };
   }
 
   const sortedCityEvents = Object.entries(cityEventCounts).sort(
@@ -152,7 +211,10 @@ export function processRawAlarms(
   return {
     alarms,
     alarmsByCity,
+    alarmsByRegion,
+    cityMetrics,
     lastSirenPerCity,
+    cityToRegion,
     polygons: cityToPolygon,
     stats,
     topCities: sortedCityEvents
@@ -163,6 +225,9 @@ export function processRawAlarms(
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, count]) => ({ date, count })),
     citiesList: Array.from(uniqueBaseCities).sort((a, b) =>
+      a.localeCompare(b, "he"),
+    ),
+    regionsList: Array.from(uniqueRegions).sort((a, b) =>
       a.localeCompare(b, "he"),
     ),
     lastUpdated:

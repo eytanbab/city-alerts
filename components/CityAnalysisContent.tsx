@@ -157,7 +157,7 @@ export function CityAnalysisContent({
   return (
     <div className="w-full flex flex-col items-center gap-6" dir="rtl">
       {isFallback && (
-        <div className="w-full bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 flex items-center gap-3 text-amber-600 dark:text-amber-400">
+        <div className="w-full bg-amber-500/10 border border-amber-500/20 p-4 flex items-center gap-3 text-amber-600 dark:text-amber-400">
           <Info className="h-5 w-5 shrink-0" />
           <p className="text-sm font-bold">
             שימוש בנתונים שמורים: החיבור למקור הנתונים בזמן אמת נכשל.
@@ -166,7 +166,7 @@ export function CityAnalysisContent({
       )}
 
       {error && (
-        <div className="w-full max-w-2xl bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-3 text-destructive animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="w-full max-w-2xl bg-destructive/10 border border-destructive/20 p-3 flex items-center gap-3 text-destructive animate-in fade-in slide-in-from-top-2 duration-300">
           <AlertCircle className="h-5 w-5 shrink-0" />
           <p className="text-sm font-bold">{error}</p>
         </div>
@@ -252,7 +252,7 @@ export function CityAnalysisContent({
             />
           </div>
         ) : (
-          <div className="py-24 text-center text-muted-foreground border border-dashed rounded-3xl bg-muted/5 flex flex-col items-center gap-4 w-full">
+          <div className="py-24 text-center text-muted-foreground border border-dashed bg-muted/5 flex flex-col items-center gap-4 w-full">
             <div className="p-4 bg-background rounded-full border shadow-sm">
               <SearchIcon className="h-10 w-10 opacity-20" />
             </div>

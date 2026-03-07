@@ -44,7 +44,7 @@ export function CityMetricsCards({ metrics }: CityMetricsCardsProps) {
 
   return (
     <div
-      className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border w-full rounded-2xl overflow-hidden"
+      className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border w-full overflow-hidden"
       dir="rtl"
     >
       {items.map((item) => (

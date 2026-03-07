@@ -9,6 +9,7 @@ import {
   LeaderboardSkeleton,
   TrendChartSkeleton,
   LastUpdatedSkeleton,
+  RegionSelectSkeleton,
 } from "@/components/DashboardSkeletons";
 
 import { type Metadata } from "next";
@@ -43,6 +44,7 @@ export default function Home() {
         <Suspense
           fallback={
             <div className="flex flex-col gap-8">
+              <RegionSelectSkeleton />
               <StatCardsSkeleton />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <LeaderboardSkeleton />

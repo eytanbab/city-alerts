@@ -224,12 +224,10 @@ export function LastUpdatedSkeleton() {
 
 export function RegionSelectSkeleton() {
   return (
-    <div className="w-full bg-card animate-pulse">
+    <div className="w-fit animate-pulse bg-muted mx-auto rounded-lg">
       {Array.from({ length: 4 }).map((_, i) => (
         <>
-          <div key={`tab-${i + 1}`} className="w-12"></div>
-          <div className="w-12"></div>
-          <div className="w-12"></div>
+          <div key={`tab-${i + 1}`} className="inline-block w-12 h-8"></div>
         </>
       ))}
     </div>

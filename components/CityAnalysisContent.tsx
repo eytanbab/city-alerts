@@ -11,7 +11,8 @@ import {
 import { CitySearch } from "@/components/CitySearch";
 import { CityMetricsCards } from "@/components/CityMetricsCards";
 import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
-import { Search as SearchIcon, Info, AlertCircle } from "lucide-react";
+import { Search as SearchIcon, Info, AlertCircle, X } from "lucide-react";
+import { Button } from "./ui/button";
 
 const MAX_CITIES = 5;
 
@@ -100,7 +101,7 @@ export function CityAnalysisContent({
 
   const toggleCity = (city: string) => {
     const isSelected = activeCities.includes(city);
-    
+
     if (!isSelected && activeCities.length >= MAX_CITIES) {
       setError(`ניתן להשוות עד ${MAX_CITIES} ערים במקביל.`);
       return;
@@ -193,18 +194,16 @@ export function CityAnalysisContent({
         {activeCities.length > 0 && (
           <div className="flex flex-wrap gap-2 justify-center">
             {activeCities.map((city) => (
-              <div
+              <Button
+                onClick={() => removeCity(city)}
                 key={city}
-                className="flex items-center gap-1.5 px-3 py-2 bg-accent/50 rounded-full border text-xs text-accent-foreground"
+                variant={"outline"}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm group"
               >
-                {city}
-                <button
-                  onClick={() => removeCity(city)}
-                  className="hover:text-destructive transition-colors cursor-pointer text-sm"
-                >
-                  ×
-                </button>
-              </div>
+                <span>{city}</span>
+
+                <X className="size-3.5 group-hover:text-destructive" />
+              </Button>
             ))}
             <button
               onClick={() => {
@@ -239,7 +238,9 @@ export function CityAnalysisContent({
               multiData={dailyTrendData}
               city={singleCityInfo?.city}
               lastSiren={
-                singleCityInfo ? formatLastSiren(singleCityInfo.lastSiren) : null
+                singleCityInfo
+                  ? formatLastSiren(singleCityInfo.lastSiren)
+                  : null
               }
             />
           </div>

@@ -85,8 +85,10 @@ export function CitySearch({
             aria-controls={listId}
             className="w-full justify-between text-right font-normal cursor-pointer"
           >
-            {selectedCities.length > 0 
-              ? (selectedCities.length === 1 ? selectedCities[0] : `${selectedCities.length} ערים נבחרו`) 
+            {selectedCities.length > 0
+              ? selectedCities.length === 1
+                ? selectedCities[0]
+                : `${selectedCities.length} ערים נבחרו`
               : "חפש עיר..."}
             <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
@@ -123,7 +125,9 @@ export function CitySearch({
                     <Check
                       className={cn(
                         "ml-2 h-4 w-4",
-                        selectedCities.includes(city) ? "opacity-100" : "opacity-0",
+                        selectedCities.includes(city)
+                          ? "opacity-100"
+                          : "opacity-0",
                       )}
                     />
                   </CommandItem>

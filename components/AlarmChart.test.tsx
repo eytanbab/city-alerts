@@ -28,7 +28,9 @@ describe("AlarmChart Component", () => {
 
   it("should show empty state message if total is 0", () => {
     render(<AlarmChart data={[]} city="תל אביב" />);
-    expect(screen.getByText("לא נמצאו נתוני אזעקות עבור \"תל אביב\"")).toBeInTheDocument();
+    expect(
+      screen.getByText('לא נמצאו נתוני אזעקות עבור "תל אביב"'),
+    ).toBeInTheDocument();
   });
 
   it("should render peak and silent hours insights", () => {

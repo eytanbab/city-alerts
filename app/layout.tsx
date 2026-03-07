@@ -70,7 +70,13 @@ export default function RootLayout({
                 strategy="afterInteractive"
               />
             </main>
-            <Toaster richColors closeButton dir="rtl" position="top-right" expand={true} />
+            <Toaster
+              richColors
+              closeButton
+              dir="rtl"
+              position="top-right"
+              expand={true}
+            />
             <RealtimeAlerts />
             <Analytics />
           </ThemeProvider>

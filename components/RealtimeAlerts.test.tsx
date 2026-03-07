@@ -34,19 +34,20 @@ describe("RealtimeAlerts", () => {
     });
   });
 
-
   afterEach(() => {
     vi.clearAllMocks();
   });
 
   it("should connect to the websocket on mount", () => {
     render(<RealtimeAlerts />);
-    expect(global.WebSocket).toHaveBeenCalledWith("wss://ws.tzevaadom.co.il/socket?platform=WEB");
+    expect(global.WebSocket).toHaveBeenCalledWith(
+      "wss://ws.tzevaadom.co.il/socket?platform=WEB",
+    );
   });
 
   it("should handle ALERT messages and show a toast", () => {
     render(<RealtimeAlerts />);
-    
+
     const alertData = {
       type: "ALERT",
       data: {

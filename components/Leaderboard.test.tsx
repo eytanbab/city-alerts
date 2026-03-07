@@ -11,7 +11,7 @@ describe("Leaderboard Component", () => {
 
   it("should render the leaderboard with correct city names and counts", () => {
     render(<Leaderboard data={mockData} onSelect={() => {}} />);
-    
+
     expect(screen.getByText("אשקלון")).toBeInTheDocument();
     expect(screen.getByText("150")).toBeInTheDocument();
     expect(screen.getByText("אשדוד")).toBeInTheDocument();
@@ -23,12 +23,12 @@ describe("Leaderboard Component", () => {
   it("should call onSelect when a city is clicked", () => {
     const onSelectMock = vi.fn();
     render(<Leaderboard data={mockData} onSelect={onSelectMock} />);
-    
+
     const cityRow = screen.getByText("אשקלון").closest("button");
     if (cityRow) {
       fireEvent.click(cityRow);
     }
-    
+
     expect(onSelectMock).toHaveBeenCalledWith("אשקלון");
   });
 

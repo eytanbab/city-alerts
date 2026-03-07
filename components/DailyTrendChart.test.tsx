@@ -21,19 +21,25 @@ describe("DailyTrendChart Component", () => {
   ];
 
   it("should render with title and description", () => {
-    render(<DailyTrendChart data={mockData} title="מגמה מותאמת" description="תיאור בדיקה" />);
+    render(
+      <DailyTrendChart
+        data={mockData}
+        title="מגמה מותאמת"
+        description="תיאור בדיקה"
+      />,
+    );
     expect(screen.getByText("מגמה מותאמת")).toBeInTheDocument();
     expect(screen.getByText("תיאור בדיקה")).toBeInTheDocument();
   });
 
   it("should render insights correctly", () => {
     render(<DailyTrendChart data={mockData} lastSiren="02/03/26 12:00" />);
-    
+
     // Check for insights labels
     expect(screen.getByText("יום שיא")).toBeInTheDocument();
     expect(screen.getByText("ממוצע יומי")).toBeInTheDocument();
     expect(screen.getByText("אזעקה אחרונה")).toBeInTheDocument();
-    
+
     // Check for data values
     // Peak day: 2026-03-02 -> 02/03 (20 counts)
     expect(screen.getByText(/02\/03 \(20\)/)).toBeInTheDocument();

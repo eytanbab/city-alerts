@@ -16,7 +16,13 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Zap, Moon, AlertCircle, BarChart3, LineChart as LineIcon } from "lucide-react";
+import {
+  Zap,
+  Moon,
+  AlertCircle,
+  BarChart3,
+  LineChart as LineIcon,
+} from "lucide-react";
 
 interface AlarmChartProps {
   data?: { hour: string; count: number }[];
@@ -64,18 +70,21 @@ function formatHourRanges(hours: string[]) {
 export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
-  
+
   const chartData = useMemo(() => {
     if (isSingleFromMulti) {
-        return multiData![0].data as ChartDataEntry[];
+      return multiData![0].data as ChartDataEntry[];
     }
     if (!isMulti) return (data || []) as ChartDataEntry[];
-    
-    const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
-    return hours.map(hour => {
+
+    const hours = Array.from(
+      { length: 24 },
+      (_, i) => `${i.toString().padStart(2, "0")}:00`,
+    );
+    return hours.map((hour) => {
       const entry: ChartDataEntry = { hour };
-      multiData!.forEach(d => {
-        const hourData = d.data.find(h => h.hour === hour);
+      multiData!.forEach((d) => {
+        const hourData = d.data.find((h) => h.hour === hour);
         entry[d.city] = hourData ? hourData.count : 0;
       });
       return entry;
@@ -83,25 +92,33 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
   }, [data, multiData, isMulti, isSingleFromMulti]);
 
   const total = useMemo(() => {
-    if (isSingleFromMulti) return multiData![0].data.reduce((a, c) => a + c.count, 0);
-    if (!isMulti) return chartData.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
-    return multiData!.reduce((acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0), 0);
+    if (isSingleFromMulti)
+      return multiData![0].data.reduce((a, c) => a + c.count, 0);
+    if (!isMulti)
+      return chartData.reduce(
+        (acc, curr) => acc + (Number(curr.count) || 0),
+        0,
+      );
+    return multiData!.reduce(
+      (acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0),
+      0,
+    );
   }, [chartData, multiData, isMulti, isSingleFromMulti]);
 
   const activeCityName = isSingleFromMulti ? multiData![0].city : city;
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {
-      count: { 
-        label: activeCityName || "אזעקות", 
-        color: "var(--chart-1)" 
-      }
+      count: {
+        label: activeCityName || "אזעקות",
+        color: "var(--chart-1)",
+      },
     };
     if (isMulti) {
       multiData!.forEach((d, i) => {
         config[d.city] = {
           label: d.city,
-          color: CITY_COLORS[i % CITY_COLORS.length]
+          color: CITY_COLORS[i % CITY_COLORS.length],
         };
       });
     }
@@ -137,7 +154,8 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
           <p className="text-base text-muted-foreground font-medium">
-            לא נמצאו נתוני אזעקות עבור {isMulti || isSingleFromMulti ? "הערים שנבחרו" : `"${city}"`}
+            לא נמצאו נתוני אזעקות עבור{" "}
+            {isMulti || isSingleFromMulti ? "הערים שנבחרו" : `"${city}"`}
           </p>
         </CardContent>
       </Card>
@@ -159,7 +177,11 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
               סך הכל: {total.toLocaleString()} אזעקות בתקופה
             </CardDescription>
           </div>
-          {isMulti ? <LineIcon className="h-4 w-4 text-muted-foreground/50" /> : <BarChart3 className="h-4 w-4 text-muted-foreground/50" />}
+          {isMulti ? (
+            <LineIcon className="h-4 w-4 text-muted-foreground/50" />
+          ) : (
+            <BarChart3 className="h-4 w-4 text-muted-foreground/50" />
+          )}
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
@@ -202,7 +224,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                   <ChartTooltipContent className="rounded-lg border-border" />
                 }
               />
-              <Legend verticalAlign="top" height={36}/>
+              <Legend verticalAlign="top" height={36} />
               {multiData!.map((d, i) => (
                 <Line
                   key={d.city}

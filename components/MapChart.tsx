@@ -21,7 +21,7 @@ const MapInner = dynamic(() => import("./MapInner"), {
 
 /**
  * MapChart - Shell Wrapper
- * 
+ *
  * This component renders the Card shell on the server (SSR), providing
  * an instant layout. The heavy interactive map part is then hydrated on the client.
  */

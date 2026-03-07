@@ -169,7 +169,9 @@ export function RealtimeAlerts() {
 
     const startPollingFallback = () => {
       if (pollingTimeout) return;
-      console.log("WebSocket unavailable. Starting proxy-based backup polling...");
+      console.log(
+        "WebSocket unavailable. Starting proxy-based backup polling...",
+      );
 
       const poll = async () => {
         if (!isMounted) return;

@@ -14,20 +14,20 @@ describe("StatCards Component", () => {
 
   it("should render all statistic cards with correct data", () => {
     render(<StatCards stats={mockStats} />);
-    
+
     // Check total alarms
-    expect(screen.getByText("סה\"כ אזעקות")).toBeInTheDocument();
+    expect(screen.getByText('סה"כ אזעקות')).toBeInTheDocument();
     expect(screen.getByText("1,234")).toBeInTheDocument();
-    
+
     // Check top city
     expect(screen.getByText("העיר המטווחת")).toBeInTheDocument();
     expect(screen.getByText("שדרות")).toBeInTheDocument();
     expect(screen.getByText("56 אירועים")).toBeInTheDocument();
-    
+
     // Check active days
     expect(screen.getByText("ימי פעילות")).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
-    
+
     // Check affected cities
     expect(screen.getByText("יישובים בטווח")).toBeInTheDocument();
     expect(screen.getByText("45")).toBeInTheDocument();

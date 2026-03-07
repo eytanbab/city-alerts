@@ -15,7 +15,13 @@ describe("CitySearch Component", () => {
   });
 
   it("should show the selected city label", () => {
-    render(<CitySearch cities={mockCities} onSearch={onSearchMock} selectedCities={["חיפה"]} />);
+    render(
+      <CitySearch
+        cities={mockCities}
+        onSearch={onSearchMock}
+        selectedCities={["חיפה"]}
+      />,
+    );
     expect(screen.getByText("חיפה")).toBeInTheDocument();
   });
 
@@ -23,7 +29,7 @@ describe("CitySearch Component", () => {
     render(<CitySearch cities={mockCities} onSearch={onSearchMock} />);
     const trigger = screen.getByRole("combobox");
     fireEvent.click(trigger);
-    
+
     expect(screen.getByPlaceholderText("הקלד שם עיר...")).toBeInTheDocument();
     expect(screen.getByText("תל אביב")).toBeInTheDocument();
   });
@@ -32,14 +38,14 @@ describe("CitySearch Component", () => {
     render(<CitySearch cities={mockCities} onSearch={onSearchMock} />);
     const trigger = screen.getByRole("combobox");
     fireEvent.click(trigger);
-    
+
     const input = screen.getByPlaceholderText("הקלד שם עיר...");
     fireEvent.change(input, { target: { value: "אש" } });
-    
+
     // Should show אשקלון and אשדוד
     expect(screen.getByText("אשקלון")).toBeInTheDocument();
     expect(screen.getByText("אשדוד")).toBeInTheDocument();
-    
+
     // Should NOT show חיפה
     expect(screen.queryByText("חיפה")).not.toBeInTheDocument();
   });
@@ -48,10 +54,10 @@ describe("CitySearch Component", () => {
     render(<CitySearch cities={mockCities} onSearch={onSearchMock} />);
     const trigger = screen.getByRole("combobox");
     fireEvent.click(trigger);
-    
+
     const cityItem = screen.getByText("ירושלים");
     fireEvent.click(cityItem);
-    
+
     expect(onSearchMock).toHaveBeenCalledWith("ירושלים");
     // Popover should stay open for multi-select
     expect(screen.getByPlaceholderText("הקלד שם עיר...")).toBeInTheDocument();

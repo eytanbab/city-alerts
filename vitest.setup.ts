@@ -29,4 +29,3 @@ class ResizeObserverMock {
 }
 
 window.ResizeObserver = ResizeObserverMock;
-

@@ -23,7 +23,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     const filterDateUnix = new Date("2026-02-28T00:00:00").getTime() / 1000;
 
     // Load static data from local disk
-    const citiesMetadata = JSON.parse(fs.readFileSync(CITIES_PATH, "utf8")).cities;
+    const citiesMetadata = JSON.parse(
+      fs.readFileSync(CITIES_PATH, "utf8"),
+    ).cities;
     const polygonsRaw = JSON.parse(fs.readFileSync(POLYGONS_PATH, "utf8"));
 
     // Fetch dynamic alarms from source

@@ -4,9 +4,22 @@ import {
   type DashboardData,
   type GlobalStats,
   type CityMetrics,
+  type RegionStats,
 } from "./types";
 
 export * from "./types";
+
+export function getRegionForArea(area?: number): string {
+  if (area === undefined) return "מרכז";
+  // North: Galilee, Golan, Haifa, Valley, etc.
+  const north = [1, 4, 6, 10, 15, 16, 19, 22, 25, 27, 28, 33, 34, 35, 36];
+  // South: Negev, Arava, Gaza, Lakhish
+  const south = [2, 7, 12, 13, 14, 17, 21, 24, 26];
+  
+  if (north.includes(area)) return "צפון";
+  if (south.includes(area)) return "דרום";
+  return "מרכז";
+}
 
 export function normalizeCityName(city: string): string {
   // Removes sectors (after -) and parentheses
@@ -80,6 +93,21 @@ export function processRawAlarms(
   > = {};
   let maxTimestamp = 0;
 
+  // Regional trackers
+  const regionsList = ["צפון", "מרכז", "דרום"];
+  const regionalAlarms: Record<string, Alarm[]> = { "צפון": [], "מרכז": [], "דרום": [] };
+  const regionalDailyCounts: Record<string, Record<string, number>> = { "צפון": {}, "מרכז": {}, "דרום": {} };
+  regionsList.forEach(r => regionalDailyCounts[r] = {});
+  
+  const regionalCityEventCounts: Record<string, Record<string, number>> = {};
+  regionsList.forEach(r => regionalCityEventCounts[r] = {});
+
+  const regionalCitySirenCounts: Record<string, Record<string, { count: number; lat?: number; lon?: number }>> = {};
+  regionsList.forEach(r => regionalCitySirenCounts[r] = {});
+
+  const regionalUniqueCities: Record<string, Set<string>> = {};
+  regionsList.forEach(r => regionalUniqueCities[r] = new Set());
+
   // Clear cache for new data processing batch
   dateCache.clear();
 
@@ -107,6 +135,7 @@ export function processRawAlarms(
       const city = cities[j].trim();
       const baseCity = normalizeCityName(city);
       const meta = citiesMetadata[city];
+      const region = getRegionForArea(meta?.area);
 
       const alarmObj: Alarm = {
         datetime,
@@ -116,6 +145,7 @@ export function processRawAlarms(
       };
 
       alarms.push(alarmObj);
+      regionalAlarms[region].push(alarmObj);
 
       if (!alarmsByCity[baseCity]) alarmsByCity[baseCity] = [];
       alarmsByCity[baseCity].push(alarmObj);
@@ -136,12 +166,22 @@ export function processRawAlarms(
       }
       citySirenCounts[city].count++;
 
+      if (!regionalCitySirenCounts[region][city]) {
+        regionalCitySirenCounts[region][city] = { count: 0, lat: meta?.lat, lon: meta?.lng };
+      }
+      regionalCitySirenCounts[region][city].count++;
+
       uniqueBaseCities.add(baseCity);
+      regionalUniqueCities[region].add(baseCity);
+
       const eventKey = `${baseCity}|${minKey}`;
       if (!seenEvents.has(eventKey)) {
         seenEvents.add(eventKey);
         cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
         dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
+
+        regionalCityEventCounts[region][baseCity] = (regionalCityEventCounts[region][baseCity] || 0) + 1;
+        regionalDailyCounts[region][datePart] = (regionalDailyCounts[region][datePart] || 0) + 1;
 
         if (!cityEventTimestamps[baseCity]) cityEventTimestamps[baseCity] = [];
         cityEventTimestamps[baseCity].push(timestamp);
@@ -201,17 +241,54 @@ export function processRawAlarms(
       polygon: cityToPolygon[city],
     }));
 
+  const statsDate = maxTimestamp > 0 ? new Date(maxTimestamp * 1000).toLocaleDateString("he-IL") : undefined;
+
   const stats: GlobalStats | null =
     alarms.length > 0
       ? {
           totalAlarms: alarms.length,
           topCityName: topCity?.[0] || "N/A",
           topCityCount: topCity?.[1] || 0,
-          statsDate: new Date(maxTimestamp * 1000).toLocaleDateString("he-IL"),
+          statsDate,
           activeDays: Object.keys(dailyCounts).length,
           affectedCitiesCount: uniqueBaseCities.size,
         }
       : null;
+
+  // Build regional results
+  const regions: Record<string, RegionStats> = {};
+  for (const region of regionsList) {
+    const rSortedCityEvents = Object.entries(regionalCityEventCounts[region]).sort(
+      ([, a], [, b]) => b - a,
+    );
+    const rTopCity = rSortedCityEvents[0];
+    
+    const rMapData: MapData[] = Object.entries(regionalCitySirenCounts[region])
+      .filter(([, d]) => d.lat !== undefined && d.lon !== undefined)
+      .map(([city, data]) => ({
+        city,
+        count: data.count,
+        lat: data.lat!,
+        lon: data.lon!,
+        polygon: cityToPolygon[city],
+      }));
+
+    regions[region] = {
+      stats: regionalAlarms[region].length > 0 ? {
+        totalAlarms: regionalAlarms[region].length,
+        topCityName: rTopCity?.[0] || "N/A",
+        topCityCount: rTopCity?.[1] || 0,
+        statsDate,
+        activeDays: Object.keys(regionalDailyCounts[region]).length,
+        affectedCitiesCount: regionalUniqueCities[region].size,
+      } : null,
+      topCities: rSortedCityEvents.slice(0, 5).map(([name, count]) => ({ name, count })),
+      mapData: rMapData,
+      globalDailyTrend: Object.entries(regionalDailyCounts[region])
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([date, count]) => ({ date, count })),
+    };
+  }
 
   return {
     alarms,
@@ -230,6 +307,7 @@ export function processRawAlarms(
     citiesList: Array.from(uniqueBaseCities).sort((a, b) =>
       a.localeCompare(b, "he"),
     ),
+    regions,
     lastUpdated:
       maxTimestamp > 0
         ? new Date(maxTimestamp * 1000).toLocaleString("he-IL", {

@@ -34,6 +34,13 @@ export interface CityMetrics {
   totalEvents: number;
 }
 
+export interface RegionStats {
+  stats: GlobalStats | null;
+  topCities: LeaderboardEntry[];
+  globalDailyTrend: { date: string; count: number }[];
+  mapData: MapData[];
+}
+
 export interface DashboardData {
   alarms: Alarm[];
   alarmsByCity: Record<string, Alarm[]>; // Grouped by normalized city name
@@ -45,6 +52,7 @@ export interface DashboardData {
   mapData: MapData[];
   globalDailyTrend: { date: string; count: number }[];
   citiesList: string[];
+  regions: Record<string, RegionStats>;
   lastUpdated: string; // This is the timestamp of the latest alarm
   lastSync?: string; // This is the time the data was fetched from the server
   isFallback?: boolean;

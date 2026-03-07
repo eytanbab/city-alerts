@@ -2,14 +2,14 @@
 
 import { use } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  type DashboardData, 
-} from "@/lib/data";
+import { useQueryState, parseAsString } from "nuqs";
+import { type DashboardData } from "@/lib/data";
 import { StatCards } from "@/components/StatCards";
 import { Leaderboard } from "@/components/Leaderboard";
 import { DailyTrendChart } from "@/components/DailyTrendChart";
 import MapChart from "@/components/MapChart";
 import { Info } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface OverviewContentProps {
   dataPromise: Promise<DashboardData>;
@@ -17,18 +17,26 @@ interface OverviewContentProps {
 
 export function OverviewContent({ dataPromise }: OverviewContentProps) {
   const data = use(dataPromise);
+  const [selectedRegion, setSelectedRegion] = useQueryState(
+    "region",
+    parseAsString.withDefault("all"),
+  );
+
   const router = useRouter();
-  const { 
-    stats, 
-    mapData, 
-    topCities, 
-    globalDailyTrend, 
-    isFallback 
-  } = data;
+
+  const { stats, mapData, topCities, globalDailyTrend, regions, isFallback } =
+    data;
 
   const handleCitySelect = (city: string) => {
     router.push(`/analysis?city=${encodeURIComponent(city)}`);
   };
+
+  const currentData =
+    selectedRegion === "all"
+      ? { stats, mapData, topCities, globalDailyTrend }
+      : regions[selectedRegion];
+
+  const regionLabel = selectedRegion === "all" ? "ארצי" : selectedRegion;
 
   return (
     <div className="flex flex-col gap-8">
@@ -45,17 +53,37 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
         </div>
       )}
 
-      {stats && <StatCards stats={stats} />}
+      <div className="flex flex-col gap-4" dir="rtl">
+        <Tabs
+          defaultValue="all"
+          value={selectedRegion}
+          onValueChange={setSelectedRegion}
+          className="w-fit mx-auto"
+        >
+          <TabsList className="bg-card gap-1">
+            <TabsTrigger value="צפון">צפון</TabsTrigger>
+            <TabsTrigger value="מרכז">מרכז</TabsTrigger>
+            <TabsTrigger value="דרום">דרום</TabsTrigger>
+            <TabsTrigger value="all">ארצי</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {currentData?.stats && <StatCards stats={currentData.stats} />}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Leaderboard data={topCities} onSelect={handleCitySelect} />
+        <Leaderboard
+          data={currentData?.topCities || []}
+          onSelect={handleCitySelect}
+        />
         <DailyTrendChart
-          data={globalDailyTrend}
-          city="ארצי"
-          title="מגמת אזעקות יומית (ארצי)"
-          description="כמות האזעקות בכל הארץ לאורך זמן"
+          data={currentData?.globalDailyTrend || []}
+          city={regionLabel}
+          title={`מגמת אזעקות יומית (${regionLabel})`}
+          description={`כמות האזעקות ב${regionLabel === "ארצי" ? "כל הארץ" : "אזור " + regionLabel} לאורך זמן`}
         />
       </div>
-      <MapChart data={mapData} />
+      <MapChart data={currentData?.mapData || []} />
     </div>
   );
 }

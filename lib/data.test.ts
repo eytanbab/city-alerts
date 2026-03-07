@@ -4,10 +4,20 @@ import {
   getHourlyDistribution,
   getCityDailyTrend,
   processRawAlarms,
+  getRegionForArea,
   Alarm,
 } from "./data";
 
 describe("Data Utility Functions (Optimized)", () => {
+  it("should return the correct region for a given area code", () => {
+    expect(getRegionForArea(1)).toBe("צפון");
+    expect(getRegionForArea(6)).toBe("צפון");
+    expect(getRegionForArea(2)).toBe("דרום");
+    expect(getRegionForArea(17)).toBe("דרום");
+    expect(getRegionForArea(3)).toBe("מרכז");
+    expect(getRegionForArea(undefined)).toBe("מרכז");
+  });
+
   it("should normalize city names by removing sectors and parentheses", () => {
     expect(normalizeCityName("חיפה - כרמל")).toBe("חיפה");
     expect(normalizeCityName("אשדוד - יא (מרכז)")).toBe("אשדוד");
@@ -84,6 +94,30 @@ describe("Data Utility Functions (Optimized)", () => {
     // Daily Trend (minute-based unique events)
     // 2026-02-28: חיפה (10:00), תל אביב (10:01) = 2 total events
     expect(result.globalDailyTrend[0].count).toBe(2);
+
+    // Regional Splitting
+    const mockRawAlarmsWithRegions: [number, number, string[], number][] = [
+      [1, 0, ["חיפה - כרמל"], 1772186400], // North (Area 1)
+      [2, 0, ["תל אביב - יפו"], 1772186460], // Center (Area 3 implicit or defined)
+      [3, 0, ["אשקלון - צפון"], 1772186520], // South (Area 17)
+    ];
+
+    const mockCitiesMetadataWithAreas = {
+      "חיפה - כרמל": { id: 101, lat: 32.8, lng: 34.9, area: 1 },
+      "תל אביב - יפו": { id: 201, lat: 32.0, lng: 34.7, area: 3 },
+      "אשקלון - צפון": { id: 301, lat: 31.6, lng: 34.5, area: 17 },
+    };
+
+    const regionalResult = processRawAlarms(
+      mockRawAlarmsWithRegions,
+      mockCitiesMetadataWithAreas,
+      {},
+      filterDateUnix,
+    );
+
+    expect(regionalResult.regions["צפון"].stats?.totalAlarms).toBe(1);
+    expect(regionalResult.regions["מרכז"].stats?.totalAlarms).toBe(1);
+    expect(regionalResult.regions["דרום"].stats?.totalAlarms).toBe(1);
   });
 
   it("should generate city daily trend correctly within specified range", () => {

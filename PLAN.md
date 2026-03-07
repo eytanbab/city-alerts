@@ -4,13 +4,14 @@ This document outlines the planned functional enhancements for the **city-alerts
 
 ---
 
-## 1. Macro-Regional Statistics (North, Center, South)
+## 1. Macro-Regional Statistics (North, Center, South) [DONE]
 **Description**: Group the existing data into three main geographic sectors: North, Center, and South.
 - **Why it's useful**: Allows users to compare how the conflict is shifting between different parts of the country.
 - **Implementation Strategy**:
   - Assign each Home Front Command area code to one of the three macro-regions.
   - Add a toggle or tabs on the National Overview (`/`) to switch between "National", "North", "Center", and "South" views.
   - Update `StatCards` and `DailyTrendChart` to reflect the selected macro-region.
+  - **Status**: Completed with URL synchronization using `nuqs`.
 
 ## 2. Time-of-Day Risk Profile
 **Description**: A heatmap or radar chart showing which times of the day are statistically the most "active" for sirens over the last 7 days.

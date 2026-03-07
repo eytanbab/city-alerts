@@ -6,6 +6,8 @@ A visualization platform for siren alert data in Israel, focused on the "Lion's 
 
 ### National Overview (`/`)
 
+- **Live Siren Notifications**: An instant, nationwide alert system providing real-time visual updates for active sirens across the country.
+- **Regional Sector Analysis**: Integrated geographic partitioning allowing users to focus the entire dashboard on specific regions (North, Center, or South).
 - **National Alert Dashboard**: A high-level summary of siren activity, including total alerts, active days, and the number of affected locations.
 - **Interactive Geospatial Map**: A visual map of Israel showing alert intensity through interactive city polygons and cluster markers.
 - **National Trend Analysis**: A daily timeline chart tracking the frequency of alerts over time across the entire country.
@@ -13,6 +15,7 @@ A visualization platform for siren alert data in Israel, focused on the "Lion's 
 
 ### City Analysis (`/analysis`)
 
+- **Automated Performance Summaries**: Intelligent status reports for individual cities, calculating 24h intensity trends, weekly averages, and historical "quiet streak" records.
 - **Comparative Analysis Mode**: Select up to 5 cities to overlay their alert data on the same chart for direct comparison of risk levels and peak times.
 - **"Safe Interval" & Intensity Scoring**: Advanced metrics for each city, including average/maximum quiet time between alerts and peak intensity (most sirens in a 10-minute window).
 - **City-Level Frequency Analysis**: Detailed hourly distribution charts (0–23) for selected cities to identify patterns in siren activity.
@@ -22,11 +25,12 @@ A visualization platform for siren alert data in Israel, focused on the "Lion's 
 
 - **Framework**: Next.js 16 (App Router) and React 19
 - **State Management**: nuqs for URL-synced state
+- **Connectivity**: Real-time WebSockets and Shadcn Sonner for live alerts
 - **Data Source**: Real-time fetching from `tzevaadom.co.il`
 - **Data Optimization**: Local storage for static city metadata and geographical polygons
 - **Styling**: Tailwind CSS 4 and shadcn/ui
 - **Visualization**: Recharts and Leaflet
-- **Testing**: Vitest (Unit and Utility tests)
+- **Testing**: Vitest (Unit, Utility, and Component tests)
 
 ## Getting Started
 

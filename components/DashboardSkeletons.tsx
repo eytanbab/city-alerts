@@ -49,7 +49,7 @@ export function MapSkeleton() {
 export function StatCardsSkeleton() {
   const staticLabels = [
     { label: 'סה"כ אזעקות', icon: AlertTriangle, subValue: "אירועים מתועדים" },
-    { label: "העיר המטווחת", icon: MapPin, subValue: "63 אירועים" },
+    { label: "העיר המטווחת", icon: MapPin, subValue: "אירועים" },
     { label: "ימי פעילות", icon: Calendar, subValue: "מתחילת המבצע" },
     { label: "יישובים בטווח", icon: Hash, subValue: "נקודות ציון" },
   ];

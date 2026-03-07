@@ -3,10 +3,7 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryState } from "nuqs";
-import { 
-  type DashboardData, 
-  normalizeCityName, 
-} from "@/lib/data";
+import { type DashboardData, normalizeCityName } from "@/lib/data";
 import { StatCards } from "@/components/StatCards";
 import { Leaderboard } from "@/components/Leaderboard";
 import { DailyTrendChart } from "@/components/DailyTrendChart";
@@ -21,15 +18,15 @@ interface OverviewContentProps {
 export function OverviewContent({ dataPromise }: OverviewContentProps) {
   const data = use(dataPromise);
   const router = useRouter();
-  const { 
-    stats, 
-    mapData, 
-    topCities, 
-    globalDailyTrend, 
-    regionsList, 
+  const {
+    stats,
+    mapData,
+    topCities,
+    globalDailyTrend,
+    regionsList,
     cityToRegion,
     alarms,
-    isFallback 
+    isFallback,
   } = data;
 
   const [selectedRegion, setSelectedRegion] = useQueryState("region");
@@ -42,8 +39,10 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
   const filteredData = (() => {
     if (!selectedRegion) return { stats, mapData, topCities, globalDailyTrend };
 
-    const filteredAlarms = alarms.filter(a => cityToRegion[normalizeCityName(a.city)] === selectedRegion);
-    
+    const filteredAlarms = alarms.filter(
+      (a) => cityToRegion[normalizeCityName(a.city)] === selectedRegion,
+    );
+
     // Recalculate derived data for the region
     const cityEventCounts: Record<string, number> = {};
     const citySirenCounts: Record<string, number> = {};
@@ -51,50 +50,64 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
     const seenEvents = new Set<string>();
     const uniqueBaseCities = new Set<string>();
 
-    filteredAlarms.forEach(a => {
-        const baseCity = normalizeCityName(a.city);
-        const minKey = a.datetime.substring(0, 16);
-        const datePart = a.datetime.substring(0, 10);
-        
-        uniqueBaseCities.add(baseCity);
-        citySirenCounts[a.city] = (citySirenCounts[a.city] || 0) + 1;
+    filteredAlarms.forEach((a) => {
+      const baseCity = normalizeCityName(a.city);
+      const minKey = a.datetime.substring(0, 16);
+      const datePart = a.datetime.substring(0, 10);
 
-        const eventKey = `${baseCity}|${minKey}`;
-        if (!seenEvents.has(eventKey)) {
-            seenEvents.add(eventKey);
-            cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
-            dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
-        }
+      uniqueBaseCities.add(baseCity);
+      citySirenCounts[a.city] = (citySirenCounts[a.city] || 0) + 1;
+
+      const eventKey = `${baseCity}|${minKey}`;
+      if (!seenEvents.has(eventKey)) {
+        seenEvents.add(eventKey);
+        cityEventCounts[baseCity] = (cityEventCounts[baseCity] || 0) + 1;
+        dailyCounts[datePart] = (dailyCounts[datePart] || 0) + 1;
+      }
     });
 
-    const sortedCityEvents = Object.entries(cityEventCounts).sort(([, a], [, b]) => b - a);
-    
-    const statsObj = filteredAlarms.length > 0 ? {
-        totalAlarms: filteredAlarms.length,
-        topCityName: sortedCityEvents[0]?.[0] || "N/A",
-        topCityCount: sortedCityEvents[0]?.[1] || 0,
-        activeDays: Object.keys(dailyCounts).length,
-        affectedCitiesCount: uniqueBaseCities.size
-    } : null;
+    const sortedCityEvents = Object.entries(cityEventCounts).sort(
+      ([, a], [, b]) => b - a,
+    );
 
-    const topCitiesList = sortedCityEvents.slice(0, 5).map(([name, count]) => ({ name, count }));
+    const statsObj =
+      filteredAlarms.length > 0
+        ? {
+            totalAlarms: filteredAlarms.length,
+            topCityName: sortedCityEvents[0]?.[0] || "N/A",
+            topCityCount: sortedCityEvents[0]?.[1] || 0,
+            activeDays: Object.keys(dailyCounts).length,
+            affectedCitiesCount: uniqueBaseCities.size,
+          }
+        : null;
 
-    const mapDataList = Object.entries(citySirenCounts).map(([city, count]) => {
-        const alarm = filteredAlarms.find(a => a.city === city);
+    const topCitiesList = sortedCityEvents
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    const mapDataList = Object.entries(citySirenCounts)
+      .map(([city, count]) => {
+        const alarm = filteredAlarms.find((a) => a.city === city);
         return {
-            city,
-            count,
-            lat: alarm?.lat || 0,
-            lon: alarm?.lon || 0,
-            polygon: data.polygons[city]
+          city,
+          count,
+          lat: alarm?.lat || 0,
+          lon: alarm?.lon || 0,
+          polygon: data.polygons[city],
         };
-    }).filter(d => d.lat !== 0);
+      })
+      .filter((d) => d.lat !== 0);
 
     const dailyTrendList = Object.entries(dailyCounts)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([date, count]) => ({ date, count }));
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, count]) => ({ date, count }));
 
-    return { stats: statsObj, mapData: mapDataList, topCities: topCitiesList, globalDailyTrend: dailyTrendList };
+    return {
+      stats: statsObj,
+      mapData: mapDataList,
+      topCities: topCitiesList,
+      globalDailyTrend: dailyTrendList,
+    };
   })();
 
   return (
@@ -112,22 +125,33 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+      {/* <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
         <RegionFilter 
             regions={regionsList} 
             selectedRegion={selectedRegion} 
             onSelect={setSelectedRegion} 
         />
-      </div>
+      </div> */}
 
       {filteredData.stats && <StatCards stats={filteredData.stats} />}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Leaderboard data={filteredData.topCities} onSelect={handleCitySelect} />
+        <Leaderboard
+          data={filteredData.topCities}
+          onSelect={handleCitySelect}
+        />
         <DailyTrendChart
           data={filteredData.globalDailyTrend}
           city={selectedRegion || "ארצי"}
-          title={selectedRegion ? `מגמת אזעקות: ${selectedRegion}` : "מגמת אזעקות יומית (ארצי)"}
-          description={selectedRegion ? "כמות האזעקות באזור לאורך זמן" : "כמות האזעקות בכל הארץ לאורך זמן"}
+          title={
+            selectedRegion
+              ? `מגמת אזעקות: ${selectedRegion}`
+              : "מגמת אזעקות יומית (ארצי)"
+          }
+          description={
+            selectedRegion
+              ? "כמות האזעקות באזור לאורך זמן"
+              : "כמות האזעקות בכל הארץ לאורך זמן"
+          }
         />
       </div>
       <MapChart data={filteredData.mapData} />

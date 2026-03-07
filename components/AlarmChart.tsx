@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import { XAxis, YAxis, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import {
   Card,
   CardContent,
@@ -16,19 +16,26 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { Zap, Moon, AlertCircle } from "lucide-react";
+import { Zap, Moon, AlertCircle, BarChart3, LineChart as LineIcon } from "lucide-react";
 
 interface AlarmChartProps {
-  data: { hour: string; count: number }[];
-  city: string;
+  data?: { hour: string; count: number }[];
+  city?: string;
+  multiData?: { city: string; data: { hour: string; count: number }[] }[];
 }
 
-const chartConfig = {
-  count: {
-    label: "כמות אזעקות",
-    color: "hsl(var(--primary))",
-  },
-} satisfies ChartConfig;
+interface ChartDataEntry {
+  hour: string;
+  [key: string]: string | number;
+}
+
+const CITY_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function formatHourRanges(hours: string[]) {
   if (hours.length === 0) return "";
@@ -54,18 +61,57 @@ function formatHourRanges(hours: string[]) {
   return ranges.join(", ");
 }
 
-export function AlarmChart({ data, city }: AlarmChartProps) {
-  const total = data.reduce((acc, curr) => acc + curr.count, 0);
+export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
+  const isMulti = !!(multiData && multiData.length > 0);
+  
+  const chartData = useMemo(() => {
+    if (!isMulti) return (data || []) as ChartDataEntry[];
+    
+    // Combine multiple city data into a single array for Recharts
+    const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
+    return hours.map(hour => {
+      const entry: ChartDataEntry = { hour };
+      multiData!.forEach(d => {
+        const hourData = d.data.find(h => h.hour === hour);
+        entry[d.city] = hourData ? hourData.count : 0;
+      });
+      return entry;
+    });
+  }, [data, multiData, isMulti]);
+
+  const total = useMemo(() => {
+    if (!isMulti) return chartData.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
+    return multiData!.reduce((acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0), 0);
+  }, [chartData, multiData, isMulti]);
+
+  const chartConfig = useMemo(() => {
+    const config: ChartConfig = {
+      count: { 
+        label: city ? `${city}: כמות אזעקות` : "כמות אזעקות", 
+        color: "var(--chart-1)" 
+      }
+    };
+    if (isMulti) {
+      multiData!.forEach((d, i) => {
+        config[d.city] = {
+          label: d.city,
+          color: CITY_COLORS[i % CITY_COLORS.length]
+        };
+      });
+    }
+    return config;
+  }, [multiData, isMulti, city]);
 
   const insights = useMemo(() => {
-    if (total === 0) return null;
-    const maxCount = Math.max(...data.map((d) => d.count));
-    const peakHours = data
-      .filter((d) => d.count === maxCount)
+    if (total === 0 || isMulti) return null;
+    const counts = chartData.map((d) => Number(d.count) || 0);
+    const maxCount = Math.max(...counts);
+    const peakHours = chartData
+      .filter((d) => (Number(d.count) || 0) === maxCount)
       .map((d) => d.hour);
-    const minCount = Math.min(...data.map((d) => d.count));
-    const silentHours = data
-      .filter((d) => d.count === minCount)
+    const minCount = Math.min(...counts);
+    const silentHours = chartData
+      .filter((d) => (Number(d.count) || 0) === minCount)
       .map((d) => d.hour);
 
     return {
@@ -74,7 +120,7 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
       maxCount,
       minCount,
     };
-  }, [data, total]);
+  }, [chartData, total, isMulti]);
 
   if (total === 0) {
     return (
@@ -85,7 +131,7 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
           <p className="text-base text-muted-foreground font-medium">
-            לא נמצאו נתוני אזעקות עבור &quot;{city}&quot;
+            לא נמצאו נתוני אזעקות עבור {isMulti ? "הערים שנבחרו" : `"${city}"`}
           </p>
         </CardContent>
       </Card>
@@ -100,62 +146,114 @@ export function AlarmChart({ data, city }: AlarmChartProps) {
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <CardTitle className="text-lg font-bold">
-              התפלגות שעתית: {city}
+            <CardTitle className="text-lg font-semibold">
+              התפלגות שעתית {isMulti ? "(השוואה)" : `: ${city}`}
             </CardTitle>
             <CardDescription className="text-sm font-normal">
               סך הכל: {total.toLocaleString()} אזעקות בתקופה
             </CardDescription>
           </div>
-          <Zap className="h-4 w-4 text-muted-foreground/50" />
+          {isMulti ? <LineIcon className="h-4 w-4 text-muted-foreground/50" /> : <BarChart3 className="h-4 w-4 text-muted-foreground/50" />}
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-60 w-full"
+          className="aspect-auto h-64 w-full"
         >
-          <BarChart
-            data={data}
-            margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
-          >
-            <CartesianGrid
-              vertical={false}
-              strokeDasharray="3 3"
-              className="stroke-muted"
-              strokeOpacity={0.5}
-            />
-            <XAxis
-              dataKey="hour"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              minTickGap={10}
-              fontSize={12}
-              tick={{ fill: "var(--muted-foreground)" }}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              orientation="right"
-              allowDecimals={false}
-              tickMargin={10}
-              fontSize={12}
-              tick={{ fill: "var(--muted-foreground)" }}
-              width={35}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent className="rounded-lg border-border" />
-              }
-            />
-            <Bar
-              dataKey="count"
-              fill="var(--color-primary)"
-              radius={[4, 4, 0, 0]}
-              maxBarSize={40}
-            />
-          </BarChart>
+          {isMulti ? (
+            <LineChart
+              data={chartData}
+              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+            >
+              <CartesianGrid
+                vertical={false}
+                strokeDasharray="3 3"
+                className="stroke-muted"
+                strokeOpacity={0.5}
+              />
+              <XAxis
+                dataKey="hour"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                minTickGap={10}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                orientation="right"
+                allowDecimals={false}
+                tickMargin={10}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+                width={35}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent className="rounded-lg border-border" />
+                }
+              />
+              <Legend verticalAlign="top" height={36}/>
+              {multiData!.map((d, i) => (
+                <Line
+                  key={d.city}
+                  type="monotone"
+                  dataKey={d.city}
+                  stroke={CITY_COLORS[i % CITY_COLORS.length]}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              ))}
+            </LineChart>
+          ) : (
+            <LineChart
+              data={chartData}
+              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+            >
+              <CartesianGrid
+                vertical={false}
+                strokeDasharray="3 3"
+                className="stroke-muted"
+                strokeOpacity={0.5}
+              />
+              <XAxis
+                dataKey="hour"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                minTickGap={10}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                orientation="right"
+                allowDecimals={false}
+                tickMargin={10}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+                width={35}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent className="rounded-lg border-border" />
+                }
+              />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          )}
         </ChartContainer>
       </CardContent>
       {insights && (

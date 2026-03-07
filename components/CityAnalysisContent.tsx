@@ -9,6 +9,7 @@ import {
   type DashboardData,
 } from "@/lib/data";
 import { CitySearch } from "@/components/CitySearch";
+import { CityMetricsCards } from "@/components/CityMetricsCards";
 import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
 import { Search as SearchIcon, Info } from "lucide-react";
 
@@ -40,57 +41,70 @@ const POPULAR_CITIES = [
 
 interface CityAnalysisContentProps {
   dataPromise: Promise<DashboardData>;
-  activeCity: string;
-  setActiveCity: (city: string) => void;
+  activeCities: string[];
+  setActiveCities: (cities: string[]) => void;
 }
 
 export function CityAnalysisContent({
   dataPromise,
-  activeCity: initialCity,
-  setActiveCity: updateUrl,
+  activeCities: initialCities,
+  setActiveCities: updateUrl,
 }: CityAnalysisContentProps) {
   const data = use(dataPromise);
-  const { alarmsByCity, lastSirenPerCity, citiesList, isFallback } = data;
+  const {
+    alarmsByCity,
+    lastSirenPerCity,
+    citiesList,
+    cityMetrics,
+    isFallback,
+  } = data;
 
-  // Use local state for active city to ensure instantaneous switching
-  const [activeCity, setActiveCity] = React.useState(initialCity);
+  // Use local state for active cities to ensure instantaneous switching
+  const [activeCities, setActiveCities] = React.useState(initialCities);
 
   // Sync state with URL when it changes externally (e.g., back button)
   React.useEffect(() => {
-    setActiveCity(initialCity);
-  }, [initialCity]);
+    setActiveCities(initialCities);
+  }, [initialCities]);
 
-  const handleCityChange = (city: string) => {
-    setActiveCity(city); // Instant UI update
-    updateUrl(city); // Update URL in background
+  const toggleCity = (city: string) => {
+    const updated = activeCities.includes(city)
+      ? activeCities.filter((c) => c !== city)
+      : [...activeCities, city];
+
+    setActiveCities(updated); // Instant UI update
+    updateUrl(updated); // Update URL in background
   };
 
-  const cityAlarms = useMemo(() => {
-    if (!activeCity || !alarmsByCity) return [];
-    return alarmsByCity[activeCity] || [];
-  }, [alarmsByCity, activeCity]);
+  const removeCity = (city: string) => {
+    const updated = activeCities.filter((c) => c !== city);
+    setActiveCities(updated);
+    updateUrl(updated);
+  };
+
+  const multiCityData = useMemo(() => {
+    if (!activeCities.length || !alarmsByCity) return [];
+    return activeCities.map((city) => ({
+      city,
+      alarms: alarmsByCity[city] || [],
+      metrics: cityMetrics?.[city],
+      lastSiren: lastSirenPerCity?.[city],
+    }));
+  }, [alarmsByCity, cityMetrics, lastSirenPerCity, activeCities]);
 
   const hourlyData = useMemo(() => {
-    if (!cityAlarms.length) return [];
-    return getHourlyDistribution(cityAlarms);
-  }, [cityAlarms]);
+    return multiCityData.map((d) => ({
+      city: d.city,
+      data: getHourlyDistribution(d.alarms),
+    }));
+  }, [multiCityData]);
 
-  const cityDailyTrend = useMemo(() => {
-    if (!cityAlarms.length) return [];
-    return getCityDailyTrend(cityAlarms);
-  }, [cityAlarms]);
-
-  const lastSirenFormatted = useMemo(() => {
-    const rawDatetime = lastSirenPerCity?.[activeCity];
-    if (!rawDatetime) return null;
-
-    // Convert YYYY-MM-DD HH:mm:ss to DD/MM/YY HH:mm
-    const [datePart, timePart] = rawDatetime.split(" ");
-    const [year, month, day] = datePart.split("-");
-    const [hour, minute] = timePart.split(":");
-
-    return `${day}/${month}/${year.slice(2)} ${hour}:${minute}`;
-  }, [lastSirenPerCity, activeCity]);
+  const dailyTrendData = useMemo(() => {
+    return multiCityData.map((d) => ({
+      city: d.city,
+      data: getCityDailyTrend(d.alarms),
+    }));
+  }, [multiCityData]);
 
   return (
     <div className="w-full flex flex-col items-center gap-6" dir="rtl">
@@ -104,18 +118,21 @@ export function CityAnalysisContent({
       )}
 
       <div className="w-full flex flex-col items-center gap-4">
-        <CitySearch
-          cities={citiesList}
-          onSearch={handleCityChange}
-          selectedCity={activeCity}
-        />
+        <div className="flex flex-col md:flex-row gap-4 w-full max-w-2xl justify-center items-center">
+          <CitySearch
+            cities={citiesList}
+            onSearch={toggleCity}
+            selectedCities={activeCities}
+          />
+        </div>
+
         <div className="flex flex-wrap justify-center gap-2">
           {POPULAR_CITIES.map((city) => (
             <button
               key={city}
-              onClick={() => handleCityChange(city)}
+              onClick={() => toggleCity(city)}
               className={`h-9 px-4 py-1.5 rounded-full text-sm font-medium border transition-color duration-200 cursor-pointer ${
-                activeCity === city
+                activeCities.includes(city)
                   ? "bg-primary text-primary-foreground border-primary"
                   : "bg-background hover:bg-accent text-muted-foreground border-input"
               }`}
@@ -124,17 +141,53 @@ export function CityAnalysisContent({
             </button>
           ))}
         </div>
+
+        {activeCities.length > 0 && (
+          <div className="flex flex-wrap gap-2 justify-center">
+            {activeCities.map((city) => (
+              <div
+                key={city}
+                className="flex items-center gap-1.5 px-3 py-2 bg-accent/50 rounded-full border text-sm font-bold text-accent-foreground"
+              >
+                {city}
+                <button
+                  onClick={() => removeCity(city)}
+                  className="hover:text-destructive transition-colors cursor-pointer"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={() => {
+                setActiveCities([]);
+                updateUrl([]);
+              }}
+              className="text-sm font-medium text-muted-foreground hover:text-destructive px-2 cursor-pointer"
+            >
+              נקה הכל
+            </button>
+          </div>
+        )}
       </div>
+
       <div className="w-full max-w-5xl">
-        {activeCity ? (
+        {activeCities.length > 0 ? (
           <div className="grid grid-cols-1 gap-8">
-            <AlarmChart data={hourlyData} city={activeCity} />
-            <DailyTrendChart
-              data={cityDailyTrend}
-              title={`מגמת אזעקות: ${activeCity}`}
-              description="כמות האזעקות בעיר לאורך זמן"
-              lastSiren={lastSirenFormatted}
-            />
+            <div className="flex flex-col gap-4">
+              {multiCityData.map((d) => (
+                <div key={d.city} className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2 px-2">
+                    <div className="w-1 h-4 bg-primary rounded-full" />
+                    <h3 className="text-lg font-semibold">{d.city}</h3>
+                  </div>
+                  <CityMetricsCards metrics={d.metrics} />
+                </div>
+              ))}
+            </div>
+
+            <AlarmChart multiData={hourlyData} />
+            <DailyTrendChart multiData={dailyTrendData} />
           </div>
         ) : (
           <div className="py-24 text-center text-muted-foreground border border-dashed rounded-3xl bg-muted/5 flex flex-col items-center gap-4 w-full">

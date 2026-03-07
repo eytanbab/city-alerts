@@ -1,6 +1,6 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useQueryState, parseAsArrayOf, parseAsString } from "nuqs";
 import { CityAnalysisContent } from "@/components/CityAnalysisContent";
 import { type DashboardData } from "@/lib/data";
 
@@ -13,25 +13,16 @@ export function CityAnalysisWrapper({ dataPromise }: CityAnalysisWrapperProps) {
 }
 
 function CityAnalysisSync({ dataPromise }: CityAnalysisWrapperProps) {
-  const searchParams = useSearchParams();
-
-  const activeCity = searchParams.get("city") || "";
-
-  const setActiveCity = (city: string) => {
-    const url = new URL(window.location.href);
-    if (city) {
-      url.searchParams.set("city", city);
-    } else {
-      url.searchParams.delete("city");
-    }
-    window.history.pushState(null, "", url.toString());
-  };
+  const [activeCities, setActiveCities] = useQueryState(
+    "city",
+    parseAsArrayOf(parseAsString).withDefault([]),
+  );
 
   return (
     <CityAnalysisContent
       dataPromise={dataPromise}
-      activeCity={activeCity}
-      setActiveCity={setActiveCity}
+      activeCities={activeCities}
+      setActiveCities={setActiveCities}
     />
   );
 }

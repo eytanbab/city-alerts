@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
+import { XAxis, YAxis, CartesianGrid, LineChart, Line, Legend } from "recharts";
 import {
   Card,
   CardContent,
@@ -19,19 +19,26 @@ import {
 import { TrendingUp } from "lucide-react";
 
 interface DailyTrendChartProps {
-  data: { date: string; count: number }[];
+  data?: { date: string; count: number }[];
+  multiData?: { city: string; data: { date: string; count: number }[] }[];
   city?: string;
   title?: string;
   description?: string;
   lastSiren?: string | null;
 }
 
-const chartConfig = {
-  count: {
-    label: "כמות אזעקות",
-    color: "hsl(var(--chart-1))",
-  },
-} satisfies ChartConfig;
+interface ChartDataEntry {
+  date: string;
+  [key: string]: string | number;
+}
+
+const CITY_COLORS = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
+];
 
 function formatDate(dateStr: string) {
   if (!dateStr) return "";
@@ -46,23 +53,66 @@ const formatNumber = (num: number) =>
 
 export function DailyTrendChart({
   data,
+  multiData,
+  city,
   title = "מגמת אזעקות יומית",
   description = "כמות האזעקות לאורך זמן",
   lastSiren,
 }: DailyTrendChartProps) {
-  const total = data.reduce((acc, curr) => acc + curr.count, 0);
+  const isMulti = !!(multiData && multiData.length > 0);
+
+  const chartData = useMemo(() => {
+    if (!isMulti) return (data || []) as ChartDataEntry[];
+
+    // Get all unique dates across all cities
+    const allDates = new Set<string>();
+    multiData!.forEach(d => d.data.forEach(item => allDates.add(item.date)));
+    const sortedDates = Array.from(allDates).sort();
+
+    return sortedDates.map(date => {
+      const entry: ChartDataEntry = { date };
+      multiData!.forEach(d => {
+        const dateData = d.data.find(i => i.date === date);
+        entry[d.city] = dateData ? dateData.count : 0;
+      });
+      return entry;
+    });
+  }, [data, multiData, isMulti]);
+
+  const total = useMemo(() => {
+    if (!isMulti) return chartData.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
+    return multiData!.reduce((acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0), 0);
+  }, [chartData, multiData, isMulti]);
+
+  const chartConfig = useMemo(() => {
+    const config: ChartConfig = {
+      count: { 
+        label: city ? `${city}: כמות אזעקות` : "כמות אזעקות", 
+        color: "var(--chart-1)" 
+      }
+    };
+    if (isMulti) {
+      multiData!.forEach((d, i) => {
+        config[d.city] = {
+          label: d.city,
+          color: CITY_COLORS[i % CITY_COLORS.length]
+        };
+      });
+    }
+    return config;
+  }, [multiData, isMulti, city]);
 
   const insights = useMemo(() => {
-    if (data.length === 0) return null;
-    const sortedData = [...data].sort((a, b) => b.count - a.count);
+    if (total === 0 || isMulti) return null;
+    const sortedData = [...chartData].sort((a, b) => (Number(b.count) || 0) - (Number(a.count) || 0));
     const maxDay = sortedData[0];
 
     return {
       peakDay: formatDate(maxDay.date),
-      peakCount: maxDay.count,
-      avgCount: Math.round(total / data.length),
+      peakCount: Number(maxDay.count) || 0,
+      avgCount: Math.round(total / chartData.length),
     };
-  }, [data, total]);
+  }, [chartData, total, isMulti]);
 
   if (total === 0) return null;
 
@@ -81,57 +131,111 @@ export function DailyTrendChart({
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-4 px-2">
-        <ChartContainer config={chartConfig} className="h-60 w-full">
-          <AreaChart
-            data={data}
-            margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
-          >
-            <CartesianGrid
-              vertical={false}
-              strokeDasharray="3 3"
-              className="stroke-muted"
-              strokeOpacity={0.5}
-            />
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={formatDate}
-              minTickGap={30}
-              fontSize={12}
-              tick={{ fill: "var(--muted-foreground)" }}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              orientation="right"
-              allowDecimals={false}
-              tickMargin={10}
-              fontSize={12}
-              tick={{ fill: "var(--muted-foreground)" }}
-              width={20}
-              tickFormatter={formatNumber}
-            />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  className="rounded-xl border-border"
-                  labelFormatter={formatDate}
-                  formatter={(val) => formatNumber(Number(val))}
+        <ChartContainer config={chartConfig} className="h-64 w-full">
+          {isMulti ? (
+            <LineChart
+              data={chartData}
+              margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
+            >
+              <CartesianGrid
+                vertical={false}
+                strokeDasharray="3 3"
+                className="stroke-muted"
+                strokeOpacity={0.5}
+              />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={formatDate}
+                minTickGap={30}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                orientation="right"
+                allowDecimals={false}
+                tickMargin={10}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+                width={20}
+                tickFormatter={formatNumber}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="rounded-xl border-border"
+                    labelFormatter={formatDate}
+                  />
+                }
+              />
+              <Legend verticalAlign="top" height={36}/>
+              {multiData!.map((d, i) => (
+                <Line
+                  key={d.city}
+                  type="monotone"
+                  dataKey={d.city}
+                  stroke={CITY_COLORS[i % CITY_COLORS.length]}
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
                 />
-              }
-            />
-            <Area
-              type="monotone"
-              dataKey="count"
-              stroke="var(--color-chart-1)"
-              strokeWidth={2}
-              fill="var(--color-chart-1)"
-              fillOpacity={0.1}
-              animationDuration={500}
-            />
-          </AreaChart>
+              ))}
+            </LineChart>
+          ) : (
+            <LineChart
+              data={chartData}
+              margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
+            >
+              <CartesianGrid
+                vertical={false}
+                strokeDasharray="3 3"
+                className="stroke-muted"
+                strokeOpacity={0.5}
+              />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={formatDate}
+                minTickGap={30}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+              />
+              <YAxis
+                tickLine={false}
+                axisLine={false}
+                orientation="right"
+                allowDecimals={false}
+                tickMargin={10}
+                fontSize={12}
+                tick={{ fill: "var(--muted-foreground)" }}
+                width={20}
+                tickFormatter={formatNumber}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    className="rounded-xl border-border"
+                    labelFormatter={formatDate}
+                  />
+                }
+              />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="var(--chart-1)"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+                animationDuration={500}
+              />
+            </LineChart>
+          )}
         </ChartContainer>
       </CardContent>
       {insights && (

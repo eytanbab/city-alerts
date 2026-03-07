@@ -23,7 +23,7 @@ import {
 interface CitySearchProps {
   cities: string[];
   onSearch: (city: string) => void;
-  selectedCity?: string;
+  selectedCities?: string[];
 }
 
 const ITEMS_PER_PAGE = 100;
@@ -31,7 +31,7 @@ const ITEMS_PER_PAGE = 100;
 export function CitySearch({
   cities,
   onSearch,
-  selectedCity,
+  selectedCities = [],
 }: CitySearchProps) {
   const [open, setOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -85,7 +85,9 @@ export function CitySearch({
             aria-controls={listId}
             className="w-full justify-between text-right font-normal cursor-pointer"
           >
-            {selectedCity ? selectedCity : "חפש עיר..."}
+            {selectedCities.length > 0 
+              ? (selectedCities.length === 1 ? selectedCities[0] : `${selectedCities.length} ערים נבחרו`) 
+              : "חפש עיר..."}
             <ChevronsUpDown className="mr-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
@@ -113,7 +115,7 @@ export function CitySearch({
                     value={city}
                     onSelect={(currentValue) => {
                       onSearch(currentValue);
-                      setOpen(false);
+                      // Don't close for multi-select
                     }}
                     className="text-right flex items-center justify-between cursor-pointer"
                   >
@@ -121,7 +123,7 @@ export function CitySearch({
                     <Check
                       className={cn(
                         "ml-2 h-4 w-4",
-                        selectedCity === city ? "opacity-100" : "opacity-0",
+                        selectedCities.includes(city) ? "opacity-100" : "opacity-0",
                       )}
                     />
                   </CommandItem>

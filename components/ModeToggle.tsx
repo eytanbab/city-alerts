@@ -11,9 +11,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   return (
     <DropdownMenu dir="rtl">
@@ -27,19 +28,28 @@ export function ModeToggle() {
       <DropdownMenuContent align="end">
         <DropdownMenuItem
           onClick={() => setTheme("light")}
-          className="cursor-pointer"
+          className={cn(
+            "cursor-pointer",
+            theme === "light" ? "text-primary bg-muted/50" : "",
+          )}
         >
           בהיר
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("dark")}
-          className="cursor-pointer"
+          className={cn(
+            "cursor-pointer",
+            theme === "dark" ? "text-primary bg-muted/50" : "",
+          )}
         >
           כהה
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => setTheme("system")}
-          className="cursor-pointer"
+          className={cn(
+            "cursor-pointer",
+            theme === "system" ? "text-primary bg-muted/50" : "",
+          )}
         >
           מערכת
         </DropdownMenuItem>

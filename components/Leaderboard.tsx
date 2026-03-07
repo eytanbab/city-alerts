@@ -15,7 +15,7 @@ export function Leaderboard({ data, onSelect }: LeaderboardProps) {
       dir="rtl"
     >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-bold">
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           <Trophy className="h-4 w-4 text-muted-foreground" />
           הערים המטווחות ביותר
         </CardTitle>

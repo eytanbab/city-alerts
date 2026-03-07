@@ -363,3 +363,110 @@ export function getCityDailyTrend(alarms: Alarm[], nowStr?: string): { date: str
     .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
     .map(([date, events]) => ({ date, count: events.size }));
 }
+
+export interface CitySummaryData {
+  last24h: number;
+  prev24h: number;
+  percentChange: number | null;
+  weeklyAvg: number;
+  summaryText: string;
+  longestQuietStreakDays: number;
+  isPeakIntensity: boolean;
+}
+
+export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
+  const now = Math.max(...alarms.map(a => new Date(a.datetime).getTime()), Date.now() - 86400000);
+  const oneDayMs = 24 * 60 * 60 * 1000;
+  const last24hStart = now - oneDayMs;
+  const prev24hStart = now - (2 * oneDayMs);
+
+  const getUniqueEventsInRange = (start: number, end: number) => {
+    const seen = new Set<string>();
+    alarms.forEach(a => {
+      const ts = new Date(a.datetime).getTime();
+      if (ts >= start && ts < end) {
+        const minKey = a.datetime.substring(0, 16);
+        seen.add(`${normalizeCityName(a.city)}|${minKey}`);
+      }
+    });
+    return seen.size;
+  };
+
+  const last24h = getUniqueEventsInRange(last24hStart, now);
+  const prev24h = getUniqueEventsInRange(prev24hStart, last24hStart);
+
+  // Advanced Metric: Longest Quiet Streak in the filtered data
+  const dates = Array.from(new Set(alarms.map(a => a.datetime.split(" ")[0]))).sort();
+  let maxStreak = 0;
+  if (dates.length > 1) {
+    for (let i = 1; i < dates.length; i++) {
+      const d1 = new Date(dates[i-1]);
+      const d2 = new Date(dates[i]);
+      const diffDays = Math.floor((d2.getTime() - d1.getTime()) / oneDayMs);
+      if (diffDays > maxStreak) maxStreak = diffDays;
+    }
+  }
+
+  // Advanced Metric: Peak Intensity (is today higher than 90% of other days?)
+  const dailyCounts: Record<string, number> = {};
+  alarms.forEach(a => {
+    const d = a.datetime.split(" ")[0];
+    const minKey = a.datetime.substring(0, 16);
+    const eventKey = `${normalizeCityName(a.city)}|${minKey}`;
+    if (!dailyCounts[d]) dailyCounts[d] = 0;
+    // This is a rough approximation for peak
+    dailyCounts[d]++;
+  });
+  const sortedCounts = Object.values(dailyCounts).sort((a, b) => a - b);
+  const threshold = sortedCounts[Math.floor(sortedCounts.length * 0.9)] || 0;
+  const isPeakIntensity = last24h > threshold && last24h > 0;
+
+  let percentChange: number | null = null;
+  if (prev24h > 0) {
+    percentChange = Math.round(((last24h - prev24h) / prev24h) * 100);
+  } else if (last24h > 0) {
+    percentChange = 100;
+  }
+
+  const daysWithAlarms = new Set(alarms.map(a => a.datetime.split(" ")[0])).size;
+  const totalUniqueEvents = new Set(alarms.map(a => `${normalizeCityName(a.city)}|${a.datetime.substring(0, 16)}`)).size;
+  const weeklyAvg = daysWithAlarms > 0 ? totalUniqueEvents / daysWithAlarms : 0;
+
+  let summaryText = "";
+  const cityName = normalizeCityName(city);
+
+  if (last24h === 0) {
+    summaryText = `השקט נשמר ב${cityName} ב-24 השעות האחרונות. `;
+    if (prev24h > 0) {
+      summaryText += `זוהי רגיעה מבורכת לאחר ${prev24h} אזעקות ביום הקודם. `;
+    }
+    if (maxStreak > 1) {
+      summaryText += `שיא השקט המתועד ביישוב עומד על ${maxStreak} ימים רצופים.`;
+    }
+  } else {
+    summaryText = `במהלך היממה האחרונה, ${cityName} חוותה ${last24h} סבבי אזעקות. `;
+    
+    if (isPeakIntensity) {
+      summaryText += `זהו יום אינטנסיבי במיוחד, שנמצא בטווח ה-10% העליונים של רמת הפעילות ההיסטורית ביישוב. `;
+    }
+
+    if (percentChange !== null && Math.abs(percentChange) > 10) {
+      const trend = percentChange > 0 ? "עלייה" : "ירידה";
+      summaryText += `נרשמה ${trend} של ${Math.abs(percentChange)}% בעצימות לעומת אתמול. `;
+    }
+
+    if (last24h > weeklyAvg) {
+      summaryText += `רמת הפעילות כעת גבוהה מהממוצע השבועי שעומד על ${weeklyAvg.toFixed(1)} אזעקות ליום.`;
+    }
+  }
+
+  return {
+    last24h,
+    prev24h,
+    percentChange,
+    weeklyAvg,
+    summaryText,
+    longestQuietStreakDays: maxStreak,
+    isPeakIntensity
+  };
+}

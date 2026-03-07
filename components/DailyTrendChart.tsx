@@ -64,19 +64,21 @@ export function DailyTrendChart({
 
   const chartData = useMemo(() => {
     if (isSingleFromMulti) {
-        return multiData![0].data as ChartDataEntry[];
+      return multiData![0].data as ChartDataEntry[];
     }
     if (!isMulti) return (data || []) as ChartDataEntry[];
 
     // Get all unique dates across all cities
     const allDates = new Set<string>();
-    multiData!.forEach(d => d.data.forEach(item => allDates.add(item.date)));
+    multiData!.forEach((d) =>
+      d.data.forEach((item) => allDates.add(item.date)),
+    );
     const sortedDates = Array.from(allDates).sort();
 
-    return sortedDates.map(date => {
+    return sortedDates.map((date) => {
       const entry: ChartDataEntry = { date };
-      multiData!.forEach(d => {
-        const dateData = d.data.find(i => i.date === date);
+      multiData!.forEach((d) => {
+        const dateData = d.data.find((i) => i.date === date);
         entry[d.city] = dateData ? dateData.count : 0;
       });
       return entry;
@@ -84,25 +86,33 @@ export function DailyTrendChart({
   }, [data, multiData, isMulti, isSingleFromMulti]);
 
   const total = useMemo(() => {
-    if (isSingleFromMulti) return multiData![0].data.reduce((a, c) => a + c.count, 0);
-    if (!isMulti) return chartData.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
-    return multiData!.reduce((acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0), 0);
+    if (isSingleFromMulti)
+      return multiData![0].data.reduce((a, c) => a + c.count, 0);
+    if (!isMulti)
+      return chartData.reduce(
+        (acc, curr) => acc + (Number(curr.count) || 0),
+        0,
+      );
+    return multiData!.reduce(
+      (acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0),
+      0,
+    );
   }, [chartData, multiData, isMulti, isSingleFromMulti]);
 
   const activeCityName = isSingleFromMulti ? multiData![0].city : city;
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {
-      count: { 
-        label: activeCityName || "אזעקות", 
-        color: "var(--chart-1)" 
-      }
+      count: {
+        label: activeCityName || "אזעקות",
+        color: "var(--chart-1)",
+      },
     };
     if (isMulti) {
       multiData!.forEach((d, i) => {
         config[d.city] = {
           label: d.city,
-          color: CITY_COLORS[i % CITY_COLORS.length]
+          color: CITY_COLORS[i % CITY_COLORS.length],
         };
       });
     }
@@ -111,8 +121,10 @@ export function DailyTrendChart({
 
   const insights = useMemo(() => {
     if (total === 0 || isMulti) return null;
-    const dataToUse = isSingleFromMulti ? multiData![0].data : (data || []);
-    const sortedData = [...dataToUse].sort((a, b) => (Number(b.count) || 0) - (Number(a.count) || 0));
+    const dataToUse = isSingleFromMulti ? multiData![0].data : data || [];
+    const sortedData = [...dataToUse].sort(
+      (a, b) => (Number(b.count) || 0) - (Number(a.count) || 0),
+    );
     const maxDay = sortedData[0];
 
     if (!maxDay) return null;
@@ -132,7 +144,7 @@ export function DailyTrendChart({
       dir="rtl"
     >
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg font-bold">
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
           {isSingleFromMulti ? `מגמת אזעקות: ${activeCityName}` : title}
         </CardTitle>
@@ -182,7 +194,7 @@ export function DailyTrendChart({
                   />
                 }
               />
-              <Legend verticalAlign="top" height={36}/>
+              <Legend verticalAlign="top" height={36} />
               {multiData!.map((d, i) => (
                 <Line
                   key={d.city}

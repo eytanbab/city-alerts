@@ -20,12 +20,13 @@ This document outlines the planned functional enhancements for the **city-alerts
   - Aggregate data by hour across all cities or by selected city.
   - Use a specialized visualization (e.g., Heatmap) to show intensity across hours vs. days of the week.
 
-## 3. Localized Summary Reports
+## 3. Localized Summary Reports [DONE]
 **Description**: A "Snapshot" feature for cities that provides a human-readable summary of their alert history.
 - **Why it's useful**: Quick context for users who want to know the "bottom line" for their location (e.g., "Ashkelon has had 4 alerts in the last 24 hours, which is 20% lower than the weekly average").
 - **Implementation Strategy**:
   - Add a "Summary" section to the City Analysis page.
   - Calculate percentage changes and trend comparisons (Current 24h vs. previous 24h).
+  - **Status**: Completed.
 
 ## 4. Map Layer Toggles
 **Description**: Allow users to toggle between different map views (e.g., Points, Polygons, Heatmap).

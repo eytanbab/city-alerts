@@ -6,10 +6,12 @@ import dynamic from "next/dynamic";
 import {
   getHourlyDistribution,
   getCityDailyTrend,
+  getCitySummary,
   type DashboardData,
 } from "@/lib/data";
 import { CitySearch } from "@/components/CitySearch";
 import { CityMetricsCards } from "@/components/CityMetricsCards";
+import { CitySummary } from "@/components/CitySummary";
 import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
 import { Search as SearchIcon, Info, AlertCircle, X } from "lucide-react";
 import { Button } from "./ui/button";
@@ -124,12 +126,16 @@ export function CityAnalysisContent({
 
   const multiCityData = useMemo(() => {
     if (!activeCities.length || !alarmsByCity) return [];
-    return activeCities.map((city) => ({
-      city,
-      alarms: alarmsByCity[city] || [],
-      metrics: cityMetrics?.[city],
-      lastSiren: lastSirenPerCity?.[city],
-    }));
+    return activeCities.map((city) => {
+      const cityAlarms = alarmsByCity[city] || [];
+      return {
+        city,
+        alarms: cityAlarms,
+        metrics: cityMetrics?.[city],
+        lastSiren: lastSirenPerCity?.[city],
+        summary: getCitySummary(cityAlarms, city),
+      };
+    });
   }, [alarmsByCity, cityMetrics, lastSirenPerCity, activeCities]);
 
   const hourlyData = useMemo(() => {
@@ -229,6 +235,7 @@ export function CityAnalysisContent({
                     <h3 className="text-lg font-semibold">{d.city}</h3>
                   </div>
                   <CityMetricsCards metrics={d.metrics} />
+                  <CitySummary data={d.summary} city={d.city} />
                 </div>
               ))}
             </div>

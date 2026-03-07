@@ -9,7 +9,7 @@ import { Leaderboard } from "@/components/Leaderboard";
 import { DailyTrendChart } from "@/components/DailyTrendChart";
 import MapChart from "@/components/MapChart";
 import { Info } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RegionTabs } from "@/components/RegionTabs";
 
 interface OverviewContentProps {
   dataPromise: Promise<DashboardData>;
@@ -53,21 +53,7 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
         </div>
       )}
 
-      <div className="flex flex-col gap-4" dir="rtl">
-        <Tabs
-          defaultValue="all"
-          value={selectedRegion}
-          onValueChange={setSelectedRegion}
-          className="w-fit mx-auto"
-        >
-          <TabsList className="bg-card gap-1">
-            <TabsTrigger value="צפון">צפון</TabsTrigger>
-            <TabsTrigger value="מרכז">מרכז</TabsTrigger>
-            <TabsTrigger value="דרום">דרום</TabsTrigger>
-            <TabsTrigger value="all">ארצי</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      <RegionTabs value={selectedRegion} onValueChange={setSelectedRegion} />
 
       {currentData?.stats && <StatCards stats={currentData.stats} />}
 

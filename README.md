@@ -4,11 +4,16 @@ A visualization platform for siren alert data in Israel, focused on the "Lion's 
 
 ## Features
 
-- **Geospatial Mapping**: Interactive visualization of alert clusters and city polygons.
-- **Data Distribution**: Hourly frequency charts and daily trend analysis for all cities.
-- **Summary Statistics**: Global counters for total alerts, active days, and targeted locations.
-- **Deep Linking**: Support for city-specific URLs (e.g., `?city=אשקלון`) with synchronized navigation.
-- **Streaming UI**: Progressive loading states for dashboard components using Suspense boundaries.
+### National Overview (`/`)
+- **National Alert Dashboard**: A high-level summary of siren activity, including total alerts, active days, and the number of affected locations.
+- **Interactive Geospatial Map**: A visual map of Israel showing alert intensity through interactive city polygons and cluster markers.
+- **National Trend Analysis**: A daily timeline chart tracking the frequency of alerts over time across the entire country.
+- **Target Leaderboard**: A real-time ranking of the most frequently targeted cities and regions during the operation.
+
+### City Analysis (`/analysis`)
+- **City-Level Frequency Analysis**: Detailed hourly distribution charts (0–23) for selected cities to identify peak alert times.
+- **Localized Historical Trends**: Custom daily trend charts for individual cities to visualize their specific alert history.
+- **Quick City Selection**: One-click access to detailed data for major cities such as Jerusalem, Tel Aviv, Ashkelon, and Beer Sheva.
 
 ## Tech Stack
 

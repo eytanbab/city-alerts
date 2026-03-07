@@ -62,12 +62,15 @@ function formatHourRanges(hours: string[]) {
 }
 
 export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
-  const isMulti = !!(multiData && multiData.length > 0);
+  const isMulti = !!(multiData && multiData.length > 1);
+  const isSingleFromMulti = !!(multiData && multiData.length === 1);
   
   const chartData = useMemo(() => {
+    if (isSingleFromMulti) {
+        return multiData![0].data as ChartDataEntry[];
+    }
     if (!isMulti) return (data || []) as ChartDataEntry[];
     
-    // Combine multiple city data into a single array for Recharts
     const hours = Array.from({ length: 24 }, (_, i) => `${i.toString().padStart(2, "0")}:00`);
     return hours.map(hour => {
       const entry: ChartDataEntry = { hour };
@@ -77,17 +80,20 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       });
       return entry;
     });
-  }, [data, multiData, isMulti]);
+  }, [data, multiData, isMulti, isSingleFromMulti]);
 
   const total = useMemo(() => {
+    if (isSingleFromMulti) return multiData![0].data.reduce((a, c) => a + c.count, 0);
     if (!isMulti) return chartData.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
     return multiData!.reduce((acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0), 0);
-  }, [chartData, multiData, isMulti]);
+  }, [chartData, multiData, isMulti, isSingleFromMulti]);
+
+  const activeCityName = isSingleFromMulti ? multiData![0].city : city;
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {
       count: { 
-        label: city ? `${city}: כמות אזעקות` : "כמות אזעקות", 
+        label: activeCityName || "אזעקות", 
         color: "var(--chart-1)" 
       }
     };
@@ -100,7 +106,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       });
     }
     return config;
-  }, [multiData, isMulti, city]);
+  }, [multiData, isMulti, activeCityName]);
 
   const insights = useMemo(() => {
     if (total === 0 || isMulti) return null;
@@ -131,7 +137,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
         <CardContent className="py-12 text-center">
           <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-3 opacity-20" />
           <p className="text-base text-muted-foreground font-medium">
-            לא נמצאו נתוני אזעקות עבור {isMulti ? "הערים שנבחרו" : `"${city}"`}
+            לא נמצאו נתוני אזעקות עבור {isMulti || isSingleFromMulti ? "הערים שנבחרו" : `"${city}"`}
           </p>
         </CardContent>
       </Card>
@@ -147,7 +153,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
             <CardTitle className="text-lg font-semibold">
-              התפלגות שעתית {isMulti ? "(השוואה)" : `: ${city}`}
+              התפלגות שעתית {isMulti ? "(השוואה)" : `: ${activeCityName}`}
             </CardTitle>
             <CardDescription className="text-sm font-normal">
               סך הכל: {total.toLocaleString()} אזעקות בתקופה

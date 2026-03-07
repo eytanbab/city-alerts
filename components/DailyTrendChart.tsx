@@ -59,9 +59,13 @@ export function DailyTrendChart({
   description = "כמות האזעקות לאורך זמן",
   lastSiren,
 }: DailyTrendChartProps) {
-  const isMulti = !!(multiData && multiData.length > 0);
+  const isMulti = !!(multiData && multiData.length > 1);
+  const isSingleFromMulti = !!(multiData && multiData.length === 1);
 
   const chartData = useMemo(() => {
+    if (isSingleFromMulti) {
+        return multiData![0].data as ChartDataEntry[];
+    }
     if (!isMulti) return (data || []) as ChartDataEntry[];
 
     // Get all unique dates across all cities
@@ -77,17 +81,20 @@ export function DailyTrendChart({
       });
       return entry;
     });
-  }, [data, multiData, isMulti]);
+  }, [data, multiData, isMulti, isSingleFromMulti]);
 
   const total = useMemo(() => {
+    if (isSingleFromMulti) return multiData![0].data.reduce((a, c) => a + c.count, 0);
     if (!isMulti) return chartData.reduce((acc, curr) => acc + (Number(curr.count) || 0), 0);
     return multiData!.reduce((acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0), 0);
-  }, [chartData, multiData, isMulti]);
+  }, [chartData, multiData, isMulti, isSingleFromMulti]);
+
+  const activeCityName = isSingleFromMulti ? multiData![0].city : city;
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {
       count: { 
-        label: city ? `${city}: כמות אזעקות` : "כמות אזעקות", 
+        label: activeCityName || "אזעקות", 
         color: "var(--chart-1)" 
       }
     };
@@ -100,19 +107,22 @@ export function DailyTrendChart({
       });
     }
     return config;
-  }, [multiData, isMulti, city]);
+  }, [multiData, isMulti, activeCityName]);
 
   const insights = useMemo(() => {
     if (total === 0 || isMulti) return null;
-    const sortedData = [...chartData].sort((a, b) => (Number(b.count) || 0) - (Number(a.count) || 0));
+    const dataToUse = isSingleFromMulti ? multiData![0].data : (data || []);
+    const sortedData = [...dataToUse].sort((a, b) => (Number(b.count) || 0) - (Number(a.count) || 0));
     const maxDay = sortedData[0];
+
+    if (!maxDay) return null;
 
     return {
       peakDay: formatDate(maxDay.date),
       peakCount: Number(maxDay.count) || 0,
-      avgCount: Math.round(total / chartData.length),
+      avgCount: Math.round(total / dataToUse.length),
     };
-  }, [chartData, total, isMulti]);
+  }, [data, multiData, total, isMulti, isSingleFromMulti]);
 
   if (total === 0) return null;
 
@@ -124,7 +134,7 @@ export function DailyTrendChart({
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg font-bold">
           <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          {title}
+          {isSingleFromMulti ? `מגמת אזעקות: ${activeCityName}` : title}
         </CardTitle>
         <CardDescription className="text-sm font-normal">
           {description}

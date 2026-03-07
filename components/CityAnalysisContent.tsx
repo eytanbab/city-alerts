@@ -45,6 +45,18 @@ interface CityAnalysisContentProps {
   setActiveCities: (cities: string[]) => void;
 }
 
+function formatLastSiren(rawDatetime: string | undefined): string | null {
+  if (!rawDatetime) return null;
+  try {
+    const [datePart, timePart] = rawDatetime.split(" ");
+    const [year, month, day] = datePart.split("-");
+    const [hour, minute] = timePart.split(":");
+    return `${day}/${month}/${year.slice(2)} ${hour}:${minute}`;
+  } catch {
+    return rawDatetime;
+  }
+}
+
 export function CityAnalysisContent({
   dataPromise,
   activeCities: initialCities,
@@ -106,6 +118,8 @@ export function CityAnalysisContent({
     }));
   }, [multiCityData]);
 
+  const singleCityInfo = activeCities.length === 1 ? multiCityData[0] : null;
+
   return (
     <div className="w-full flex flex-col items-center gap-6" dir="rtl">
       {isFallback && (
@@ -147,12 +161,12 @@ export function CityAnalysisContent({
             {activeCities.map((city) => (
               <div
                 key={city}
-                className="flex items-center gap-1.5 px-3 py-2 bg-accent/50 rounded-full border text-sm font-bold text-accent-foreground"
+                className="flex items-center gap-1.5 px-3 py-2 bg-accent/50 rounded-full border text-xs text-accent-foreground"
               >
                 {city}
                 <button
                   onClick={() => removeCity(city)}
-                  className="hover:text-destructive transition-colors cursor-pointer"
+                  className="hover:text-destructive transition-colors cursor-pointer text-sm"
                 >
                   ×
                 </button>
@@ -186,8 +200,14 @@ export function CityAnalysisContent({
               ))}
             </div>
 
-            <AlarmChart multiData={hourlyData} />
-            <DailyTrendChart multiData={dailyTrendData} />
+            <AlarmChart multiData={hourlyData} city={singleCityInfo?.city} />
+            <DailyTrendChart
+              multiData={dailyTrendData}
+              city={singleCityInfo?.city}
+              lastSiren={
+                singleCityInfo ? formatLastSiren(singleCityInfo.lastSiren) : null
+              }
+            />
           </div>
         ) : (
           <div className="py-24 text-center text-muted-foreground border border-dashed rounded-3xl bg-muted/5 flex flex-col items-center gap-4 w-full">

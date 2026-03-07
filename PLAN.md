@@ -1,52 +1,40 @@
 # city-alerts - Feature Roadmap
 
-This document outlines the planned functional enhancements for the **city-alerts** dashboard. Each feature is designed to provide deeper insights and better utility for users monitoring alert data during the "Lion's Roar" (שאגת הארי) operation.
+This document outlines the planned functional enhancements for the **city-alerts** dashboard. Each feature is designed to provide deeper insights into regional patterns and historical alert data.
 
 ---
 
-## 1. Comparative Analysis Mode (City vs. City)
-
-**Description**: Allow users to select two or more cities and compare their alert frequencies on the same chart.
-
-- **Why it's useful**: Helps users and researchers understand regional disparities and relative risk levels between neighboring or similar cities.
+## 1. Macro-Regional Statistics (North, Center, South)
+**Description**: Group the existing data into three main geographic sectors: North, Center, and South.
+- **Why it's useful**: Allows users to compare how the conflict is shifting between different parts of the country.
 - **Implementation Strategy**:
-  - Update `CityAnalysisWrapper` to support multiple `city` parameters in the URL (e.g., `?city=אשקלון&city=אשדוד`).
-  - Modify `AlarmChart` to render multiple data series with distinct colors.
-  - **Skill**: `url-state-management` for syncing complex selections to the URL.
+  - Assign each Home Front Command area code to one of the three macro-regions.
+  - Add a toggle or tabs on the National Overview (`/`) to switch between "National", "North", "Center", and "South" views.
+  - Update `StatCards` and `DailyTrendChart` to reflect the selected macro-region.
 
-## 2. Regional Breakdown & Risk Zones
-
-**Description**: Group city-level data into broader Home Front Command regions (e.g., גוש דן, עוטף עזה, גליל עליון).
-
-- **Why it's useful**: Users often think in terms of their broader residential area. This provides a "Macro View" that complements the "Micro View" of individual cities.
+## 2. Time-of-Day Risk Profile
+**Description**: A heatmap or radar chart showing which times of the day are statistically the most "active" for sirens over the last 7 days.
+- **Why it's useful**: Helps residents understand daily patterns (e.g., "Sirens are most frequent between 18:00 and 20:00").
 - **Implementation Strategy**:
-  - Map individual city IDs to their respective regions in a new metadata file.
-  - Add a "Region" filter to the National Overview (`/`) and City Analysis (`/analysis`) pages.
-  - **Skill**: `large-scale-map-visualization` for rendering regional polygons efficiently.
+  - Aggregate data by hour across all cities or by selected city.
+  - Use a specialized visualization (e.g., Heatmap) to show intensity across hours vs. days of the week.
 
-## 3. "Safe Interval" & Intensity Scoring
-
-**Description**: A new metric calculating the "Quiet Time" (average/max time between sirens) and "Peak Intensity" (most sirens in a 10-minute window) for a specific city.
-
-- **Why it's useful**: Provides psychological and tactical context beyond simple counters. It answers: "How often are the breaks?" and "How intense was the worst moment?"
+## 3. Localized Summary Reports
+**Description**: A "Snapshot" feature for cities that provides a human-readable summary of their alert history.
+- **Why it's useful**: Quick context for users who want to know the "bottom line" for their location (e.g., "Ashkelon has had 4 alerts in the last 24 hours, which is 20% lower than the weekly average").
 - **Implementation Strategy**:
-  - Add calculation logic to `lib/data.ts` to iterate through timestamps and find the largest gaps and highest density clusters.
-  - Display these metrics as "Quick Stats" cards on the City Analysis page.
+  - Add a "Summary" section to the City Analysis page.
+  - Calculate percentage changes and trend comparisons (Current 24h vs. previous 24h).
 
-## 4. Conflict Timeline Slider (Interactive History)
-
-**Description**: An interactive slider on the National Map (`/`) that allows users to "play back" the operation day by day.
-
-- **Why it's useful**: Visualizes the geographical shift of the conflict over time (e.g., movement of fire from the South to the Center or North).
+## 4. Map Layer Toggles
+**Description**: Allow users to toggle between different map views (e.g., Points, Polygons, Heatmap).
+- **Why it's useful**: Improves clarity on the map when there are thousands of data points.
 - **Implementation Strategy**:
-  - Add a Range Slider component to the map interface.
-  - Filter the `mapData` based on the selected date range in real-time.
-  - **Skill**: `large-scale-map-visualization` to handle dynamic filtering of 19,000+ records without lag.
+  - Use Leaflet layer controls to switch between cluster markers and a density-based heatmap.
 
 ---
 
 ## Recommended Skills for Implementation
 
-- **`url-state-management`**: Essential for handling multi-city comparisons and deep-linkable filters.
-- **`large-scale-map-visualization`**: Critical for the timeline slider and regional heatmaps to ensure smooth performance on mobile and desktop.
-- **`rsc-data-optimizer`**: Recommended as the dataset grows to ensure that server-side calculations for regions and intervals remain fast.
+- **`large-scale-map-visualization`**: Essential for implementing the Map Layer Toggles and ensuring the macro-region polygons perform well.
+- **`rsc-data-optimizer`**: Recommended for the Regional Statistics to keep the heavy aggregation logic on the server side.

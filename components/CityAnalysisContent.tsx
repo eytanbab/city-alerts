@@ -11,7 +11,9 @@ import {
 import { CitySearch } from "@/components/CitySearch";
 import { CityMetricsCards } from "@/components/CityMetricsCards";
 import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
-import { Search as SearchIcon, Info } from "lucide-react";
+import { Search as SearchIcon, Info, AlertCircle } from "lucide-react";
+
+const MAX_CITIES = 5;
 
 const AlarmChart = dynamic(
   () => import("@/components/AlarmChart").then((mod) => mod.AlarmChart),
@@ -73,19 +75,44 @@ export function CityAnalysisContent({
 
   // Use local state for active cities to ensure instantaneous switching
   const [activeCities, setActiveCities] = React.useState(initialCities);
+  const [error, setError] = React.useState<string | null>(null);
 
-  // Sync state with URL when it changes externally (e.g., back button)
+  // Sync state with URL when it changes externally (e.g., back button or manual edit)
+  // Also enforce the MAX_CITIES limit here
   React.useEffect(() => {
-    setActiveCities(initialCities);
-  }, [initialCities]);
+    if (initialCities.length > MAX_CITIES) {
+      const truncated = initialCities.slice(0, MAX_CITIES);
+      setActiveCities(truncated);
+      updateUrl(truncated);
+      setError(`ניתן להשוות עד ${MAX_CITIES} ערים. הרשימה צומצמה אוטומטית.`);
+    } else {
+      setActiveCities(initialCities);
+    }
+  }, [initialCities, updateUrl]);
+
+  // Clear error after 3 seconds
+  React.useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   const toggleCity = (city: string) => {
-    const updated = activeCities.includes(city)
+    const isSelected = activeCities.includes(city);
+    
+    if (!isSelected && activeCities.length >= MAX_CITIES) {
+      setError(`ניתן להשוות עד ${MAX_CITIES} ערים במקביל.`);
+      return;
+    }
+
+    const updated = isSelected
       ? activeCities.filter((c) => c !== city)
       : [...activeCities, city];
 
     setActiveCities(updated); // Instant UI update
     updateUrl(updated); // Update URL in background
+    setError(null);
   };
 
   const removeCity = (city: string) => {
@@ -128,6 +155,13 @@ export function CityAnalysisContent({
           <p className="text-sm font-bold">
             שימוש בנתונים שמורים: החיבור למקור הנתונים בזמן אמת נכשל.
           </p>
+        </div>
+      )}
+
+      {error && (
+        <div className="w-full max-w-2xl bg-destructive/10 border border-destructive/20 rounded-xl p-3 flex items-center gap-3 text-destructive animate-in fade-in slide-in-from-top-2 duration-300">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <p className="text-sm font-bold">{error}</p>
         </div>
       )}
 

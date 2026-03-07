@@ -206,16 +206,14 @@ export function LastUpdatedSkeleton() {
   return (
     <div className="flex flex-col gap-1 items-center mb-8">
       <div className="flex gap-1">
-        <span className="text-xs font-medium text-muted-foreground uppercase text-center">
+        <span className="text-sm font-medium text-muted-foreground uppercase text-center">
           אזעקה אחרונה:
         </span>
         <div className="w-20 h-4 bg-muted animate-pulse rounded" />
       </div>
 
       <div className="flex gap-1">
-        <span className="text-[10px] text-muted-foreground/60">
-          סנכרון אחרון:
-        </span>
+        <span className="text-xs text-muted-foreground/60">סנכרון אחרון:</span>
         <div className="w-11 h-3.75 bg-muted animate-pulse rounded" />
       </div>
     </div>

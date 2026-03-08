@@ -27,56 +27,66 @@ const PROXY_API_URL = "/api/alerts";
 
 const THREAT_CONFIG: Record<
   ThreatType,
-  { label: string; accentColor: string; icon: LucideIcon }
+  { label: string; accentColor: string; iconBg: string; icon: LucideIcon }
 > = {
   [ThreatType.Rockets]: {
     label: "צבע אדום",
     accentColor: "text-red-600 dark:text-red-400",
+    iconBg: "bg-red-600/5 dark:bg-red-400/5",
     icon: Rocket,
   },
   [ThreatType.HazardousMaterials]: {
     label: "חומרים מסוכנים",
     accentColor: "text-purple-600 dark:text-purple-400",
+    iconBg: "bg-purple-600/5 dark:bg-purple-400/5",
     icon: Zap,
   },
   [ThreatType.Terrorists]: {
     label: "חדירת מחבלים",
     accentColor: "text-amber-600 dark:text-amber-400",
+    iconBg: "bg-amber-600/5 dark:bg-amber-400/5",
     icon: ShieldAlert,
   },
   [ThreatType.Earthquake]: {
     label: "רעידת אדמה",
     accentColor: "text-emerald-600 dark:text-emerald-400",
+    iconBg: "bg-emerald-600/5 dark:bg-emerald-400/5",
     icon: AlertTriangle,
   },
   [ThreatType.Tsunami]: {
     label: "חשש לצונאמי",
     accentColor: "text-sky-600 dark:text-sky-400",
+    iconBg: "bg-sky-600/5 dark:bg-sky-400/5",
     icon: Waves,
   },
   [ThreatType.UnmannedAircraft]: {
     label: "חדירת כלי טיס",
     accentColor: "text-orange-600 dark:text-orange-400",
+    iconBg: "bg-orange-600/5 dark:bg-orange-400/5",
     icon: Plane,
   },
   [ThreatType.NonConventionalMissile]: {
     label: "אירוע רדיולוגי",
     accentColor: "text-pink-600 dark:text-pink-400",
+    iconBg: "bg-pink-600/5 dark:bg-pink-400/5",
     icon: Radiation,
   },
   [ThreatType.Radiological]: {
     label: "ירי בלתי קונבנציונלי",
     accentColor: "text-pink-700 dark:text-pink-500",
+    iconBg: "bg-pink-700/5 dark:bg-pink-500/5",
     icon: Radiation,
   },
   [ThreatType.GeneralAlert]: {
     label: "התרעה",
     accentColor: "text-slate-600 dark:text-slate-400",
+    iconBg: "bg-slate-600/5 dark:bg-slate-400/5",
     icon: Info,
   },
   [ThreatType.Drill]: {
     label: "תרגיל",
     accentColor: "text-slate-700 dark:text-slate-500",
+    iconBg: "bg-slate-700/5 dark:bg-slate-500/5",
     icon: Info,
   },
 };
@@ -107,22 +117,33 @@ export function RealtimeAlerts() {
       <div className="flex flex-col w-full gap-2 p-1">
         <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
           <div className="flex items-center gap-2">
-            <div className={`p-1 rounded-md bg-muted ${config.accentColor}`}>
+            <div
+              className={`p-1 rounded-md ${config.iconBg} ${config.accentColor}`}
+            >
               <Icon className="w-5 h-5" />
             </div>
+
             <h3
-              className={`text-sm font-bold leading-none ${config.accentColor}`}
+              className={`text-sm font-semibold leading-none ${config.accentColor}`}
             >
-              {alert.isDrill ? `תרגיל: ${config.label}` : config.label}
+              {config.label}
             </h3>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700/50">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-slate-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-slate-500"></span>
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-tight">
-              מבצעי
+          <div
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-full border ${
+              alert.isDrill
+                ? "bg-slate-50 dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800"
+                : "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-500 border-red-100 dark:border-red-900/50"
+            }`}
+          >
+            {!alert.isDrill && (
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+              </span>
+            )}
+            <span className="text-xs font-semibold uppercase tracking-tight">
+              {alert.isDrill ? "תרגיל" : "אמת"}
             </span>
           </div>
         </div>

@@ -117,7 +117,7 @@ export function CitySearch({
                     value={city}
                     onSelect={(currentValue) => {
                       onSearch(currentValue);
-                      // Don't close for multi-select
+                      setOpen(false);
                     }}
                     className="text-right flex items-center justify-between cursor-pointer"
                   >

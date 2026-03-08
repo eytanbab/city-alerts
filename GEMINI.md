@@ -25,23 +25,26 @@ You are an expert frontend developer specializing in Next.js 16, React 19, and T
 **Project Context**
 You are building **city-alerts**, a visual dashboard for siren data in Israel. The application is entirely in **Hebrew** with a strict **Right-to-Left (RTL)** layout. It uses a multi-page architecture for better focus and performance on mobile/desktop.
 
-**Data Source**
+**Data Sources**
 
-- Primary: `https://www.tzevaadom.co.il/static/historical/all.json`
-- Filtering: Only include entries from **February 28th, 2026** onwards.
+- **Historical Data**: `https://www.tzevaadom.co.il/static/historical/all.json`
+- **Real-time Notifications**: `wss://ws.tzevaadom.co.il/socket?platform=WEB` (WebSocket).
+- **Backup Notifications API**: `https://api.tzevaadom.co.il/notifications?` (proxied via `/api/alerts`).
+- **Filtering**: Only include historical entries from **February 28th, 2026** onwards.
 
 **Architecture & Routing**
 
 1. **National Overview (`/`)**: Displays aggregate statistics, an interactive map (Leaflet), a national daily trend chart, and a leaderboard of most targeted cities.
 2. **City Analysis (`/analysis`)**: Features a Hebrew search interface for city selection, an hourly frequency distribution (0–23), and a daily trend chart for the specific city.
-3. **Deep Linking**: Supports URL-based city selection via `?city=אשקלון` to enable direct sharing.
+3. **Real-time Alerts**: Global notification system using WebSockets with a polling fallback to the backup API.
+4. **Deep Linking**: Supports URL-based city selection via `?city=אשקלון` using `nuqs` for direct sharing.
 
 **Technical Constraints**
 
 1. **Framework**: Next.js 16 (App Router) with React 19.
 2. **Styling**: Tailwind CSS 4 using native CSS variables.
 3. **RTL**: Global `dir="rtl"` with RTL-aware shadcn components.
-4. **Data Handling**: Use Next.js 16 `'use cache'` and `cacheLife` for data optimization.
+4. **Data Handling**: Disabled all server-side caching (`no-store`) to ensure real-time accuracy.
 5. **Visualization**: Shadcn Chart (Recharts) for data distribution and Leaflet for geographical mapping.
 6. **Testing**: Vitest for unit/utility testing and Playwright for E2E verification.
 
@@ -55,10 +58,12 @@ You are building **city-alerts**, a visual dashboard for siren data in Israel. T
 
 - `app/page.tsx`: National Overview route.
 - `app/analysis/page.tsx`: City Analysis route.
+- `app/api/alerts/route.ts`: Backup notifications proxy.
 - `lib/data.ts`: Core logic for fetching, parsing, and normalizing siren data.
-- `lib/server-data.ts`: Server-side data fetching with Next.js 16 caching.
+- `lib/server-data.ts`: Server-side data fetching with Next.js 16 (caching disabled).
 - `components/MapChart.tsx`: Client-side interactive map using Leaflet.
 - `components/CitySearch.tsx`: RTL-optimized Hebrew search (Combobox).
+- `components/RealtimeAlerts.tsx`: WebSocket/Polling alert notification system.
 
 **Localization Standards**
 

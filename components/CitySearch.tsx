@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useState, useMemo, useId, type UIEvent } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -33,29 +33,38 @@ export function CitySearch({
   onSearch,
   selectedCities = [],
 }: CitySearchProps) {
-  const [open, setOpen] = React.useState(false);
-  const [searchTerm, setSearchTerm] = React.useState("");
-  const [visibleCount, setVisibleCount] = React.useState(ITEMS_PER_PAGE);
+  const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [prevSearchTerm, setPrevSearchTerm] = useState(searchTerm);
+  const [prevOpen, setPrevOpen] = useState(open);
 
   // Manual filtering of cities based on search term
-  const allFilteredCities = React.useMemo(() => {
+  const allFilteredCities = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
     if (!search) return cities;
     return cities.filter((city) => city.toLowerCase().includes(search));
   }, [cities, searchTerm]);
 
+  // Reset visible count when search term changes or dropdown opens
+  if (searchTerm !== prevSearchTerm || open !== prevOpen) {
+    setPrevSearchTerm(searchTerm);
+    setPrevOpen(open);
+    setVisibleCount(ITEMS_PER_PAGE);
+
+    // BUG FIX: Reset search term when the popover is closed
+    if (!open && searchTerm !== "") {
+      setSearchTerm("");
+    }
+  }
+
   // Subset of cities to actually render in the DOM
-  const visibleCities = React.useMemo(() => {
+  const visibleCities = useMemo(() => {
     return allFilteredCities.slice(0, visibleCount);
   }, [allFilteredCities, visibleCount]);
 
-  // Reset visible count when search term changes or dropdown opens
-  React.useEffect(() => {
-    setVisibleCount(ITEMS_PER_PAGE);
-  }, [searchTerm, open]);
-
   // Handle scroll to load more items
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = (e: UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
     const threshold = 100; // px from the bottom
 
@@ -72,7 +81,7 @@ export function CitySearch({
     }
   };
 
-  const listId = React.useId();
+  const listId = useId();
 
   return (
     <div className="flex w-full max-w-md items-center gap-2" dir="rtl">
@@ -102,6 +111,7 @@ export function CitySearch({
               placeholder="הקלד שם עיר..."
               className="h-9 text-right"
               dir="rtl"
+              value={searchTerm}
               onValueChange={setSearchTerm}
             />
             <CommandList

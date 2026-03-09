@@ -22,6 +22,18 @@
 - [ ] **Enhanced Charts**: Add "Day of Week" distribution to see if certain days are more active for specific cities.
 - [x] **Hourly Intensity Switcher**: Multi-view component (Bar, Line) for comparing hourly distribution across cities with perfect legend alignment.
 
+### E2E Testing & Quality Assurance
+- [ ] **Navigation & Core Flows**: Verify seamless navigation between National Overview and City Analysis.
+- [ ] **City Search & Deep Linking**: Automate verification of Hebrew search results and URL parameter synchronization via `nuqs`.
+- [ ] **RTL Layout Integrity**: Use Playwright to ensure the right-to-left layout remains consistent across different viewports (Mobile/Desktop).
+- [ ] **Real-time Alert Simulation**: Mock WebSocket events to verify notification popups and real-time chart updates.
+- [ ] **Chart Accuracy & Interaction**: Ensure Recharts correctly render daily/hourly data points and tooltips are readable in RTL.
+- [ ] **Automated Accessibility (a11y)**: Integrate `@axe-core/playwright` to scan for Hebrew ARIA label compliance and contrast issues.
+- [ ] **Network Resilience**: Simulate Slow 3G and Offline states to verify loading skeletons and fallback API behavior.
+- [ ] **Cross-Browser Verification**: Explicitly test on WebKit (Safari), Firefox, and Chromium to catch engine-specific RTL rendering bugs.
+- [ ] **Edge Case States**: Verify UI behavior when historical data is empty or the WebSocket connection is unstable.
+- [ ] **PWA Offline Mode**: Verify PWA installation and basic offline data persistence (once implemented).
+
 ### Infrastructure & Performance
 - [x] **RSC Optimization**: Shift heavy data processing to Server Components using the `rsc-data-optimizer` pattern.
 - [ ] **Visual Regression Testing**: Implement Playwright visual comparisons (`expect(page).toHaveScreenshot()`) to protect RTL layout integrity.

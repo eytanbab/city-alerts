@@ -184,8 +184,6 @@ export function RealtimeAlerts() {
     let socket: WebSocket | null = null;
     let reconnectTimeout: NodeJS.Timeout;
     let pollingTimeout: NodeJS.Timeout | null = null;
-    let retryCount = 0;
-    const maxDelay = 60000;
     let isMounted = true;
 
     const startPollingFallback = () => {
@@ -238,7 +236,6 @@ export function RealtimeAlerts() {
         };
 
         socket.onopen = () => {
-          retryCount = 0;
           stopPollingFallback();
         };
 

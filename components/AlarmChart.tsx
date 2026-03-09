@@ -221,7 +221,18 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
               />
               <ChartTooltip
                 content={
-                  <ChartTooltipContent className="rounded-lg border-border" />
+                  <ChartTooltipContent
+                    className="rounded-lg border-border"
+                    labelFormatter={(value) => {
+                      if (typeof value !== "string") return value;
+                      const hour = value.split(":")[0];
+                      return (
+                        <span dir="ltr" className="block text-right">
+                          {hour}:00 - {hour}:59
+                        </span>
+                      );
+                    }}
+                  />
                 }
               />
               <Legend verticalAlign="top" height={36} />
@@ -269,7 +280,18 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
               />
               <ChartTooltip
                 content={
-                  <ChartTooltipContent className="rounded-lg border-border" />
+                  <ChartTooltipContent
+                    className="rounded-lg border-border"
+                    labelFormatter={(value) => {
+                      if (typeof value !== "string") return value;
+                      const hour = value.split(":")[0];
+                      return (
+                        <span dir="ltr" className="block text-right">
+                          {hour}:00 - {hour}:59
+                        </span>
+                      );
+                    }}
+                  />
                 }
               />
               <Line

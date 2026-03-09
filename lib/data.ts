@@ -459,8 +459,6 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
   const dailyCounts: Record<string, number> = {};
   alarms.forEach((a) => {
     const d = a.datetime.split(" ")[0];
-    const minKey = a.datetime.substring(0, 16);
-    const eventKey = `${normalizeCityName(a.city)}|${minKey}`;
     if (!dailyCounts[d]) dailyCounts[d] = 0;
     // This is a rough approximation for peak
     dailyCounts[d]++;

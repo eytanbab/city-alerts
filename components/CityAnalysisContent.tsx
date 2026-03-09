@@ -1,7 +1,6 @@
 "use client";
 
-import * as React from "react";
-import { useMemo, use } from "react";
+import { useMemo, use, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   getHourlyDistribution,
@@ -77,24 +76,36 @@ export function CityAnalysisContent({
   } = data;
 
   // Use local state for active cities to ensure instantaneous switching
-  const [activeCities, setActiveCities] = React.useState(initialCities);
-  const [error, setError] = React.useState<string | null>(null);
+  const [activeCities, setActiveCities] = useState(initialCities);
+  const [prevInitialCities, setPrevInitialCities] = useState(initialCities);
+  const [error, setError] = useState<string | null>(null);
 
   // Sync state with URL when it changes externally (e.g., back button or manual edit)
   // Also enforce the MAX_CITIES limit here
-  React.useEffect(() => {
+  if (initialCities !== prevInitialCities) {
+    setPrevInitialCities(initialCities);
     if (initialCities.length > MAX_CITIES) {
-      const truncated = initialCities.slice(0, MAX_CITIES);
-      setActiveCities(truncated);
-      updateUrl(truncated);
-      setError(`ניתן להשוות עד ${MAX_CITIES} ערים. הרשימה צומצמה אוטומטית.`);
+      setActiveCities(initialCities.slice(0, MAX_CITIES));
     } else {
       setActiveCities(initialCities);
+    }
+  }
+
+  // Update URL and error if we needed to truncate
+  useEffect(() => {
+    if (initialCities.length > MAX_CITIES) {
+      const truncated = initialCities.slice(0, MAX_CITIES);
+      updateUrl(truncated);
+      // Use a timeout or a separate effect to avoid synchronous setState in effect
+      const timer = setTimeout(() => {
+        setError(`ניתן להשוות עד ${MAX_CITIES} ערים. הרשימה צומצמה אוטומטית.`);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [initialCities, updateUrl]);
 
   // Clear error after 3 seconds
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       const timer = setTimeout(() => setError(null), 3000);
       return () => clearTimeout(timer);

@@ -418,13 +418,16 @@ export interface CitySummaryData {
 }
 
 export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
-  const now = Math.max(
-    ...alarms.map((a) => new Date(a.datetime).getTime()),
-    Date.now() - 86400000,
-  );
-  const oneDayMs = 24 * 60 * 60 * 1000;
-  const last24hStart = now - oneDayMs;
-  const prev24hStart = now - 2 * oneDayMs;
+  const cityName = normalizeCityName(city);
+  const now = new Date();
+
+  // Set Today to start at 00:00:00
+  const todayStart = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  ).getTime();
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
 
   const getUniqueEventsInRange = (start: number, end: number) => {
     const seen = new Set<string>();
@@ -438,10 +441,11 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
     return seen.size;
   };
 
-  const last24h = getUniqueEventsInRange(last24hStart, now);
-  const prev24h = getUniqueEventsInRange(prev24hStart, last24hStart);
+  const last24h = getUniqueEventsInRange(todayStart, now.getTime() + 1000);
+  const prev24h = getUniqueEventsInRange(yesterdayStart, todayStart);
 
   // Advanced Metric: Longest Quiet Streak in the filtered data
+  const oneDayMs = 24 * 60 * 60 * 1000;
   const dates = Array.from(
     new Set(alarms.map((a) => a.datetime.split(" ")[0])),
   ).sort();
@@ -460,7 +464,6 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
   alarms.forEach((a) => {
     const d = a.datetime.split(" ")[0];
     if (!dailyCounts[d]) dailyCounts[d] = 0;
-    // This is a rough approximation for peak
     dailyCounts[d]++;
   });
   const sortedCounts = Object.values(dailyCounts).sort((a, b) => a - b);
@@ -484,18 +487,17 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
   const weeklyAvg = daysWithAlarms > 0 ? totalUniqueEvents / daysWithAlarms : 0;
 
   let summaryText = "";
-  const cityName = normalizeCityName(city);
 
   if (last24h === 0) {
-    summaryText = `השקט נשמר ב${cityName} ב-24 השעות האחרונות. `;
+    summaryText = `השקט נשמר ב${cityName} היום. `;
     if (prev24h > 0) {
-      summaryText += `זוהי רגיעה מבורכת לאחר ${prev24h} אזעקות ביום הקודם. `;
+      summaryText += `זוהי רגיעה מבורכת לאחר ${prev24h} אזעקות שנרשמו אתמול. `;
     }
     if (maxStreak > 1) {
       summaryText += `שיא השקט המתועד ביישוב עומד על ${maxStreak} ימים רצופים.`;
     }
   } else {
-    summaryText = `במהלך היממה האחרונה, ${cityName} חוותה ${last24h} סבבי אזעקות. `;
+    summaryText = `מתחילת היום, ${cityName} חוותה ${last24h} סבבי אזעקות. `;
 
     if (isPeakIntensity) {
       summaryText += `זהו יום אינטנסיבי במיוחד, שנמצא בטווח ה-10% העליונים של רמת הפעילות ההיסטורית ביישוב. `;
@@ -503,7 +505,7 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
 
     if (percentChange !== null && Math.abs(percentChange) > 10) {
       const trend = percentChange > 0 ? "עלייה" : "ירידה";
-      summaryText += `נרשמה ${trend} של ${Math.abs(percentChange)}% בעצימות לעומת אתמול. `;
+      summaryText += `נרשמה ${trend} של ${Math.abs(percentChange)}% (${prev24h}) בעצימות לעומת אתמול. `;
     }
 
     if (last24h > weeklyAvg) {

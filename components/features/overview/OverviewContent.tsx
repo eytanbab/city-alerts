@@ -81,8 +81,12 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
           data={currentData?.topCities || []}
           onSelect={handleCitySelect}
         />
-        <Tabs defaultValue="daily" className="w-full flex flex-col h-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
+        <Tabs
+          defaultValue="daily"
+          dir="rtl"
+          className="w-full flex flex-col h-full"
+        >
+          <TabsList className="grid w-full grid-cols-2 mb-2">
             <TabsTrigger value="daily" className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4" />
               מגמה יומית

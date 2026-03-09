@@ -33,20 +33,21 @@ describe("DailyTrendChart Component", () => {
   });
 
   it("should render insights correctly", () => {
-    render(<DailyTrendChart data={mockData} lastSiren="02/03/26 12:00" />);
+    render(<DailyTrendChart data={mockData} />);
 
     // Check for insights labels
     expect(screen.getByText("יום שיא")).toBeInTheDocument();
     expect(screen.getByText("ממוצע יומי")).toBeInTheDocument();
-    expect(screen.getByText("אזעקה אחרונה")).toBeInTheDocument();
+    expect(screen.getByText("מגמה יומית")).toBeInTheDocument();
 
     // Check for data values
     // Peak day: 2026-03-02 -> 02/03 (20 counts)
-    expect(screen.getByText(/02\/03 \(20\)/)).toBeInTheDocument();
+    expect(screen.getByText(/02\/03/)).toBeInTheDocument();
+    expect(screen.getByText(/20/)).toBeInTheDocument();
     // Average: (10 + 20) / 2 = 15
-    expect(screen.getByText(/15 אזעקות/)).toBeInTheDocument();
-    // Last siren
-    expect(screen.getByText("02/03/26 12:00")).toBeInTheDocument();
+    expect(screen.getByText("15")).toBeInTheDocument();
+    // Trend: (20 - 10) / 10 = 100%
+    expect(screen.getByText("+100%")).toBeInTheDocument();
   });
 
   it("should return null if total count is 0", () => {

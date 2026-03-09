@@ -57,7 +57,6 @@ export function DailyTrendChart({
   city,
   title = "מגמת אזעקות יומית",
   description = "כמות האזעקות לאורך זמן",
-  lastSiren,
 }: DailyTrendChartProps) {
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
@@ -66,40 +65,49 @@ export function DailyTrendChart({
     if (isSingleFromMulti) {
       return multiData![0].data as ChartDataEntry[];
     }
-    if (!isMulti) return (data || []) as ChartDataEntry[];
-
-    // Get all unique dates across all cities
-    const allDates = new Set<string>();
-    multiData!.forEach((d) =>
-      d.data.forEach((item) => allDates.add(item.date)),
-    );
-    const sortedDates = Array.from(allDates).sort();
-
-    return sortedDates.map((date) => {
-      const entry: ChartDataEntry = { date };
-      multiData!.forEach((d) => {
-        const dateData = d.data.find((i) => i.date === date);
-        entry[d.city] = dateData ? dateData.count : 0;
-      });
-      return entry;
-    });
-  }, [data, multiData, isMulti, isSingleFromMulti]);
+    return (data || []) as ChartDataEntry[];
+  }, [data, multiData, isSingleFromMulti]);
 
   const total = useMemo(() => {
     if (isSingleFromMulti)
-      return multiData![0].data.reduce((a, c) => a + c.count, 0);
+      return multiData![0].data.reduce((a, c) => a + (Number(c.count) || 0), 0);
     if (!isMulti)
-      return chartData.reduce(
+      return (data || []).reduce(
         (acc, curr) => acc + (Number(curr.count) || 0),
         0,
       );
     return multiData!.reduce(
-      (acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0),
+      (acc, d) => acc + d.data.reduce((a, c) => a + (Number(c.count) || 0), 0),
       0,
     );
-  }, [chartData, multiData, isMulti, isSingleFromMulti]);
+  }, [data, multiData, isMulti, isSingleFromMulti]);
 
   const activeCityName = isSingleFromMulti ? multiData![0].city : city;
+
+  const processedData = useMemo(() => {
+    if (isMulti && !isSingleFromMulti) {
+      // Multi-city trend
+      const allDates = new Set<string>();
+      multiData!.forEach((d) =>
+        d.data.forEach((item) => allDates.add(item.date)),
+      );
+      const sortedDates = Array.from(allDates).sort();
+
+      return sortedDates.map((date) => {
+        const entry: ChartDataEntry = { date };
+        multiData!.forEach((d) => {
+          const dateData = d.data.find((i) => i.date === date);
+          entry[d.city] = dateData ? dateData.count : 0;
+        });
+        return entry;
+      });
+    }
+
+    return chartData.map((item, index, array) => ({
+      ...item,
+      yesterday: index > 0 ? array[index - 1].count : null,
+    }));
+  }, [chartData, multiData, isMulti, isSingleFromMulti]);
 
   const chartConfig = useMemo(() => {
     const config: ChartConfig = {
@@ -108,7 +116,7 @@ export function DailyTrendChart({
         color: "var(--chart-1)",
       },
     };
-    if (isMulti) {
+    if (isMulti && !isSingleFromMulti) {
       multiData!.forEach((d, i) => {
         config[d.city] = {
           label: d.city,
@@ -117,15 +125,35 @@ export function DailyTrendChart({
       });
     }
     return config;
-  }, [multiData, isMulti, activeCityName]);
+  }, [multiData, isMulti, isSingleFromMulti, activeCityName]);
 
   const insights = useMemo(() => {
-    if (total === 0 || isMulti) return null;
-    const dataToUse = isSingleFromMulti ? multiData![0].data : data || [];
+    if (total === 0 || (isMulti && !isSingleFromMulti)) return null;
+    const dataToUse = chartData;
+    if (dataToUse.length === 0) return null;
+
     const sortedData = [...dataToUse].sort(
       (a, b) => (Number(b.count) || 0) - (Number(a.count) || 0),
     );
     const maxDay = sortedData[0];
+
+    // Latest day comparison for percentage
+    const latest = dataToUse[dataToUse.length - 1];
+    const previous =
+      dataToUse.length > 1 ? dataToUse[dataToUse.length - 2] : null;
+
+    let percentChange: number | null = null;
+    if (latest && previous && Number(previous.count) > 0) {
+      const latestVal = Number(latest.count);
+      const prevVal = Number(previous.count);
+      percentChange = Math.round(((latestVal - prevVal) / prevVal) * 100);
+    } else if (
+      latest &&
+      Number(latest.count) > 0 &&
+      (!previous || Number(previous.count) === 0)
+    ) {
+      percentChange = 100;
+    }
 
     if (!maxDay) return null;
 
@@ -133,20 +161,20 @@ export function DailyTrendChart({
       peakDay: formatDate(maxDay.date),
       peakCount: Number(maxDay.count) || 0,
       avgCount: Math.round(total / dataToUse.length),
+      percentChange,
     };
-  }, [data, multiData, total, isMulti, isSingleFromMulti]);
+  }, [chartData, total, isMulti, isSingleFromMulti]);
 
   if (total === 0) return null;
 
   return (
-    <Card
-      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
-      dir="rtl"
-    >
+    <Card className="h-full bg-card border border-border shadow-sm" dir="rtl">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-          <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          {isSingleFromMulti ? `מגמת אזעקות: ${activeCityName}` : title}
+          <TrendingUp className="h-4 w-4 text-primary" />
+          {isSingleFromMulti || (city && !isMulti)
+            ? `מגמת אזעקות: ${activeCityName}`
+            : title}
         </CardTitle>
         <CardDescription className="text-sm font-normal">
           {description}
@@ -154,9 +182,9 @@ export function DailyTrendChart({
       </CardHeader>
       <CardContent className="pb-4 px-2">
         <ChartContainer config={chartConfig} className="h-64 w-full">
-          {isMulti ? (
+          {isMulti && !isSingleFromMulti ? (
             <LineChart
-              data={chartData}
+              data={processedData}
               margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
             >
               <CartesianGrid
@@ -209,7 +237,7 @@ export function DailyTrendChart({
             </LineChart>
           ) : (
             <LineChart
-              data={chartData}
+              data={processedData}
               margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
             >
               <CartesianGrid
@@ -261,14 +289,12 @@ export function DailyTrendChart({
         </ChartContainer>
       </CardContent>
       {insights && (
-        <CardFooter
-          className={`grid ${lastSiren ? "grid-cols-3" : "grid-cols-2"} gap-4 pt-4 border-t border-border`}
-        >
+        <CardFooter className="grid grid-cols-3 gap-4 pt-6 border-t border-border/50 bg-muted/5">
           <div className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               יום שיא
             </span>
-            <span className="text-sm font-bold text-foreground">
+            <span className="text-sm font-semibold text-foreground">
               {insights.peakDay} ({formatNumber(insights.peakCount)})
             </span>
           </div>
@@ -276,20 +302,42 @@ export function DailyTrendChart({
             <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               ממוצע יומי
             </span>
-            <span className="text-sm font-bold text-foreground">
-              {formatNumber(insights.avgCount)} אזעקות
+            <span className="text-sm font-semibold text-foreground">
+              {formatNumber(insights.avgCount)}
             </span>
           </div>
-          {lastSiren && (
-            <div className="flex flex-col gap-1 border-r pr-4 border-border/50">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                אזעקה אחרונה
-              </span>
-              <span className="text-sm font-bold text-foreground">
-                {lastSiren}
-              </span>
+
+          <div className="flex flex-col gap-1 border-r pr-4 border-border/50">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              מגמה יומית
+            </span>
+            <div className="flex items-center gap-1.5">
+              {insights.percentChange !== null ? (
+                <>
+                  <span
+                    dir="ltr"
+                    className={`text-sm font-semibold tabular-nums ${
+                      insights.percentChange > 0
+                        ? "text-destructive"
+                        : insights.percentChange < 0
+                          ? "text-emerald-500"
+                          : "text-foreground"
+                    }`}
+                  >
+                    {insights.percentChange > 0 ? "+" : ""}
+                    {insights.percentChange}%
+                  </span>
+                  {insights.percentChange > 0 ? (
+                    <TrendingUp className="size-3.5 text-destructive" />
+                  ) : insights.percentChange < 0 ? (
+                    <TrendingUp className="size-3.5 text-emerald-500 rotate-180" />
+                  ) : null}
+                </>
+              ) : (
+                <span className="text-sm font-semibold">-</span>
+              )}
             </div>
-          )}
+          </div>
         </CardFooter>
       )}
     </Card>

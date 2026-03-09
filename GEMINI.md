@@ -77,5 +77,5 @@ You are building **city-alerts**, a visual dashboard for siren data in Israel. T
 - 1. **Lint**: `npm run lint`
 - 2. **Type Check**: `npx tsc --noEmit`
 - 3. **Build**: `npm run build`
-- 4. **Test**: `npm test` (Vitest) and `npx playwright test` (if applicable).
+- 4. **Test**: `npm test` (Vitest).
 - Do not consider a task complete until all checks pass successfully.

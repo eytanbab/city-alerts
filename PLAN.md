@@ -1,42 +1,29 @@
-# City-Alerts Refactoring Plan
+# city-alerts - Development Plan
 
-This plan outlines the structural and architectural improvements to ensure the codebase remains maintainable, scalable, and idiomatic.
+### Global Features
+- [ ] **PWA Integration**: Add `manifest.json`, service workers, and icons to make the app installable on mobile.
+- [ ] **Push Notifications**: Implement Web Push API for background alerts even when the app is closed.
+- [ ] **Accessibility (a11y) Audit**: Ensure all components (especially real-time alerts) are accessible to screen readers (ARIA labels, focus management).
+- [ ] **Advanced SEO**: Dynamic Open Graph images using `@vercel/og` for city-specific sharing.
+- [ ] **Localization Refinement**: Complete Hebrew translation for all UI elements and chart tooltips.
+- [ ] **Dark Mode Polish**: Ensure all shadcn components have proper contrast and styling in both light and dark modes.
 
-## 1. Directory Reorganization (Module-Based)
-Shift from a flat structure to a feature-based hierarchy where each feature is a self-contained module.
+### National Overview (`/`)
+- [ ] **Map Heatmap Layer**: Add a heatmap toggle to the Leaflet map to visualize alert density across Israel.
+- [ ] **Historical Date Range**: Add a date range picker to filter historical data (beyond the current Feb 28th, 2026 default).
+- [ ] **Regional Analytics**: Add a "Region-based Leaderboard" (North, South, Center, Jerusalem) to aggregate stats by district.
+- [ ] **Global Daily Trend Comparison**: Show a "Week-over-Week" comparison in the national trend chart.
+- [ ] **Trend Indicators in StatCards**: Add percentage change (up/down) to the national stats cards for current day vs. previous day.
 
-- [x] **`components/ui`**: Atomic primitives (Buttons, Cards, Dialogs, Skeletons).
-- [x] **`components/charts`**: Specialized visualization components (Map, Trends).
-- [x] **`components/features`**: Domain-specific modules. Each module has its own `__tests__`.
-  - `features/alerts/`: `RealtimeAlerts`, `use-alerts.ts`, `threat-config.ts`.
-  - `features/analysis/`: `CitySearch`, `CityMetricsCards`, `CitySummary`, `CityAnalysisContent`, `CityAnalysisWrapper`.
-  - `features/overview/`: `StatCards`, `Leaderboard`, `RegionTabs`, `OverviewContent`, `LastUpdated`.
-- [x] **`components/layout`**: Global structural components (Navigation, ThemeProvider, ModeToggle).
-- [ ] **`hooks/`**: Global shared client-side logic (e.g., `use-media-query`).
+### City Analysis (`/analysis`)
+- [ ] **Comparison Mode**: Enable side-by-side comparison for two or more cities (already supported by `nuqs` array, but needs UI for comparison).
+- [ ] **Data Export**: Add a button to export filtered city data as CSV or JSON.
+- [ ] **Proximity Guidelines**: Integrate official Home Front Command (Pikuad HaOref) guidelines based on the city's alert zone (time to reach shelter).
+- [ ] **Enhanced Charts**: Add "Day of Week" distribution to see if certain days are more active for specific cities.
+- [x] **Hourly Intensity Switcher**: Multi-view component (Bar, Line) for comparing hourly distribution across cities with perfect legend alignment.
 
-## 2. Component Decomposition Roadmap
-Apply the "Decomposition Pattern" to break down large components.
-
-- [x] **`RealtimeAlerts` Decomposition**:
-  - [x] Extract the WebSocket/Polling logic into `features/alerts/use-alerts.ts`.
-  - [ ] Extract the toast rendering into a separate `AlertToast` component.
-  - [x] Separate the `ThreatConfig` into its own constant file within the feature.
-- [x] **`MapChart` Decomposition**:
-  - [x] Separate Leaflet initialization from data handling (already achieved via `MapInner`).
-  - [ ] Create a `MapControls` sub-component.
-
-## 3. Data & API Layer
-- [x] **Centralized Services**: Move fetch logic from `lib/data.ts` and `lib/server-data.ts` into a structured `lib/services/` directory.
-- [x] **Normalization**: Ensure data normalization happens in the utility layer (`lib/utils/data-processor.ts`).
-- [x] **Error Boundaries**: Implement React Error Boundaries for flaky data sources (Map, WebSocket).
-
-## 4. Maintenance & DX (Developer Experience)
-- [x] **Test Organization**: Move `*.test.tsx` files to a `__tests__` folder within each feature directory to reduce noise.
-- [x] **Path Aliases**: Update `tsconfig.json` to support clean imports like `@/features/alerts`.
-- [ ] **Documentation**: Maintain a `README.md` within each major feature directory explaining its purpose and data flow.
-
-## 5. Implementation Phases
-1. [x] **Phase 1**: Move UI primitives to `components/ui` and Layout components to `components/layout`.
-2. [x] **Phase 2**: Group chart components and feature-specific components.
-3. [x] **Phase 3**: Extract logic into hooks and refine the `lib/` directory.
-4. [x] **Phase 4**: Standardize testing and path aliases.
+### Infrastructure & Performance
+- [ ] **RSC Optimization**: Shift heavy data processing to Server Components using the `rsc-data-optimizer` pattern.
+- [ ] **Visual Regression Testing**: Implement Playwright visual comparisons (`expect(page).toHaveScreenshot()`) to protect RTL layout integrity.
+- [ ] **Error Monitoring**: Set up a lightweight error tracking system (e.g., Sentry or LogRocket) for production.
+- [ ] **Edge Runtime**: Evaluate moving API routes to Edge Runtime for faster response times in the Middle East region.

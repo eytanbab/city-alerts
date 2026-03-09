@@ -198,7 +198,7 @@ export function DailyTrendChart({
               {multiData!.map((d, i) => (
                 <Line
                   key={d.city}
-                  type="monotone"
+                  type="linear"
                   dataKey={d.city}
                   stroke={CITY_COLORS[i % CITY_COLORS.length]}
                   strokeWidth={2}
@@ -248,7 +248,7 @@ export function DailyTrendChart({
                 }
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="count"
                 stroke="var(--chart-1)"
                 strokeWidth={2}

@@ -486,18 +486,29 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
   ).size;
   const weeklyAvg = daysWithAlarms > 0 ? totalUniqueEvents / daysWithAlarms : 0;
 
+  const formatSirens = (count: number) => {
+    if (count === 1) return "אזעקה אחת";
+    if (count === 2) return "שתי אזעקות";
+    return `${count} אזעקות`;
+  };
+
+  const formatEvents = (count: number) => {
+    if (count === 1) return "סבב אזעקות אחד";
+    return `${count} סבבי אזעקות`;
+  };
+
   let summaryText = "";
 
   if (last24h === 0) {
     summaryText = `השקט נשמר ב${cityName} היום. `;
     if (prev24h > 0) {
-      summaryText += `זוהי רגיעה מבורכת לאחר ${prev24h} אזעקות שנרשמו אתמול. `;
+      summaryText += `זוהי רגיעה מבורכת לאחר ${formatSirens(prev24h)} שנרשמו אתמול. `;
     }
     if (maxStreak > 1) {
       summaryText += `שיא השקט המתועד ביישוב עומד על ${maxStreak} ימים רצופים.`;
     }
   } else {
-    summaryText = `מתחילת היום, ${cityName} חוותה ${last24h} סבבי אזעקות. `;
+    summaryText = `מתחילת היום, ${cityName} חוותה ${formatEvents(last24h)}. `;
 
     if (isPeakIntensity) {
       summaryText += `זהו יום אינטנסיבי במיוחד, שנמצא בטווח ה-10% העליונים של רמת הפעילות ההיסטורית ביישוב. `;
@@ -505,7 +516,7 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
 
     if (percentChange !== null && Math.abs(percentChange) > 10) {
       const trend = percentChange > 0 ? "עלייה" : "ירידה";
-      summaryText += `נרשמה ${trend} של ${Math.abs(percentChange)}% (${prev24h}) בעצימות לעומת אתמול. `;
+      summaryText += `נרשמה ${trend} של ${Math.abs(percentChange)}% (${prev24h} אתמול) בעצימות לעומת אתמול. `;
     }
 
     if (last24h > weeklyAvg) {

@@ -508,15 +508,18 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
       summaryText += `שיא השקט המתועד ביישוב עומד על ${maxStreak} ימים רצופים.`;
     }
   } else {
-    summaryText = `מתחילת היום, ${cityName} חוותה ${formatEvents(last24h)}. `;
+    const pChange = Math.abs(percentChange || 0);
+    if (prev24h > 0 && pChange > 10) {
+      const trend = (percentChange || 0) > 0 ? "עלייה" : "ירידה";
+      summaryText = `מתחילת היום, ${cityName} חוותה ${formatEvents(last24h)} לעומת ${prev24h} אתמול. נרשמה ${trend} של ${pChange}% ברמת הפעילות. `;
+    } else if (last24h === prev24h && last24h > 0) {
+      summaryText = `מתחילת היום, ${cityName} חוותה ${formatEvents(last24h)}, רמת פעילות זהה לזו שנרשמה אתמול. `;
+    } else {
+      summaryText = `מתחילת היום, ${cityName} חוותה ${formatEvents(last24h)}. `;
+    }
 
     if (isPeakIntensity) {
       summaryText += `זהו יום אינטנסיבי במיוחד, שנמצא בטווח ה-10% העליונים של רמת הפעילות ההיסטורית ביישוב. `;
-    }
-
-    if (percentChange !== null && Math.abs(percentChange) > 10) {
-      const trend = percentChange > 0 ? "עלייה" : "ירידה";
-      summaryText += `נרשמה ${trend} של ${Math.abs(percentChange)}% (${prev24h} אתמול) בעצימות לעומת אתמול. `;
     }
 
     if (last24h > weeklyAvg) {

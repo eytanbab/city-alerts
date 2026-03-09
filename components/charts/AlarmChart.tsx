@@ -9,6 +9,7 @@ import {
   Line,
   BarChart,
   Bar,
+  Cell,
   Legend,
 } from "recharts";
 import { Props as LegendProps } from "recharts/types/component/DefaultLegendContent";
@@ -305,11 +306,19 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                   />
                 ))
               ) : (
-                <Bar
-                  dataKey="count"
-                  fill="var(--chart-1)"
-                  radius={[4, 4, 0, 0]}
-                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {chartData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={
+                        Number(entry.count) > 0 &&
+                        Number(entry.count) === insights?.maxCount
+                          ? "var(--destructive)"
+                          : "var(--chart-1)"
+                      }
+                    />
+                  ))}
+                </Bar>
               )}
             </BarChart>
           ) : (

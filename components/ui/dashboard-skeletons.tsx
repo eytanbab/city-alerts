@@ -185,7 +185,85 @@ export function TrendChartSkeleton({
 export function CitySearchSkeleton() {
   return (
     <div className="w-full flex justify-center animate-pulse">
-      <div className="h-9 w-full max-w-md bg-muted/50 rounded-xl border border-border/50" />
+      <div className="h-9 w-full max-w-md bg-muted/40 rounded-md border border-border/50" />
+    </div>
+  );
+}
+
+export function CityMetricsCardsSkeleton() {
+  return (
+    <div
+      className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border w-full overflow-hidden animate-pulse"
+      dir="rtl"
+    >
+      {Array.from({ length: 4 }).map((_, i) => (
+        <Card
+          key={`metric-skeleton-${i}`}
+          className="rounded-none border-none shadow-none p-6 bg-card"
+        >
+          <CardContent className="p-0 flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <div className="h-4 w-24 bg-muted rounded" />
+              <div className="h-4 w-4 bg-muted/20 rounded" />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-baseline gap-1">
+                <div className="h-10 w-16 bg-muted rounded" />
+                <div className="h-4 w-8 bg-muted/40 rounded" />
+              </div>
+              <div className="h-3 w-28 bg-muted/20 rounded" />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+export function CitySummarySkeleton() {
+  return (
+    <Card
+      className="w-full bg-card border border-border overflow-hidden animate-pulse"
+      dir="rtl"
+    >
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="h-6 w-48 bg-muted rounded" />
+          <div className="h-6 w-16 bg-muted/40 rounded-md" />
+        </div>
+      </CardHeader>
+      <CardContent className="pt-4">
+        <div className="flex flex-col gap-4">
+          <div className="space-y-2">
+            <div className="h-4 w-full bg-muted/60 rounded" />
+            <div className="h-4 w-[90%] bg-muted/60 rounded" />
+            <div className="h-4 w-[40%] bg-muted/60 rounded" />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 border-t border-border/50 pt-4 mt-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex flex-col gap-1.5">
+                <div className="h-3 w-16 bg-muted/30 rounded" />
+                <div className="h-6 w-12 bg-muted rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function AnalysisEmptyStateSkeleton() {
+  return (
+    <div className="py-24 text-center border border-dashed bg-muted/5 flex flex-col items-center gap-4 w-full animate-pulse">
+      <div className="p-4 bg-background rounded-full border shadow-sm">
+        <div className="h-10 w-10 bg-muted/20 rounded-full" />
+      </div>
+      <div className="flex flex-col gap-2 items-center">
+        <div className="h-7 w-32 bg-muted rounded" />
+        <div className="h-5 w-64 bg-muted/40 rounded" />
+      </div>
     </div>
   );
 }

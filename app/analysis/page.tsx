@@ -7,6 +7,9 @@ import {
   CitySearchSkeleton,
   QuickButtonsSkeleton,
   LastUpdatedSkeleton,
+  AnalysisEmptyStateSkeleton,
+  CityMetricsCardsSkeleton,
+  CitySummarySkeleton,
 } from "@/components/ui/dashboard-skeletons";
 import { CityAnalysisWrapper } from "@/components/features/analysis/CityAnalysisWrapper";
 
@@ -18,8 +21,22 @@ export const metadata: Metadata = {
     "נתונים מפורטים, התפלגות שעתית ומגמות של אזעקות עבור כל עיר ויישוב בישראל.",
 };
 
-export default function AnalysisPage() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function AnalysisPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const dataPromise = getDashboardData();
+  const params = await searchParams;
+  const cityParam = params.city;
+  const cities = Array.isArray(cityParam)
+    ? cityParam
+    : cityParam
+      ? [cityParam]
+      : [];
+  const hasCity = cities.length > 0;
 
   return (
     <>
@@ -42,11 +59,29 @@ export default function AnalysisPage() {
         <Suspense
           fallback={
             <div className="w-full flex flex-col items-center gap-6">
-              <CitySearchSkeleton />
-              <QuickButtonsSkeleton />
-              <div className="w-full max-w-5xl grid grid-cols-1 gap-8">
-                <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />
-                <TrendChartSkeleton footerCols={2} />
+              <div className="w-full flex flex-col items-center gap-4">
+                <CitySearchSkeleton />
+                <QuickButtonsSkeleton />
+              </div>
+
+              <div className="w-full max-w-5xl">
+                {hasCity ? (
+                  <div className="grid grid-cols-1 gap-8">
+                    <div className="flex flex-col gap-8">
+                      {cities.map((city) => (
+                        <div key={city} className="flex flex-col gap-2">
+                          <div className="h-6 w-32 bg-muted/40 animate-pulse rounded mx-2" />
+                          <CityMetricsCardsSkeleton />
+                          <CitySummarySkeleton />
+                        </div>
+                      ))}
+                    </div>
+                    <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />
+                    <TrendChartSkeleton footerCols={2} />
+                  </div>
+                ) : (
+                  <AnalysisEmptyStateSkeleton />
+                )}
               </div>
             </div>
           }

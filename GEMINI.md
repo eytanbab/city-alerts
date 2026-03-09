@@ -6,6 +6,7 @@
 
 1. **Commit Protocol**: DO NOT commit any changes unless explicitly instructed by the user.
 2. **Commit Standards**: When instructed to commit, use industry best practices only. Each commit must be logical, atomic, and focused on a single responsibility (Logical Commits). Commit messages must follow the Conventional Commits specification.
+3. **Shell Execution**: ALWAYS use `;` as a statement separator when running multiple commands in a single `run_shell_command` call (NEVER use `&&`).
 
 ---
 
@@ -61,9 +62,11 @@ You are building **city-alerts**, a visual dashboard for siren data in Israel. T
 - `app/api/alerts/route.ts`: Backup notifications proxy.
 - `lib/data.ts`: Core logic for fetching, parsing, and normalizing siren data.
 - `lib/server-data.ts`: Server-side data fetching with Next.js 16 (caching disabled).
-- `components/MapChart.tsx`: Client-side interactive map using Leaflet.
-- `components/CitySearch.tsx`: RTL-optimized Hebrew search (Combobox).
-- `components/RealtimeAlerts.tsx`: WebSocket/Polling alert notification system.
+- `components/charts/MapChart.tsx`: Client-side interactive map using Leaflet.
+- `components/charts/DailyTrendChart.tsx`: Daily siren trend with percentage comparison.
+- `components/charts/AlarmChart.tsx`: Hourly distribution (0–23) visualization.
+- `components/features/analysis/CitySearch.tsx`: RTL-optimized Hebrew search (Combobox).
+- `components/features/alerts/RealtimeAlerts.tsx`: WebSocket/Polling alert notification system.
 
 **Localization Standards**
 

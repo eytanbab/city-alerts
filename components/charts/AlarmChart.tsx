@@ -85,6 +85,13 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
 
+  // Auto-switch between line and bar based on selection count
+  const [prevIsMulti, setPrevIsMulti] = useState(isMulti);
+  if (isMulti !== prevIsMulti) {
+    setPrevIsMulti(isMulti);
+    setView(isMulti ? "line" : "bar");
+  }
+
   // Map Hebrew city names to stable keys to avoid Recharts issues with Hebrew keys
   const cityKeys = useMemo(() => {
     if (!multiData) return {};
@@ -230,7 +237,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
             onValueChange={(v) => setView(v as typeof view)}
             className="w-full md:w-auto"
           >
-            <TabsList className="grid w-full grid-cols-2 md:w-[160px]">
+            <TabsList className="grid w-full grid-cols-2 md:w-40">
               <TabsTrigger value="bar" className="gap-1.5">
                 <BarChart3 className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">עמודות</span>

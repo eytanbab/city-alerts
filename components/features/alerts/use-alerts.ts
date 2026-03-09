@@ -101,7 +101,7 @@ export function useAlerts(onAlert: (alert: WebSocketAlert) => void) {
 
     // Development Helpers (globally accessible but controlled here)
     if (process.env.NODE_ENV === "development") {
-      (window as any).__triggerTestAlert = () => {
+      (window as unknown as { __triggerTestAlert: () => void }).__triggerTestAlert = () => {
         handleAlertWithDeduplication({
           cities: ["תל אביב - יפו", "גבעתיים", "רמת גן"],
           threat: ThreatType.Rockets,
@@ -109,7 +109,7 @@ export function useAlerts(onAlert: (alert: WebSocketAlert) => void) {
         });
       };
 
-      (window as any).__triggerMassiveAlert = () => {
+      (window as unknown as { __triggerMassiveAlert: () => void }).__triggerMassiveAlert = () => {
         const manyCities = Array.from(
           { length: 150 },
           (_, i) => `עיר בדיקה ${i + 1}`,

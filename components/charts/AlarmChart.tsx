@@ -1,7 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
-import { XAxis, YAxis, CartesianGrid, LineChart, Line, Legend } from "recharts";
+import { useMemo, useState } from "react";
+import {
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
+import { Props as LegendProps } from "recharts/types/component/DefaultLegendContent";
 import {
   Card,
   CardContent,
@@ -22,7 +32,9 @@ import {
   AlertCircle,
   BarChart3,
   LineChart as LineIcon,
+  Activity,
 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AlarmChartProps {
   data?: { hour: string; count: number }[];
@@ -68,8 +80,19 @@ function formatHourRanges(hours: string[]) {
 }
 
 export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
+  const [view, setView] = useState<"bar" | "line">("bar");
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
+
+  // Map Hebrew city names to stable keys to avoid Recharts issues with Hebrew keys
+  const cityKeys = useMemo(() => {
+    if (!multiData) return {};
+    const keys: Record<string, string> = {};
+    multiData.forEach((d, i) => {
+      keys[d.city] = `city${i}`;
+    });
+    return keys;
+  }, [multiData]);
 
   const chartData = useMemo(() => {
     if (isSingleFromMulti) {
@@ -85,11 +108,12 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       const entry: ChartDataEntry = { hour };
       multiData!.forEach((d) => {
         const hourData = d.data.find((h) => h.hour === hour);
-        entry[d.city] = hourData ? hourData.count : 0;
+        const key = cityKeys[d.city];
+        entry[key] = hourData ? hourData.count : 0;
       });
       return entry;
     });
-  }, [data, multiData, isMulti, isSingleFromMulti]);
+  }, [data, multiData, isMulti, isSingleFromMulti, cityKeys]);
 
   const total = useMemo(() => {
     if (isSingleFromMulti)
@@ -116,14 +140,15 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
     };
     if (isMulti) {
       multiData!.forEach((d, i) => {
-        config[d.city] = {
+        const key = cityKeys[d.city];
+        config[key] = {
           label: d.city,
           color: CITY_COLORS[i % CITY_COLORS.length],
         };
       });
     }
     return config;
-  }, [multiData, isMulti, activeCityName]);
+  }, [multiData, isMulti, activeCityName, cityKeys]);
 
   const insights = useMemo(() => {
     if (total === 0 || isMulti) return null;
@@ -144,6 +169,27 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       minCount,
     };
   }, [chartData, total, isMulti]);
+
+  const renderLegend = (props: LegendProps) => {
+    const { payload } = props;
+    if (!payload || !payload.length) return null;
+
+    return (
+      <div className="w-full flex flex-wrap items-center justify-center gap-x-6 gap-y-3 pb-8 px-4">
+        {payload.map((entry, index: number) => (
+          <div key={`item-${index}`} className="flex items-center gap-2">
+            <div
+              className="size-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: entry.color }}
+            />
+            <span className="text-sm font-semibold text-foreground leading-none">
+              {entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   if (total === 0) {
     return (
@@ -167,30 +213,42 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       className="w-full bg-card border-none shadow-sm ring-1 ring-border/50"
       dir="rtl"
     >
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
+      <CardHeader className="pb-2 md:pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <CardTitle className="text-lg font-semibold">
+            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+              <Activity className="h-4 w-4 text-primary" />
               התפלגות שעתית {isMulti ? "(השוואה)" : `: ${activeCityName}`}
             </CardTitle>
             <CardDescription className="text-sm font-normal">
               סך הכל: {total.toLocaleString()} אזעקות בתקופה
             </CardDescription>
           </div>
-          {isMulti ? (
-            <LineIcon className="h-4 w-4 text-muted-foreground/50" />
-          ) : (
-            <BarChart3 className="h-4 w-4 text-muted-foreground/50" />
-          )}
+          <Tabs
+            value={view}
+            onValueChange={(v) => setView(v as typeof view)}
+            className="w-full md:w-auto"
+          >
+            <TabsList className="grid w-full grid-cols-2 md:w-[160px]">
+              <TabsTrigger value="bar" className="gap-1.5">
+                <BarChart3 className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">עמודות</span>
+              </TabsTrigger>
+              <TabsTrigger value="line" className="gap-1.5">
+                <LineIcon className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">קו</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-64 w-full"
+          className="aspect-auto h-72 w-full"
         >
-          {isMulti ? (
-            <LineChart
+          {view === "bar" ? (
+            <BarChart
               data={chartData}
               margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
             >
@@ -235,19 +293,25 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                   />
                 }
               />
-              <Legend verticalAlign="top" height={36} />
-              {multiData!.map((d, i) => (
-                <Line
-                  key={d.city}
-                  type="monotone"
-                  dataKey={d.city}
-                  stroke={CITY_COLORS[i % CITY_COLORS.length]}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 4 }}
+              {isMulti && <Legend verticalAlign="top" content={renderLegend} />}
+              {isMulti ? (
+                multiData!.map((d, i) => (
+                  <Bar
+                    key={d.city}
+                    name={d.city}
+                    dataKey={cityKeys[d.city]}
+                    fill={CITY_COLORS[i % CITY_COLORS.length]}
+                    radius={[2, 2, 0, 0]}
+                  />
+                ))
+              ) : (
+                <Bar
+                  dataKey="count"
+                  fill="var(--chart-1)"
+                  radius={[4, 4, 0, 0]}
                 />
-              ))}
-            </LineChart>
+              )}
+            </BarChart>
           ) : (
             <LineChart
               data={chartData}
@@ -294,14 +358,30 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                   />
                 }
               />
-              <Line
-                type="monotone"
-                dataKey="count"
-                stroke="var(--chart-1)"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4 }}
-              />
+              {isMulti && <Legend verticalAlign="top" content={renderLegend} />}
+              {isMulti ? (
+                multiData!.map((d, i) => (
+                  <Line
+                    key={d.city}
+                    name={d.city}
+                    type="linear"
+                    dataKey={cityKeys[d.city]}
+                    stroke={CITY_COLORS[i % CITY_COLORS.length]}
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 4 }}
+                  />
+                ))
+              ) : (
+                <Line
+                  type="linear"
+                  dataKey="count"
+                  stroke="var(--chart-1)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              )}
             </LineChart>
           )}
         </ChartContainer>

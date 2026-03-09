@@ -1,5 +1,5 @@
 import { render } from "@testing-library/react";
-import { RealtimeAlerts } from "./RealtimeAlerts";
+import { RealtimeAlerts } from "../RealtimeAlerts";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 import { toast } from "sonner";
 

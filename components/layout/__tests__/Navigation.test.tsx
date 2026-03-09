@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Navigation } from "./Navigation";
+import { Navigation } from "../Navigation";
 
 describe("Navigation Component", () => {
   it("should highlight the home link as active when currentPath is '/'", () => {

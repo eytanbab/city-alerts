@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { CitySearch } from "./CitySearch";
+import { CitySearch } from "../CitySearch";
 
 // Mocking ScrollView and other things that might fail in JSDOM
 window.HTMLElement.prototype.scrollIntoView = vi.fn();

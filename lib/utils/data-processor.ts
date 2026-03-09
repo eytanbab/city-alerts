@@ -5,9 +5,7 @@ import {
   type GlobalStats,
   type CityMetrics,
   type RegionStats,
-} from "./types";
-
-export * from "./types";
+} from "@/lib/types";
 
 export function getRegionForArea(area?: number): string {
   if (area === undefined) return "מרכז";

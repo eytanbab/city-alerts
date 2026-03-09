@@ -1,8 +1,8 @@
 import { Suspense } from "react";
-import { getDashboardData } from "@/lib/server-data";
-import { OverviewContent } from "@/components/OverviewContent";
-import { Navigation } from "@/components/Navigation";
-import { LastUpdated } from "@/components/LastUpdated";
+import { getDashboardData } from "@/lib/services/dashboard";
+import { OverviewContent } from "@/components/features/overview/OverviewContent";
+import { Navigation } from "@/components/layout/Navigation";
+import { LastUpdated } from "@/components/features/overview/LastUpdated";
 import {
   StatCardsSkeleton,
   MapSkeleton,
@@ -10,7 +10,7 @@ import {
   TrendChartSkeleton,
   LastUpdatedSkeleton,
   RegionSelectSkeleton,
-} from "@/components/DashboardSkeletons";
+} from "@/components/ui/dashboard-skeletons";
 
 import { type Metadata } from "next";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type CitySummaryData } from "@/lib/data";
+import { type CitySummaryData } from "@/lib/utils/data-processor";
 import { TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
 
 interface CitySummaryProps {

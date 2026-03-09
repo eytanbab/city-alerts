@@ -1,8 +1,6 @@
-//"use cache";
-// import { cacheLife } from "next/cache";
 import { headers } from "next/headers";
-import { type DashboardData } from "./types";
-import { processRawAlarms } from "./data";
+import { type DashboardData } from "@/lib/types";
+import { processRawAlarms } from "@/lib/utils/data-processor";
 import fs from "fs";
 import path from "path";
 
@@ -11,11 +9,9 @@ const CITIES_PATH = path.join(process.cwd(), "lib/data/cities.json");
 const POLYGONS_PATH = path.join(process.cwd(), "lib/data/polygons.json");
 
 /**
- * Server-side data fetching - CACHING TEMPORARILY DISABLED FOR TESTING
+ * Server-side data fetching service.
  */
 export async function getDashboardData(): Promise<DashboardData> {
-  // cacheLife("minutes");
-
   // Force dynamic rendering to allow new Date() usage
   await headers();
 
@@ -57,7 +53,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     };
   } catch (error) {
     console.error("Data fetch error:", error);
-    // Return a minimal fallback object that OverviewContent can handle
+    // Return a minimal fallback object
     return {
       alarms: [],
       alarmsByCity: {},

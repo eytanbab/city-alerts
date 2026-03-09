@@ -3,13 +3,14 @@
 import { use } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryState, parseAsString } from "nuqs";
-import { type DashboardData } from "@/lib/data";
-import { StatCards } from "@/components/StatCards";
-import { Leaderboard } from "@/components/Leaderboard";
-import { DailyTrendChart } from "@/components/DailyTrendChart";
-import MapChart from "@/components/MapChart";
+import { type DashboardData } from "@/lib/types";
+import { StatCards } from "@/components/features/overview/StatCards";
+import { Leaderboard } from "@/components/features/overview/Leaderboard";
+import { DailyTrendChart } from "@/components/charts/DailyTrendChart";
+import MapChart from "@/components/charts/MapChart";
 import { Info } from "lucide-react";
-import { RegionTabs } from "@/components/RegionTabs";
+import { RegionTabs } from "@/components/features/overview/RegionTabs";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 interface OverviewContentProps {
   dataPromise: Promise<DashboardData>;
@@ -69,7 +70,9 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
           description={`כמות האזעקות ב${regionLabel === "ארצי" ? "כל הארץ" : "אזור " + regionLabel} לאורך זמן`}
         />
       </div>
-      <MapChart data={currentData?.mapData || []} />
+      <ErrorBoundary name="המפה">
+        <MapChart data={currentData?.mapData || []} />
+      </ErrorBoundary>
     </div>
   );
 }

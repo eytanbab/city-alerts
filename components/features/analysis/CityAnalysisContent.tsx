@@ -6,19 +6,19 @@ import {
   getHourlyDistribution,
   getCityDailyTrend,
   getCitySummary,
-  type DashboardData,
-} from "@/lib/data";
-import { CitySearch } from "@/components/CitySearch";
-import { CityMetricsCards } from "@/components/CityMetricsCards";
-import { CitySummary } from "@/components/CitySummary";
-import { TrendChartSkeleton } from "@/components/DashboardSkeletons";
+} from "@/lib/utils/data-processor";
+import { type DashboardData } from "@/lib/types";
+import { CitySearch } from "@/components/features/analysis/CitySearch";
+import { CityMetricsCards } from "@/components/features/analysis/CityMetricsCards";
+import { CitySummary } from "@/components/features/analysis/CitySummary";
+import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
 import { Search as SearchIcon, Info, AlertCircle, X } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 
 const MAX_CITIES = 5;
 
 const AlarmChart = dynamic(
-  () => import("@/components/AlarmChart").then((mod) => mod.AlarmChart),
+  () => import("@/components/charts/AlarmChart").then((mod) => mod.AlarmChart),
   {
     ssr: false,
     loading: () => <TrendChartSkeleton title="התפלגות שעתית" />,
@@ -26,7 +26,7 @@ const AlarmChart = dynamic(
 );
 const DailyTrendChart = dynamic(
   () =>
-    import("@/components/DailyTrendChart").then((mod) => mod.DailyTrendChart),
+    import("@/components/charts/DailyTrendChart").then((mod) => mod.DailyTrendChart),
   {
     ssr: false,
     loading: () => <TrendChartSkeleton />,

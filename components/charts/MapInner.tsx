@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type L from "leaflet";
-import { MapData } from "@/lib/data";
+import { MapData } from "@/lib/types";
 
 interface MapInnerProps {
   data: MapData[];

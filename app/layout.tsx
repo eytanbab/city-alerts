@@ -3,10 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
-import { ThemeProvider } from "@/components/theme-provider";
-import { ModeToggle } from "@/components/ModeToggle";
+import { ThemeProvider } from "@/components/layout/ThemeProvider";
+import { ModeToggle } from "@/components/layout/ModeToggle";
 import { Toaster } from "@/components/ui/sonner";
-import { RealtimeAlerts } from "@/components/RealtimeAlerts";
+import { RealtimeAlerts } from "@/components/features/alerts/RealtimeAlerts";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 import Script from "next/script";
 
@@ -77,7 +78,9 @@ export default function RootLayout({
               position="top-right"
               expand={true}
             />
-            <RealtimeAlerts />
+            <ErrorBoundary name="Realtime Alerts" fallback={null}>
+              <RealtimeAlerts />
+            </ErrorBoundary>
             <Analytics />
           </ThemeProvider>
         </NuqsAdapter>

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { CitySummary } from "./CitySummary";
+import { CitySummary } from "../CitySummary";
 import { describe, it, expect } from "vitest";
-import { type CitySummaryData } from "@/lib/data";
+import { type CitySummaryData } from "@/lib/utils/data-processor";
 
 describe("CitySummary", () => {
   const mockData: CitySummaryData = {

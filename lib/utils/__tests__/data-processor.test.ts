@@ -6,8 +6,8 @@ import {
   processRawAlarms,
   getRegionForArea,
   getCitySummary,
-  Alarm,
-} from "./data";
+} from "../data-processor";
+import { type Alarm } from "../../types";
 
 describe("Data Utility Functions (Optimized)", () => {
   it("should return the correct region for a given area code", () => {

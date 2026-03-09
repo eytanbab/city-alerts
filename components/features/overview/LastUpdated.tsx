@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import { type DashboardData } from "@/lib/data";
+import { type DashboardData } from "@/lib/types";
 
 interface LastUpdatedProps {
   dataPromise: Promise<DashboardData>;

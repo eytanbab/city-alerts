@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { Leaderboard } from "./Leaderboard";
+import { Leaderboard } from "../Leaderboard";
 
 describe("Leaderboard Component", () => {
   const mockData = [

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { RegionTabs } from "./RegionTabs";
+import { RegionTabs } from "../RegionTabs";
 import { describe, it, expect, vi } from "vitest";
 
 describe("RegionTabs", () => {

@@ -1,14 +1,14 @@
 import { Suspense } from "react";
-import { getDashboardData } from "@/lib/server-data";
-import { Navigation } from "@/components/Navigation";
-import { LastUpdated } from "@/components/LastUpdated";
+import { getDashboardData } from "@/lib/services/dashboard";
+import { Navigation } from "@/components/layout/Navigation";
+import { LastUpdated } from "@/components/features/overview/LastUpdated";
 import {
   TrendChartSkeleton,
   CitySearchSkeleton,
   QuickButtonsSkeleton,
   LastUpdatedSkeleton,
-} from "@/components/DashboardSkeletons";
-import { CityAnalysisWrapper } from "@/components/CityAnalysisWrapper";
+} from "@/components/ui/dashboard-skeletons";
+import { CityAnalysisWrapper } from "@/components/features/analysis/CityAnalysisWrapper";
 
 import { type Metadata } from "next";
 

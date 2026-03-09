@@ -1,8 +1,8 @@
 "use client";
 
 import { useQueryState, parseAsArrayOf, parseAsString } from "nuqs";
-import { CityAnalysisContent } from "@/components/CityAnalysisContent";
-import { type DashboardData } from "@/lib/data";
+import { CityAnalysisContent } from "@/components/features/analysis/CityAnalysisContent";
+import { type DashboardData } from "@/lib/types";
 
 interface CityAnalysisWrapperProps {
   dataPromise: Promise<DashboardData>;

@@ -18,7 +18,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardFooter,
 } from "@/components/ui/card";
 import {
@@ -228,9 +227,6 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
               <Activity className="h-4 w-4 text-primary" />
               התפלגות שעתית {isMulti ? "(השוואה)" : `: ${activeCityName}`}
             </CardTitle>
-            <CardDescription className="text-sm font-normal">
-              סך הכל: {total.toLocaleString()} אזעקות בתקופה
-            </CardDescription>
           </div>
           <Tabs
             value={view}

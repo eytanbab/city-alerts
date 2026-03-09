@@ -7,7 +7,7 @@ import {
   StatCardsSkeleton,
   MapSkeleton,
   LeaderboardSkeleton,
-  TrendChartSkeleton,
+  TrendTabsSkeleton,
   LastUpdatedSkeleton,
   RegionSelectSkeleton,
 } from "@/components/ui/dashboard-skeletons";
@@ -48,7 +48,7 @@ export default function Home() {
               <StatCardsSkeleton />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <LeaderboardSkeleton />
-                <TrendChartSkeleton />
+                <TrendTabsSkeleton />
               </div>
               <MapSkeleton />
             </div>

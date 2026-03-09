@@ -7,10 +7,21 @@ import { type DashboardData } from "@/lib/types";
 import { StatCards } from "@/components/features/overview/StatCards";
 import { Leaderboard } from "@/components/features/overview/Leaderboard";
 import { DailyTrendChart } from "@/components/charts/DailyTrendChart";
+import dynamic from "next/dynamic";
+import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MapChart from "@/components/charts/MapChart";
-import { Info } from "lucide-react";
+import { Info, CalendarDays, Clock } from "lucide-react";
 import { RegionTabs } from "@/components/features/overview/RegionTabs";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+
+const AlarmChart = dynamic(
+  () => import("@/components/charts/AlarmChart").then((mod) => mod.AlarmChart),
+  {
+    ssr: false,
+    loading: () => <TrendChartSkeleton title="התפלגות שעתית" />,
+  },
+);
 
 interface OverviewContentProps {
   dataPromise: Promise<DashboardData>;
@@ -25,8 +36,15 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
 
   const router = useRouter();
 
-  const { stats, mapData, topCities, globalDailyTrend, regions, isFallback } =
-    data;
+  const {
+    stats,
+    mapData,
+    topCities,
+    globalDailyTrend,
+    hourlyDistribution,
+    regions,
+    isFallback,
+  } = data;
 
   const handleCitySelect = (city: string) => {
     router.push(`/analysis?city=${encodeURIComponent(city)}`);
@@ -34,7 +52,7 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
 
   const currentData =
     selectedRegion === "all"
-      ? { stats, mapData, topCities, globalDailyTrend }
+      ? { stats, mapData, topCities, globalDailyTrend, hourlyDistribution }
       : regions[selectedRegion];
 
   const regionLabel = selectedRegion === "all" ? "ארצי" : selectedRegion;
@@ -63,12 +81,32 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
           data={currentData?.topCities || []}
           onSelect={handleCitySelect}
         />
-        <DailyTrendChart
-          data={currentData?.globalDailyTrend || []}
-          city={regionLabel}
-          title={`מגמת אזעקות יומית (${regionLabel})`}
-          description={`כמות האזעקות ב${regionLabel === "ארצי" ? "כל הארץ" : "אזור " + regionLabel} לאורך זמן`}
-        />
+        <Tabs defaultValue="daily" className="w-full flex flex-col h-full">
+          <TabsList className="grid w-full grid-cols-2 mb-4">
+            <TabsTrigger value="daily" className="flex items-center gap-2">
+              <CalendarDays className="h-4 w-4" />
+              מגמה יומית
+            </TabsTrigger>
+            <TabsTrigger value="hourly" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              התפלגות שעתית
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="daily" className="mt-0 flex-1">
+            <DailyTrendChart
+              data={currentData?.globalDailyTrend || []}
+              city={regionLabel}
+              title={`מגמת אזעקות יומית (${regionLabel})`}
+              description={`כמות האזעקות ב${regionLabel === "ארצי" ? "כל הארץ" : "אזור " + regionLabel} לאורך זמן`}
+            />
+          </TabsContent>
+          <TabsContent value="hourly" className="mt-0 flex-1">
+            <AlarmChart
+              data={currentData?.hourlyDistribution || []}
+              city={regionLabel}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
       <ErrorBoundary name="המפה">
         <MapChart data={currentData?.mapData || []} />

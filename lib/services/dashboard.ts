@@ -64,6 +64,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       topCities: [],
       mapData: [],
       globalDailyTrend: [],
+      hourlyDistribution: [],
       citiesList: [],
       regions: {},
       lastUpdated: "שגיאת התחברות - נתונים שמורים עשויים להיות מוצגים",

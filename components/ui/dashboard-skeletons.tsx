@@ -117,6 +117,17 @@ export function LeaderboardSkeleton() {
     </Card>
   );
 }
+export function TrendTabsSkeleton() {
+  return (
+    <div className="flex flex-col h-full w-full" dir="rtl">
+      <div className="grid grid-cols-2 w-full bg-muted/20 p-1 rounded-lg mb-4 animate-pulse">
+        <div className="h-8 bg-background rounded-md shadow-sm border border-border/5" />
+        <div className="h-8 bg-transparent" />
+      </div>
+      <TrendChartSkeleton footerCols={3} />
+    </div>
+  );
+}
 
 export function TrendChartSkeleton({
   title = "מגמת אזעקות",
@@ -125,6 +136,7 @@ export function TrendChartSkeleton({
   title?: string;
   footerCols?: number;
 }) {
+  const isHourly = title === "התפלגות שעתית";
   return (
     <Card
       className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
@@ -134,32 +146,22 @@ export function TrendChartSkeleton({
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1.5">
             <CardTitle className="flex items-center gap-2 text-lg font-bold">
-              {title === "התפלגות שעתית" ? (
-                <>
-                  {title}
-                  <div className="h-5 w-24 bg-muted animate-pulse rounded inline-block" />
-                </>
-              ) : (
-                <>
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  {title}
-                  <div className="h-5 w-24 bg-muted animate-pulse rounded inline-block" />
-                </>
+              {!isHourly && (
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               )}
+              {isHourly && <Zap className="h-4 w-4 text-primary/40" />}
+              {title}
             </CardTitle>
             <div className="h-4 w-48 bg-muted/50 animate-pulse rounded" />
           </div>
-          {title === "התפלגות שעתית" && (
-            <Zap className="h-4 w-4 text-muted-foreground/20" />
-          )}
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
         <div className="h-60 w-full bg-muted/5 animate-pulse rounded-md border border-dashed border-border/50 flex items-end justify-between px-8 py-4">
-          {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+          {[40, 70, 45, 90, 65, 80, 50, 85, 35, 60, 55, 75].map((h, i) => (
             <div
               key={`bar-skeleton-${i}`}
-              className="w-8 bg-muted/10 rounded-t-md"
+              className={`w-4 md:w-6 bg-muted/10 rounded-t-sm md:rounded-t-md ${i > 7 ? "hidden md:block" : ""}`}
               style={{ height: `${h}%` }}
             />
           ))}

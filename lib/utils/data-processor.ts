@@ -317,6 +317,7 @@ export function processRawAlarms(
       globalDailyTrend: Object.entries(regionalDailyCounts[region])
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, count]) => ({ date, count })),
+      hourlyDistribution: getHourlyDistribution(regionalAlarms[region]),
     };
   }
 
@@ -334,6 +335,7 @@ export function processRawAlarms(
     globalDailyTrend: Object.entries(dailyCounts)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, count]) => ({ date, count })),
+    hourlyDistribution: getHourlyDistribution(alarms),
     citiesList: Array.from(uniqueBaseCities).sort((a, b) =>
       a.localeCompare(b, "he"),
     ),

@@ -38,6 +38,7 @@ export interface RegionStats {
   stats: GlobalStats | null;
   topCities: LeaderboardEntry[];
   globalDailyTrend: { date: string; count: number }[];
+  hourlyDistribution: { hour: string; count: number }[];
   mapData: MapData[];
 }
 
@@ -51,6 +52,7 @@ export interface DashboardData {
   topCities: LeaderboardEntry[];
   mapData: MapData[];
   globalDailyTrend: { date: string; count: number }[];
+  hourlyDistribution: { hour: string; count: number }[];
   citiesList: string[];
   regions: Record<string, RegionStats>;
   lastUpdated: string; // This is the timestamp of the latest alarm

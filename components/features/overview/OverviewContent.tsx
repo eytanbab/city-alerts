@@ -12,7 +12,6 @@ import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MapChart from "@/components/charts/MapChart";
 import { Info, CalendarDays, Clock, Trophy, Wind } from "lucide-react";
-import { RegionTabs } from "@/components/features/overview/RegionTabs";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 const AlarmChart = dynamic(
@@ -29,7 +28,7 @@ interface OverviewContentProps {
 
 export function OverviewContent({ dataPromise }: OverviewContentProps) {
   const data = use(dataPromise);
-  const [selectedRegion, setSelectedRegion] = useQueryState(
+  const [selectedRegion] = useQueryState(
     "region",
     parseAsString.withDefault("all"),
   );
@@ -53,7 +52,14 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
 
   const currentData =
     selectedRegion === "all"
-      ? { stats, mapData, topCities, bottomCities, globalDailyTrend, hourlyDistribution }
+      ? {
+          stats,
+          mapData,
+          topCities,
+          bottomCities,
+          globalDailyTrend,
+          hourlyDistribution,
+        }
       : regions[selectedRegion];
 
   const regionLabel = selectedRegion === "all" ? "ארצי" : selectedRegion;
@@ -72,8 +78,6 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
           </p>
         </div>
       )}
-
-      <RegionTabs value={selectedRegion} onValueChange={setSelectedRegion} />
 
       {currentData?.stats && <StatCards stats={currentData.stats} />}
 

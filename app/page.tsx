@@ -1,15 +1,12 @@
 import { Suspense } from "react";
 import { getDashboardData } from "@/lib/services/dashboard";
 import { OverviewContent } from "@/components/features/overview/OverviewContent";
-import { Navigation } from "@/components/layout/Navigation";
-import { LastUpdated } from "@/components/features/overview/LastUpdated";
+import { OverviewHeader } from "@/components/features/overview/OverviewHeader";
 import {
   StatCardsSkeleton,
   MapSkeleton,
   LeaderboardSkeleton,
   TrendTabsSkeleton,
-  LastUpdatedSkeleton,
-  RegionSelectSkeleton,
 } from "@/components/ui/dashboard-skeletons";
 
 import { type Metadata } from "next";
@@ -30,21 +27,18 @@ export default function Home() {
           התפלגות אזעקות במבצע שאגת הארי
         </h1>
         <p className="text-muted-foreground text-base md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
-          ויזואליזציה של תדירות אזעקות ומגמות עם נתונים מעודכנים לכל עיר ויישוב.
+          ויזואליזציה של תדירות אזעקות ומגמות עם נתונים מעודכנחם לכל עיר ויישוב.
         </p>
       </div>
 
       <div className="w-full">
-        <Navigation currentPath="/" />
-
-        <Suspense fallback={<LastUpdatedSkeleton />}>
-          <LastUpdated dataPromise={dataPromise} />
+        <Suspense fallback={<div className="h-48 animate-pulse bg-muted/10 rounded-xl mb-8" />}>
+          <OverviewHeader dataPromise={dataPromise} />
         </Suspense>
 
         <Suspense
           fallback={
             <div className="flex flex-col gap-8">
-              <RegionSelectSkeleton />
               <StatCardsSkeleton />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <LeaderboardSkeleton />

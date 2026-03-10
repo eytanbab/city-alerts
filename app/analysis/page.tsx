@@ -1,12 +1,10 @@
 import { Suspense } from "react";
 import { getDashboardData } from "@/lib/services/dashboard";
-import { Navigation } from "@/components/layout/Navigation";
-import { LastUpdated } from "@/components/features/overview/LastUpdated";
+import { PageHeader } from "@/components/layout/PageHeader";
 import {
   TrendChartSkeleton,
   CitySearchSkeleton,
   QuickButtonsSkeleton,
-  LastUpdatedSkeleton,
   AnalysisEmptyStateSkeleton,
   CityMetricsCardsSkeleton,
   CitySummarySkeleton,
@@ -50,11 +48,7 @@ export default async function AnalysisPage({
       </div>
 
       <div className="w-full">
-        <Navigation currentPath="/analysis" />
-
-        <Suspense fallback={<LastUpdatedSkeleton />}>
-          <LastUpdated dataPromise={dataPromise} />
-        </Suspense>
+        <PageHeader dataPromise={dataPromise} currentPath="/analysis" />
 
         <Suspense
           fallback={

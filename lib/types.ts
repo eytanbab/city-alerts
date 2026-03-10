@@ -37,6 +37,7 @@ export interface CityMetrics {
 export interface RegionStats {
   stats: GlobalStats | null;
   topCities: LeaderboardEntry[];
+  bottomCities: LeaderboardEntry[];
   globalDailyTrend: { date: string; count: number }[];
   hourlyDistribution: { hour: string; count: number }[];
   mapData: MapData[];
@@ -50,6 +51,7 @@ export interface DashboardData {
   polygons: Record<string, [number, number][]>;
   stats: GlobalStats | null;
   topCities: LeaderboardEntry[];
+  bottomCities: LeaderboardEntry[];
   mapData: MapData[];
   globalDailyTrend: { date: string; count: number }[];
   hourlyDistribution: { hour: string; count: number }[];

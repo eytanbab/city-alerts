@@ -11,7 +11,7 @@ import dynamic from "next/dynamic";
 import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MapChart from "@/components/charts/MapChart";
-import { Info, CalendarDays, Clock } from "lucide-react";
+import { Info, CalendarDays, Clock, Trophy, Wind } from "lucide-react";
 import { RegionTabs } from "@/components/features/overview/RegionTabs";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
@@ -40,6 +40,7 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
     stats,
     mapData,
     topCities,
+    bottomCities,
     globalDailyTrend,
     hourlyDistribution,
     regions,
@@ -52,7 +53,7 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
 
   const currentData =
     selectedRegion === "all"
-      ? { stats, mapData, topCities, globalDailyTrend, hourlyDistribution }
+      ? { stats, mapData, topCities, bottomCities, globalDailyTrend, hourlyDistribution }
       : regions[selectedRegion];
 
   const regionLabel = selectedRegion === "all" ? "ארצי" : selectedRegion;
@@ -77,10 +78,38 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
       {currentData?.stats && <StatCards stats={currentData.stats} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Leaderboard
-          data={currentData?.topCities || []}
-          onSelect={handleCitySelect}
-        />
+        <Tabs
+          defaultValue="top"
+          dir="rtl"
+          className="w-full flex flex-col h-full"
+        >
+          <TabsList className="grid w-full grid-cols-2 mb-2">
+            <TabsTrigger value="top" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              מטווחות ביותר
+            </TabsTrigger>
+            <TabsTrigger value="bottom" className="flex items-center gap-2">
+              <Wind className="h-4 w-4" />
+              השקטות ביותר
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="top" className="mt-0 flex-1">
+            <Leaderboard
+              data={currentData?.topCities || []}
+              onSelect={handleCitySelect}
+              title="הערים המטווחות ביותר"
+              icon={Trophy}
+            />
+          </TabsContent>
+          <TabsContent value="bottom" className="mt-0 flex-1">
+            <Leaderboard
+              data={currentData?.bottomCities || []}
+              onSelect={handleCitySelect}
+              title="הערים השקטות ביותר"
+              icon={Wind}
+            />
+          </TabsContent>
+        </Tabs>
         <Tabs
           defaultValue="daily"
           dir="rtl"

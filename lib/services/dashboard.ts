@@ -62,6 +62,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       polygons: {},
       stats: null,
       topCities: [],
+      bottomCities: [],
       mapData: [],
       globalDailyTrend: [],
       hourlyDistribution: [],

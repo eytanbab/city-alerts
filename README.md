@@ -11,13 +11,13 @@ A visualization platform for siren alert data in Israel, focused on the "Lion's 
 - **National Alert Dashboard**: A high-level summary of siren activity, including total alerts, active days, and the number of affected locations.
 - **Interactive Geospatial Map**: A visual map of Israel showing alert intensity through interactive city polygons and cluster markers.
 - **National Trend Analysis**: A daily timeline chart tracking the frequency of alerts over time across the entire country.
-- **Target Leaderboard**: A real-time ranking of the most frequently targeted cities and regions during the operation.
+- **Target & Silence Leaderboards**: A real-time ranking of both the most targeted cities and the quietest cities during the operation, with regional filtering support.
 
 ### City Analysis (`/analysis`)
 
-- **Automated Performance Summaries**: Intelligent status reports for individual cities, calculating 24h intensity trends, weekly averages, and historical "quiet streak" records.
+- **Automated Performance Summaries**: Intelligent status reports for individual cities, calculating 24h intensity trends, weekly averages, and accurate historical "quiet streak" records (accounting for leading and trailing periods of silence).
 - **Comparative Analysis Mode**: Select up to 5 cities to overlay their alert data on the same chart for direct comparison of risk levels and peak times.
-- **"Safe Interval" & Intensity Scoring**: Advanced metrics for each city, including average/maximum quiet time between alerts and peak intensity (most sirens in a 10-minute window).
+- **"Safe Interval" & Intensity Scoring**: Advanced metrics for each city, including frequency-based average quiet time, maximum recorded silence period, and peak intensity (most sirens in a 10-minute window).
 - **City-Level Frequency Analysis**: Detailed hourly distribution charts (0–23) for selected cities to identify patterns in siren activity.
 - **Localized Historical Trends**: Custom daily trend charts for individual cities or compared groups to visualize alert history over time.
 

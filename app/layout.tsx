@@ -76,7 +76,6 @@ export default function RootLayout({
               closeButton
               dir="rtl"
               position="top-right"
-              expand={true}
             />
             <ErrorBoundary name="Realtime Alerts" fallback={null}>
               <RealtimeAlerts />

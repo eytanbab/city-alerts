@@ -216,20 +216,27 @@ export function processRawAlarms(
 
   for (const [baseCity, timestamps] of Object.entries(cityEventTimestamps)) {
     const sorted = timestamps.sort((a, b) => a - b);
-    let totalGap = 0;
     let maxGap = 0;
     let peakIntensity = 0;
 
+    const endTimestamp = now;
+    const observationStart = filterDateUnix;
+
+    // 1. Gap before the first alarm
+    const initialGap = sorted[0] - observationStart;
+    maxGap = Math.max(0, initialGap);
+
+    // 2. Gaps between alarms
     for (let k = 1; k < sorted.length; k++) {
       const gap = sorted[k] - sorted[k - 1];
-      totalGap += gap;
       if (gap > maxGap) maxGap = gap;
     }
 
-    const endTimestamp = Math.min(now, maxTimestamp);
+    // 3. Gap after the last alarm
     const lastGap = endTimestamp - sorted[sorted.length - 1];
     if (lastGap > maxGap) maxGap = lastGap;
 
+    // 4. Peak intensity calculation (remains same)
     let left = 0;
     for (let right = 0; right < sorted.length; right++) {
       while (sorted[right] - sorted[left] > 600) {
@@ -239,9 +246,12 @@ export function processRawAlarms(
       if (count > peakIntensity) peakIntensity = count;
     }
 
+    // Frequency-based Average: Total Time since operation start / Number of distinct events
+    const totalObservationDuration = endTimestamp - observationStart;
+    const avgQuietTime = totalObservationDuration / sorted.length;
+
     cityMetrics[baseCity] = {
-      avgQuietTimeHours:
-        sorted.length > 1 ? totalGap / (sorted.length - 1) / 3600 : 0,
+      avgQuietTimeHours: avgQuietTime / 3600,
       maxQuietTimeHours: maxGap / 3600,
       peakIntensity10Min: peakIntensity,
       totalEvents: sorted.length,
@@ -313,6 +323,10 @@ export function processRawAlarms(
       topCities: rSortedCityEvents
         .slice(0, 5)
         .map(([name, count]) => ({ name, count })),
+      bottomCities: rSortedCityEvents
+        .slice(-5)
+        .reverse()
+        .map(([name, count]) => ({ name, count })),
       mapData: rMapData,
       globalDailyTrend: Object.entries(regionalDailyCounts[region])
         .sort(([a], [b]) => a.localeCompare(b))
@@ -330,6 +344,10 @@ export function processRawAlarms(
     stats,
     topCities: sortedCityEvents
       .slice(0, 5)
+      .map(([name, count]) => ({ name, count })),
+    bottomCities: sortedCityEvents
+      .slice(-5)
+      .reverse()
       .map(([name, count]) => ({ name, count })),
     mapData,
     globalDailyTrend: Object.entries(dailyCounts)
@@ -450,16 +468,23 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
     new Set(alarms.map((a) => a.datetime.split(" ")[0])),
   ).sort();
 
-  // Include "today" in the calculation to account for the current quiet streak
-  const todayStr = now.toISOString().split("T")[0];
-  const allDates = Array.from(new Set([...alarmDates, todayStr])).sort();
+  // Include "operation start" and "today" in the calculation to account for all silence periods
+  const opStartStr = "2026-02-28";
+  const todayStr = getIsraelTime(Math.floor(now.getTime() / 1000)).split(" ")[0];
+  const allDates = Array.from(
+    new Set([opStartStr, ...alarmDates, todayStr]),
+  ).sort();
 
   let maxStreak = 0;
   if (allDates.length > 1) {
     for (let i = 1; i < allDates.length; i++) {
-      const d1 = new Date(allDates[i - 1]);
-      const d2 = new Date(allDates[i]);
-      const diffDays = Math.floor((d2.getTime() - d1.getTime()) / oneDayMs);
+      const [y1, m1, d1] = allDates[i - 1].split("-").map(Number);
+      const [y2, m2, d2] = allDates[i].split("-").map(Number);
+      
+      const date1 = new Date(y1, m1 - 1, d1);
+      const date2 = new Date(y2, m2 - 1, d2);
+      
+      const diffDays = Math.round(Math.abs(date2.getTime() - date1.getTime()) / oneDayMs);
       if (diffDays > maxStreak) maxStreak = diffDays;
     }
   }

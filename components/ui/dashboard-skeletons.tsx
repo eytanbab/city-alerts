@@ -9,6 +9,9 @@ import {
   Calendar,
   Hash,
   Zap,
+  Wind,
+  CalendarDays,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -61,7 +64,7 @@ export function StatCardsSkeleton() {
       {staticLabels.map((item) => (
         <Card
           key={`stat-skeleton-${item.label}`}
-          className="rounded-none border-none shadow-none p-6 bg-background"
+          className="rounded-none border-none shadow-none p-6 bg-card"
         >
           <CardContent className="p-0 flex flex-col gap-2">
             <div className="flex items-center justify-between">
@@ -85,44 +88,62 @@ export function StatCardsSkeleton() {
 
 export function LeaderboardSkeleton() {
   return (
-    <Card
-      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
-      dir="rtl"
-    >
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg font-bold">
-          <Trophy className="h-4 w-4 text-muted-foreground" />
-          הערים המטווחות ביותר
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-2 pb-2">
-        <div className="flex flex-col animate-pulse">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div
-              key={`leaderboard-item-skeleton-${i}`}
-              className="w-full flex items-center justify-between p-3"
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-4 w-4 bg-muted/30 rounded" />
-                <div className="h-5 w-24 bg-muted rounded" />
-              </div>
-              <div className="flex items-baseline gap-1.5">
-                <div className="h-5 w-8 bg-muted rounded" />
-                <div className="h-3 w-10 bg-muted/20 rounded" />
-              </div>
-            </div>
-          ))}
+    <div className="flex flex-col h-full w-full" dir="rtl">
+      <div className="grid grid-cols-2 w-full bg-muted/20 p-1 rounded-lg mb-4 animate-pulse">
+        <div className="flex items-center justify-center gap-2 h-8 bg-background rounded-md shadow-sm border border-border/5">
+          <Trophy className="h-3.5 w-3.5 text-muted-foreground/40" />
+          <div className="h-3 w-16 bg-muted/40 rounded" />
         </div>
-      </CardContent>
-    </Card>
+        <div className="flex items-center justify-center gap-2 h-8 bg-transparent">
+          <Wind className="h-3.5 w-3.5 text-muted-foreground/20" />
+          <div className="h-3 w-16 bg-muted/20 rounded" />
+        </div>
+      </div>
+      <Card
+        className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
+        dir="rtl"
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg font-bold">
+            <Trophy className="h-4 w-4 text-muted-foreground" />
+            טעינת נתונים...
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 pb-2">
+          <div className="flex flex-col animate-pulse">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={`leaderboard-item-skeleton-${i}`}
+                className="w-full flex items-center justify-between p-3"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-4 w-4 bg-muted/30 rounded" />
+                  <div className="h-5 w-24 bg-muted rounded" />
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <div className="h-5 w-8 bg-muted rounded" />
+                  <div className="h-3 w-10 bg-muted/20 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 export function TrendTabsSkeleton() {
   return (
     <div className="flex flex-col h-full w-full" dir="rtl">
       <div className="grid grid-cols-2 w-full bg-muted/20 p-1 rounded-lg mb-4 animate-pulse">
-        <div className="h-8 bg-background rounded-md shadow-sm border border-border/5" />
-        <div className="h-8 bg-transparent" />
+        <div className="flex items-center justify-center gap-2 h-8 bg-background rounded-md shadow-sm border border-border/5">
+          <CalendarDays className="h-3.5 w-3.5 text-muted-foreground/40" />
+          <div className="h-3 w-16 bg-muted/40 rounded" />
+        </div>
+        <div className="flex items-center justify-center gap-2 h-8 bg-transparent">
+          <Clock className="h-3.5 w-3.5 text-muted-foreground/20" />
+          <div className="h-3 w-16 bg-muted/20 rounded" />
+        </div>
       </div>
       <TrendChartSkeleton footerCols={3} />
     </div>

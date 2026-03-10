@@ -106,6 +106,7 @@ export function useAlerts(onAlert: (alert: WebSocketAlert) => void) {
           cities: ["תל אביב - יפו", "גבעתיים", "רמת גן"],
           threat: ThreatType.Rockets,
           isDrill: false,
+          notificationId: `test-${Date.now()}`,
         });
       };
 
@@ -118,6 +119,7 @@ export function useAlerts(onAlert: (alert: WebSocketAlert) => void) {
           cities: manyCities,
           threat: ThreatType.Rockets,
           isDrill: false,
+          notificationId: `massive-${Date.now()}`,
         });
       };
     }

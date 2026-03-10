@@ -16,7 +16,14 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { TrendingUp } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { TrendingUp, Info } from "lucide-react";
+import { useState } from "react";
 
 interface DailyTrendChartProps {
   data?: { date: string; count: number }[];
@@ -58,6 +65,7 @@ export function DailyTrendChart({
   title = "מגמת אזעקות יומית",
   description = "כמות האזעקות לאורך זמן",
 }: DailyTrendChartProps) {
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
 
@@ -308,9 +316,28 @@ export function DailyTrendChart({
           </div>
 
           <div className="flex flex-col gap-1 border-r pr-4 border-border/50">
-            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              מגמה יומית
-            </span>
+            <Popover open={isInfoOpen} onOpenChange={setIsInfoOpen}>
+              <PopoverTrigger asChild>
+                <span
+                  className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-1 cursor-help"
+                  onMouseEnter={() => setIsInfoOpen(true)}
+                  onMouseLeave={() => setIsInfoOpen(false)}
+                >
+                  מגמה יומית
+                  <Info className="size-3 text-muted-foreground/70" />
+                </span>
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                className="w-auto max-w-40 px-3 py-2 text-xs font-medium leading-relaxed"
+                dir="rtl"
+              >
+                <PopoverDescription>
+                  השוואת כמות ההתרעות מהיום (החל מ-00:00) לעומת סך ההתרעות
+                  אתמול.
+                </PopoverDescription>
+              </PopoverContent>
+            </Popover>
             <div className="flex items-center gap-1.5">
               {insights.percentChange !== null ? (
                 <>

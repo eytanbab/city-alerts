@@ -446,14 +446,19 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
 
   // Advanced Metric: Longest Quiet Streak in the filtered data
   const oneDayMs = 24 * 60 * 60 * 1000;
-  const dates = Array.from(
+  const alarmDates = Array.from(
     new Set(alarms.map((a) => a.datetime.split(" ")[0])),
   ).sort();
+
+  // Include "today" in the calculation to account for the current quiet streak
+  const todayStr = now.toISOString().split("T")[0];
+  const allDates = Array.from(new Set([...alarmDates, todayStr])).sort();
+
   let maxStreak = 0;
-  if (dates.length > 1) {
-    for (let i = 1; i < dates.length; i++) {
-      const d1 = new Date(dates[i - 1]);
-      const d2 = new Date(dates[i]);
+  if (allDates.length > 1) {
+    for (let i = 1; i < allDates.length; i++) {
+      const d1 = new Date(allDates[i - 1]);
+      const d2 = new Date(allDates[i]);
       const diffDays = Math.floor((d2.getTime() - d1.getTime()) / oneDayMs);
       if (diffDays > maxStreak) maxStreak = diffDays;
     }

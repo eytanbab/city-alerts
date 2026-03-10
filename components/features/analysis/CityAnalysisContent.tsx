@@ -12,7 +12,7 @@ import { CitySearch } from "@/components/features/analysis/CitySearch";
 import { CityMetricsCards } from "@/components/features/analysis/CityMetricsCards";
 import { CitySummary } from "@/components/features/analysis/CitySummary";
 import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
-import { Search as SearchIcon, Info, AlertCircle, X } from "lucide-react";
+import { Search as SearchIcon, Info, AlertCircle, X, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const MAX_CITIES = 5;
@@ -26,7 +26,9 @@ const AlarmChart = dynamic(
 );
 const DailyTrendChart = dynamic(
   () =>
-    import("@/components/charts/DailyTrendChart").then((mod) => mod.DailyTrendChart),
+    import("@/components/charts/DailyTrendChart").then(
+      (mod) => mod.DailyTrendChart,
+    ),
   {
     ssr: false,
     loading: () => <TrendChartSkeleton />,
@@ -39,7 +41,7 @@ const POPULAR_CITIES = [
   "באר שבע",
   "חיפה",
   "אשקלון",
-  "אשדוד",
+  "טבריה",
   "אילת",
 ];
 
@@ -241,9 +243,19 @@ export function CityAnalysisContent({
             <div className="flex flex-col gap-8">
               {multiCityData.map((d) => (
                 <div key={d.city} className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2 px-2">
-                    <div className="w-1 h-4 bg-primary rounded-full" />
-                    <h3 className="text-lg font-semibold">{d.city}</h3>
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-1 h-4 bg-primary rounded-full" />
+                      <h3 className="text-lg font-semibold">{d.city}</h3>
+                    </div>
+                    {d.lastSiren && (
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground/80 bg-muted/50 px-2.5 py-1 rounded-full border border-border/50">
+                        <Bell className="size-3 text-destructive/80 animate-pulse" />
+                        <span className="tabular-nums">
+                          אזעקה אחרונה: {formatLastSiren(d.lastSiren)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <CityMetricsCards metrics={d.metrics} />
                   <CitySummary data={d.summary} city={d.city} />

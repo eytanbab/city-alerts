@@ -74,7 +74,7 @@ export function StatCardsSkeleton() {
               <item.icon className="h-3.5 w-3.5 text-muted-foreground/20" />
             </div>
             <div className="flex flex-col gap-1.5 animate-pulse">
-              <div className="h-12 md:h-12 w-20 bg-muted rounded-md" />
+              <div className="h-12 w-20 bg-muted rounded-md" />
               <span className="text-sm font-semibold text-muted-foreground uppercase tracking-tight">
                 {item.subValue}
               </span>
@@ -104,9 +104,9 @@ export function LeaderboardSkeleton() {
         dir="rtl"
       >
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-bold">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
             <Trophy className="h-4 w-4 text-muted-foreground" />
-            טעינת נתונים...
+            הערים המטווחות ביותר
           </CardTitle>
         </CardHeader>
         <CardContent className="px-2 pb-2">
@@ -323,9 +323,9 @@ export function LastUpdatedSkeleton() {
 
 export function RegionSelectSkeleton() {
   return (
-    <div className="w-fit animate-pulse bg-muted mx-auto rounded-lg">
+    <div className="w-fit h-9 animate-pulse bg-muted mx-auto rounded-lg">
       {Array.from({ length: 4 }).map((_, i) => (
-        <div key={`tab-${i + 1}`} className="inline-block w-12 h-8"></div>
+        <div key={`tab-${i + 1}`} className="inline-block w-12 h-full"></div>
       ))}
     </div>
   );

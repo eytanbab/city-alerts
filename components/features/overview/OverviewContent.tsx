@@ -53,7 +53,14 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
 
   const currentData =
     selectedRegion === "all"
-      ? { stats, mapData, topCities, bottomCities, globalDailyTrend, hourlyDistribution }
+      ? {
+          stats,
+          mapData,
+          topCities,
+          bottomCities,
+          globalDailyTrend,
+          hourlyDistribution,
+        }
       : regions[selectedRegion];
 
   const regionLabel = selectedRegion === "all" ? "ארצי" : selectedRegion;
@@ -86,7 +93,7 @@ export function OverviewContent({ dataPromise }: OverviewContentProps) {
           <TabsList className="grid w-full grid-cols-2 mb-2">
             <TabsTrigger value="top" className="flex items-center gap-2">
               <Trophy className="h-4 w-4" />
-              מטווחות ביותר
+              המטווחות ביותר
             </TabsTrigger>
             <TabsTrigger value="bottom" className="flex items-center gap-2">
               <Wind className="h-4 w-4" />

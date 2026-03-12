@@ -17,8 +17,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 const AlarmChart = dynamic(
   () => import("@/components/charts/AlarmChart").then((mod) => mod.AlarmChart),
   {
-    ssr: false,
-    loading: () => <TrendChartSkeleton title="התפלגות שעתית" />,
+    loading: () => <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />,
   },
 );
 
@@ -28,8 +27,7 @@ const DailyTrendChart = dynamic(
       (mod) => mod.DailyTrendChart,
     ),
   {
-    ssr: false,
-    loading: () => <TrendChartSkeleton title="מגמה יומית" />,
+    loading: () => <TrendChartSkeleton title="מגמה יומית" footerCols={3} />,
   },
 );
 

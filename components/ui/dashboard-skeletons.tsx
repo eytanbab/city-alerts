@@ -8,10 +8,10 @@ import {
   MapPin,
   Calendar,
   Hash,
-  Zap,
   Wind,
   CalendarDays,
   Clock,
+  Activity,
 } from "lucide-react";
 import {
   Card,
@@ -24,7 +24,7 @@ import {
 export function MapSkeleton() {
   return (
     <Card
-      className="w-full h-150 border border-border shadow-none rounded-sm overflow-hidden flex flex-col"
+      className="flex flex-col gap-4 py-4 text-card-foreground h-150 bg-card border border-border shadow-sm"
       dir="rtl"
     >
       <CardHeader className="px-6 py-4 border-b border-border bg-muted/5">
@@ -100,7 +100,7 @@ export function LeaderboardSkeleton() {
         </div>
       </div>
       <Card
-        className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
+        className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
         dir="rtl"
       >
         <CardHeader>
@@ -160,25 +160,26 @@ export function TrendChartSkeleton({
   const isHourly = title === "התפלגות שעתית";
   return (
     <Card
-      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50"
+      className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
       dir="rtl"
     >
       <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-1.5">
-            <CardTitle className="flex items-center gap-2 text-lg font-bold">
-              {!isHourly && (
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-              )}
-              {isHourly && <Zap className="h-4 w-4 text-primary/40" />}
-              {title}
-            </CardTitle>
+        <div className="flex flex-col gap-1.5">
+          <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+            {isHourly ? (
+              <Activity className="h-4 w-4 text-primary" />
+            ) : (
+              <TrendingUp className="h-4 w-4 text-primary" />
+            )}
+            {title}
+          </CardTitle>
+          {!isHourly && (
             <div className="h-4 w-48 bg-muted/50 animate-pulse rounded" />
-          </div>
+          )}
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
-        <div className="h-60 w-full bg-muted/5 animate-pulse rounded-md border border-dashed border-border/50 flex items-end justify-between px-8 py-4">
+        <div className="h-72 w-full bg-muted/5 animate-pulse rounded-md border border-dashed border-border/50 flex items-end justify-between px-8 py-4">
           {[40, 70, 45, 90, 65, 80, 50, 85, 35, 60, 55, 75].map((h, i) => (
             <div
               key={`bar-skeleton-${i}`}
@@ -189,7 +190,9 @@ export function TrendChartSkeleton({
         </div>
       </CardContent>
       <CardFooter
-        className={`grid grid-cols-1 md:grid-cols-${footerCols} gap-4 pt-4 border-t border-border`}
+        className={`grid gap-4 pt-6 border-t border-border/50 bg-muted/5 ${
+          footerCols === 3 ? "grid-cols-3" : "grid-cols-1 md:grid-cols-2"
+        }`}
       >
         {Array.from({ length: footerCols }).map((_, i) => (
           <div

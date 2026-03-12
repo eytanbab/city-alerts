@@ -20,8 +20,7 @@ const MAX_CITIES = 5;
 const AlarmChart = dynamic(
   () => import("@/components/charts/AlarmChart").then((mod) => mod.AlarmChart),
   {
-    ssr: false,
-    loading: () => <TrendChartSkeleton title="התפלגות שעתית" />,
+    loading: () => <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />,
   },
 );
 const DailyTrendChart = dynamic(
@@ -30,8 +29,7 @@ const DailyTrendChart = dynamic(
       (mod) => mod.DailyTrendChart,
     ),
   {
-    ssr: false,
-    loading: () => <TrendChartSkeleton />,
+    loading: () => <TrendChartSkeleton title="מגמה יומית" footerCols={3} />,
   },
 );
 

@@ -192,7 +192,7 @@ export function DailyTrendChart({
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-4 px-2">
-        <ChartContainer config={chartConfig} className="h-64 w-full">
+        <ChartContainer config={chartConfig} className="h-72 w-full">
           {isMulti && !isSingleFromMulti ? (
             <LineChart
               data={processedData}
@@ -210,7 +210,7 @@ export function DailyTrendChart({
                 tickMargin={10}
                 axisLine={false}
                 tickFormatter={formatDate}
-                minTickGap={30}
+                minTickGap={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
                 padding={{ left: 20, right: 20 }}
@@ -223,7 +223,7 @@ export function DailyTrendChart({
                 tickMargin={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
-                width={20}
+                width={40}
                 tickFormatter={formatNumber}
               />
               <ChartTooltip
@@ -250,7 +250,7 @@ export function DailyTrendChart({
           ) : (
             <LineChart
               data={processedData}
-              margin={{ left: 10, right: 0, top: 0, bottom: 0 }}
+              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
             >
               <CartesianGrid
                 vertical={false}
@@ -264,7 +264,7 @@ export function DailyTrendChart({
                 tickMargin={10}
                 axisLine={false}
                 tickFormatter={formatDate}
-                minTickGap={30}
+                minTickGap={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
                 padding={{ left: 20, right: 20 }}
@@ -277,7 +277,7 @@ export function DailyTrendChart({
                 tickMargin={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
-                width={20}
+                width={40}
                 tickFormatter={formatNumber}
               />
               <ChartTooltip

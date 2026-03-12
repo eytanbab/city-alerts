@@ -6,6 +6,9 @@ import { ThreatType, type WebSocketAlert } from "@/lib/types";
 import { ShieldAlert } from "lucide-react";
 import { THREAT_CONFIG } from "./threat-config";
 import { useAlerts } from "./use-alerts";
+import { formatInTimeZone } from "date-fns-tz";
+
+const ISRAEL_TZ = "Asia/Jerusalem";
 
 export function RealtimeAlerts() {
   const handleAlert = useCallback((alert: WebSocketAlert) => {
@@ -60,10 +63,7 @@ export function RealtimeAlerts() {
             <ShieldAlert className="w-3 h-3" />
             <span>
               פיקוד העורף •{" "}
-              {new Date().toLocaleTimeString("he-IL", {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              {formatInTimeZone(new Date(), ISRAEL_TZ, "HH:mm")}
             </span>
           </div>
         </div>

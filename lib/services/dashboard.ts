@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { type DashboardData } from "@/lib/types";
-import { processRawAlarms } from "@/lib/utils/data-processor";
+import { processRawAlarms, getUnixForIsraelDate } from "@/lib/utils/data-processor";
 import fs from "fs";
 import path from "path";
 
@@ -16,7 +16,8 @@ export async function getDashboardData(): Promise<DashboardData> {
   await headers();
 
   try {
-    const filterDateUnix = new Date("2026-02-28T00:00:00").getTime() / 1000;
+    // Dynamically calculate the Unix timestamp for the start of the operation in Israel Time
+    const filterDateUnix = getUnixForIsraelDate("2026-02-28");
 
     // Load static data from local disk
     const citiesMetadata = JSON.parse(
@@ -24,8 +25,16 @@ export async function getDashboardData(): Promise<DashboardData> {
     ).cities;
     const polygonsRaw = JSON.parse(fs.readFileSync(POLYGONS_PATH, "utf8"));
 
-    // Fetch dynamic alarms from source
-    const alarmsRes = await fetch(DATA_URL, { cache: "no-store" });
+    // Fetch dynamic alarms from source with cache-busting and browser-like headers
+    const alarmsRes = await fetch(`${DATA_URL}?t=${Date.now()}`, {
+      cache: "no-store",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        Referer: "https://www.tzevaadom.co.il/",
+        Origin: "https://www.tzevaadom.co.il",
+      },
+    });
 
     if (!alarmsRes.ok) {
       throw new Error("Failed to fetch alarms from source");

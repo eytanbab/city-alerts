@@ -1,3 +1,5 @@
+import { formatInTimeZone, toDate } from "date-fns-tz";
+import { isValid } from "date-fns";
 import {
   type Alarm,
   type MapData,
@@ -6,6 +8,8 @@ import {
   type CityMetrics,
   type RegionStats,
 } from "@/lib/types";
+
+const ISRAEL_TZ = "Asia/Jerusalem";
 
 export function getRegionForArea(area?: number): string {
   if (area === undefined) return "מרכז";
@@ -28,20 +32,24 @@ export function normalizeCityName(city: string): string {
 
 const dateCache = new Map<number, { datetime: string; datePart: string }>();
 
+/**
+ * Returns a formatted string in Israel Time (YYYY-MM-DD HH:mm:ss)
+ */
 export function getIsraelTime(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  return date
-    .toLocaleString("en-CA", {
-      timeZone: "Asia/Jerusalem",
-      hour12: false,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    })
-    .replace(/,/g, "");
+  return formatInTimeZone(timestamp * 1000, ISRAEL_TZ, "yyyy-MM-dd HH:mm:ss");
+}
+
+/**
+ * Converts a local Israel date string (YYYY-MM-DD) to a Unix timestamp 
+ * representing the start of that day (00:00:00) in Israel Time.
+ */
+export function getUnixForIsraelDate(dateStr: string): number {
+  const date = toDate(`${dateStr} 00:00:00`, { timeZone: ISRAEL_TZ });
+  if (!isValid(date)) {
+    // Fallback to operation start if invalid
+    return Math.floor(new Date("2026-02-28T00:00:00+02:00").getTime() / 1000);
+  }
+  return Math.floor(date.getTime() / 1000);
 }
 
 export function getHourlyDistribution(
@@ -360,14 +368,7 @@ export function processRawAlarms(
     regions,
     lastUpdated:
       maxTimestamp > 0
-        ? new Date(maxTimestamp * 1000).toLocaleString("he-IL", {
-            timeZone: "Asia/Jerusalem",
-            hour: "2-digit",
-            minute: "2-digit",
-            day: "2-digit",
-            month: "2-digit",
-            year: "2-digit",
-          })
+        ? formatInTimeZone(maxTimestamp * 1000, ISRAEL_TZ, "dd/MM/yy HH:mm")
         : "N/A",
   };
 }

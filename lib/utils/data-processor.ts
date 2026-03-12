@@ -40,7 +40,7 @@ export function getIsraelTime(timestamp: number): string {
 }
 
 /**
- * Converts a local Israel date string (YYYY-MM-DD) to a Unix timestamp 
+ * Converts a local Israel date string (YYYY-MM-DD) to a Unix timestamp
  * representing the start of that day (00:00:00) in Israel Time.
  */
 export function getUnixForIsraelDate(dateStr: string): number {
@@ -368,7 +368,7 @@ export function processRawAlarms(
     regions,
     lastUpdated:
       maxTimestamp > 0
-        ? formatInTimeZone(maxTimestamp * 1000, ISRAEL_TZ, "dd/MM/yy HH:mm")
+        ? formatInTimeZone(maxTimestamp * 1000, ISRAEL_TZ, "dd/MM/yy, HH:mm")
         : "N/A",
   };
 }
@@ -471,7 +471,9 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
 
   // Include "operation start" and "today" in the calculation to account for all silence periods
   const opStartStr = "2026-02-28";
-  const todayStr = getIsraelTime(Math.floor(now.getTime() / 1000)).split(" ")[0];
+  const todayStr = getIsraelTime(Math.floor(now.getTime() / 1000)).split(
+    " ",
+  )[0];
   const allDates = Array.from(
     new Set([opStartStr, ...alarmDates, todayStr]),
   ).sort();
@@ -481,11 +483,13 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
     for (let i = 1; i < allDates.length; i++) {
       const [y1, m1, d1] = allDates[i - 1].split("-").map(Number);
       const [y2, m2, d2] = allDates[i].split("-").map(Number);
-      
+
       const date1 = new Date(y1, m1 - 1, d1);
       const date2 = new Date(y2, m2 - 1, d2);
-      
-      const diffDays = Math.round(Math.abs(date2.getTime() - date1.getTime()) / oneDayMs);
+
+      const diffDays = Math.round(
+        Math.abs(date2.getTime() - date1.getTime()) / oneDayMs,
+      );
       if (diffDays > maxStreak) maxStreak = diffDays;
     }
   }

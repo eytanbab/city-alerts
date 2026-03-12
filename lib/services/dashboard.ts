@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { type DashboardData } from "@/lib/types";
-import { processRawAlarms, getUnixForIsraelDate } from "@/lib/utils/data-processor";
+import { processRawAlarms, getUnixForIsraelDate, OPERATION_START } from "@/lib/utils/data-processor";
 import fs from "fs";
 import path from "path";
 
@@ -17,7 +17,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   try {
     // Dynamically calculate the Unix timestamp for the start of the operation in Israel Time
-    const filterDateUnix = getUnixForIsraelDate("2026-02-28");
+    const filterDateUnix = getUnixForIsraelDate(OPERATION_START);
 
     // Load static data from local disk
     const citiesMetadata = JSON.parse(

@@ -10,6 +10,7 @@ import {
 } from "@/lib/types";
 
 const ISRAEL_TZ = "Asia/Jerusalem";
+export const OPERATION_START = "2026-02-28";
 
 export function getRegionForArea(area?: number): string {
   if (area === undefined) return "מרכז";
@@ -40,6 +41,33 @@ export function getIsraelTime(timestamp: number): string {
 }
 
 /**
+ * Returns today's date in Israel Time (YYYY-MM-DD)
+ */
+export function getIsraelDateNow(): string {
+  return formatInTimeZone(Date.now(), ISRAEL_TZ, "yyyy-MM-dd");
+}
+
+function generateDateRange(startDateStr: string, endDateStr: string): string[] {
+  const [sy, sm, sd] = startDateStr.split("-").map(Number);
+  const [ey, em, ed] = endDateStr.split("-").map(Number);
+
+  const start = new Date(sy, sm - 1, sd);
+  const end = new Date(ey, em - 1, ed);
+
+  const dates: string[] = [];
+  const current = new Date(start);
+
+  while (current <= end) {
+    const y = current.getFullYear();
+    const m = (current.getMonth() + 1).toString().padStart(2, "0");
+    const d = current.getDate().toString().padStart(2, "0");
+    dates.push(`${y}-${m}-${d}`);
+    current.setDate(current.getDate() + 1);
+  }
+  return dates;
+}
+
+/**
  * Converts a local Israel date string (YYYY-MM-DD) to a Unix timestamp
  * representing the start of that day (00:00:00) in Israel Time.
  */
@@ -47,7 +75,8 @@ export function getUnixForIsraelDate(dateStr: string): number {
   const date = toDate(`${dateStr} 00:00:00`, { timeZone: ISRAEL_TZ });
   if (!isValid(date)) {
     // Fallback to operation start if invalid
-    return Math.floor(new Date("2026-02-28T00:00:00+02:00").getTime() / 1000);
+    const [y, m, d] = OPERATION_START.split("-").map(Number);
+    return Math.floor(new Date(y, m - 1, d, 0, 0, 0).getTime() / 1000);
   }
   return Math.floor(date.getTime() / 1000);
 }
@@ -100,6 +129,12 @@ export function processRawAlarms(
   const seenEvents = new Set<string>();
   const uniqueBaseCities = new Set<string>();
   const dailyCounts: Record<string, number> = {};
+
+  // Pre-initialize daily counts with zeros for all days from start until today
+  const todayStr = getIsraelDateNow();
+  const allDates = generateDateRange(OPERATION_START, todayStr);
+  allDates.forEach((date) => (dailyCounts[date] = 0));
+
   const citySirenCounts: Record<
     string,
     { count: number; lat?: number; lon?: number }
@@ -118,7 +153,10 @@ export function processRawAlarms(
     מרכז: {},
     דרום: {},
   };
-  regionsList.forEach((r) => (regionalDailyCounts[r] = {}));
+  regionsList.forEach((r) => {
+    regionalDailyCounts[r] = {};
+    allDates.forEach((date) => (regionalDailyCounts[r][date] = 0));
+  });
 
   const regionalCityEventCounts: Record<string, Record<string, number>> = {};
   regionsList.forEach((r) => (regionalCityEventCounts[r] = {}));
@@ -378,27 +416,17 @@ export function getCityDailyTrend(
   nowStr?: string,
 ): { date: string; count: number }[] {
   const dailyCounts: Record<string, Set<string>> = {};
-  const startDate = new Date("2026-02-28T00:00:00");
+  
+  const [sy, sm, sd] = OPERATION_START.split("-").map(Number);
+  const startDate = new Date(sy, sm - 1, sd);
 
-  // Parse nowStr as local date part to avoid UTC issues
-  let endDate: Date;
-  if (nowStr) {
-    const [y, m, d] = nowStr.split("-").map(Number);
-    endDate = new Date(y, m - 1, d);
-  } else {
-    endDate = new Date();
-  }
+  // Parse nowStr or use today as local date part in Israel Time
+  const todayStr = nowStr || getIsraelDateNow();
+  const [ey, em, ed] = todayStr.split("-").map(Number);
+  const endDate = new Date(ey, em - 1, ed);
 
-  const current = new Date(
-    startDate.getFullYear(),
-    startDate.getMonth(),
-    startDate.getDate(),
-  );
-  const end = new Date(
-    endDate.getFullYear(),
-    endDate.getMonth(),
-    endDate.getDate(),
-  );
+  const current = new Date(startDate);
+  const end = new Date(endDate);
 
   while (current <= end) {
     const y = current.getFullYear();
@@ -470,10 +498,8 @@ export function getCitySummary(alarms: Alarm[], city: string): CitySummaryData {
   ).sort();
 
   // Include "operation start" and "today" in the calculation to account for all silence periods
-  const opStartStr = "2026-02-28";
-  const todayStr = getIsraelTime(Math.floor(now.getTime() / 1000)).split(
-    " ",
-  )[0];
+  const opStartStr = OPERATION_START;
+  const todayStr = getIsraelDateNow();
   const allDates = Array.from(
     new Set([opStartStr, ...alarmDates, todayStr]),
   ).sort();

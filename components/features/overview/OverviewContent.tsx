@@ -6,7 +6,6 @@ import { useQueryState, parseAsString } from "nuqs";
 import { type DashboardData } from "@/lib/types";
 import { StatCards } from "@/components/features/overview/StatCards";
 import { Leaderboard } from "@/components/features/overview/Leaderboard";
-import { DailyTrendChart } from "@/components/charts/DailyTrendChart";
 import dynamic from "next/dynamic";
 import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +19,17 @@ const AlarmChart = dynamic(
   {
     ssr: false,
     loading: () => <TrendChartSkeleton title="התפלגות שעתית" />,
+  },
+);
+
+const DailyTrendChart = dynamic(
+  () =>
+    import("@/components/charts/DailyTrendChart").then(
+      (mod) => mod.DailyTrendChart,
+    ),
+  {
+    ssr: false,
+    loading: () => <TrendChartSkeleton title="מגמה יומית" />,
   },
 );
 

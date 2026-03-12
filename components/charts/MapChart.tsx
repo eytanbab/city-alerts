@@ -28,7 +28,7 @@ const MapInner = dynamic(() => import("./MapInner"), {
 export default function MapChart({ data }: { data: MapData[] }) {
   return (
     <Card
-      className="w-full h-150 border border-border shadow-none rounded-sm overflow-hidden flex flex-col"
+      className="flex flex-col gap-4 py-4 text-card-foreground h-150 bg-card border border-border shadow-sm"
       dir="rtl"
     >
       <CardHeader className="px-6 py-4 border-b border-border bg-muted/5">

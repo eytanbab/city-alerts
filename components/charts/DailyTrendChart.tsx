@@ -176,7 +176,10 @@ export function DailyTrendChart({
   if (total === 0) return null;
 
   return (
-    <Card className="h-full bg-card border border-border shadow-sm" dir="rtl">
+    <Card
+      className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
+      dir="rtl"
+    >
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
           <TrendingUp className="h-4 w-4 text-primary" />
@@ -210,6 +213,7 @@ export function DailyTrendChart({
                 minTickGap={30}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
+                padding={{ left: 20, right: 20 }}
               />
               <YAxis
                 tickLine={false}
@@ -263,6 +267,7 @@ export function DailyTrendChart({
                 minTickGap={30}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
+                padding={{ left: 20, right: 20 }}
               />
               <YAxis
                 tickLine={false}

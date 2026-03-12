@@ -201,7 +201,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
   if (total === 0) {
     return (
       <Card
-        className="w-full bg-card border-none shadow-sm ring-1 ring-border/50"
+        className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
         dir="rtl"
       >
         <CardContent className="py-12 text-center">
@@ -217,7 +217,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
 
   return (
     <Card
-      className="w-full bg-card border-none shadow-sm ring-1 ring-border/50"
+      className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
       dir="rtl"
     >
       <CardHeader className="pb-2 md:pb-4">
@@ -270,6 +270,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                 minTickGap={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
+                padding={{ left: 20, right: 20 }}
               />
               <YAxis
                 tickLine={false}
@@ -279,7 +280,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                 tickMargin={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
-                width={35}
+                width={40}
               />
               <ChartTooltip
                 content={
@@ -343,6 +344,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                 minTickGap={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
+                padding={{ left: 20, right: 20 }}
               />
               <YAxis
                 tickLine={false}
@@ -352,7 +354,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
                 tickMargin={10}
                 fontSize={12}
                 tick={{ fill: "var(--muted-foreground)" }}
-                width={35}
+                width={40}
               />
               <ChartTooltip
                 content={

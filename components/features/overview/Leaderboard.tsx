@@ -18,7 +18,7 @@ export function Leaderboard({
 }: LeaderboardProps) {
   return (
     <Card
-      className="h-full bg-card border-none shadow-sm ring-1 ring-border/50 gap-1"
+      className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
       dir="rtl"
     >
       <CardHeader>

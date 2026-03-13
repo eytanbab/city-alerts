@@ -18,6 +18,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
   CardFooter,
 } from "@/components/ui/card";
 import {
@@ -39,6 +40,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface AlarmChartProps {
   data?: { hour: string; count: number }[];
   city?: string;
+  description?: string;
   multiData?: { city: string; data: { hour: string; count: number }[] }[];
 }
 
@@ -79,7 +81,12 @@ function formatHourRanges(hours: string[]) {
   return ranges.join(", ");
 }
 
-export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
+export function AlarmChart({
+  data,
+  city,
+  description = "התפלגות האזעקות לפי שעות היממה",
+  multiData,
+}: AlarmChartProps) {
   const [view, setView] = useState<"bar" | "line">("bar");
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
@@ -220,13 +227,16 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       className="flex flex-col gap-4 py-4 text-card-foreground h-full bg-card border border-border shadow-sm"
       dir="rtl"
     >
-      <CardHeader className="pb-2 md:pb-4">
+      <CardHeader className="pb-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-2">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" />
               התפלגות שעתית {isMulti ? "(השוואה)" : `: ${activeCityName}`}
             </CardTitle>
+            <CardDescription className="text-sm font-normal">
+              {description}
+            </CardDescription>
           </div>
           <Tabs
             value={view}

@@ -139,6 +139,7 @@ export function OverviewContent({
             <AlarmChart
               data={currentData?.hourlyDistribution || []}
               city={regionLabel}
+              description={`התפלגות האזעקות ב${regionLabel === "ארצי" ? "כל הארץ" : "אזור " + regionLabel} לפי שעות היממה`}
             />
           </TabsContent>
         </Tabs>

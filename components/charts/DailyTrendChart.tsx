@@ -192,7 +192,11 @@ export function DailyTrendChart({
         </CardDescription>
       </CardHeader>
       <CardContent className="pb-4 px-2">
-        <ChartContainer id="daily-trend" config={chartConfig} className="h-72 w-full">
+        <ChartContainer
+          id="daily-trend"
+          config={chartConfig}
+          className="h-72 w-full"
+        >
           {isMulti && !isSingleFromMulti ? (
             <LineChart
               data={processedData}

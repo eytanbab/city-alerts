@@ -285,7 +285,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    className="rounded-lg border-border"
+                    className="rounded border-border"
                     labelFormatter={(value) => {
                       if (typeof value !== "string") return value;
                       const hour = value.split(":")[0];
@@ -359,7 +359,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    className="rounded-lg border-border"
+                    className="rounded border-border"
                     labelFormatter={(value) => {
                       if (typeof value !== "string") return value;
                       const hour = value.split(":")[0];

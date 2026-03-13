@@ -229,7 +229,7 @@ export function DailyTrendChart({
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    className="rounded-xl border-border"
+                    className="rounded border-border"
                     labelFormatter={formatDate}
                   />
                 }
@@ -283,7 +283,7 @@ export function DailyTrendChart({
               <ChartTooltip
                 content={
                   <ChartTooltipContent
-                    className="rounded-xl border-border"
+                    className="rounded border-border"
                     labelFormatter={formatDate}
                   />
                 }

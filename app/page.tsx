@@ -20,8 +20,16 @@ export const metadata: Metadata = {
     "מבט על התפלגות האזעקות, מפת התרעות ומובילי האזעקות במבצע שאגת הארי.",
 };
 
-export default function Home() {
+type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const dataPromise = getDashboardData();
+  const params = await searchParams;
+  const region = typeof params.region === "string" ? params.region : "all";
 
   return (
     <>
@@ -54,7 +62,7 @@ export default function Home() {
             </div>
           }
         >
-          <OverviewContent dataPromise={dataPromise} />
+          <OverviewContent dataPromise={dataPromise} initialRegion={region} />
         </Suspense>
       </div>
 

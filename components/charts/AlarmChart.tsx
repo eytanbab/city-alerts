@@ -248,6 +248,7 @@ export function AlarmChart({ data, city, multiData }: AlarmChartProps) {
       </CardHeader>
       <CardContent className="pb-4 px-2">
         <ChartContainer
+          id="alarm-distribution"
           config={chartConfig}
           className="aspect-auto h-72 w-full"
         >

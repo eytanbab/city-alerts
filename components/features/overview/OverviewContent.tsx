@@ -6,43 +6,30 @@ import { useQueryState, parseAsString } from "nuqs";
 import { type DashboardData } from "@/lib/types";
 import { StatCards } from "@/components/features/overview/StatCards";
 import { Leaderboard } from "@/components/features/overview/Leaderboard";
-import dynamic from "next/dynamic";
-import { TrendChartSkeleton } from "@/components/ui/dashboard-skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import MapChart from "@/components/charts/MapChart";
 import { Info, CalendarDays, Clock, Trophy, Wind } from "lucide-react";
 import { RegionTabs } from "@/components/features/overview/RegionTabs";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-
-const AlarmChart = dynamic(
-  () => import("@/components/charts/AlarmChart").then((mod) => mod.AlarmChart),
-  {
-    loading: () => <TrendChartSkeleton title="התפלגות שעתית" footerCols={2} />,
-  },
-);
-
-const DailyTrendChart = dynamic(
-  () =>
-    import("@/components/charts/DailyTrendChart").then(
-      (mod) => mod.DailyTrendChart,
-    ),
-  {
-    loading: () => <TrendChartSkeleton title="מגמה יומית" footerCols={3} />,
-  },
-);
+import { AlarmChart } from "@/components/charts/AlarmChart";
+import { DailyTrendChart } from "@/components/charts/DailyTrendChart";
 
 interface OverviewContentProps {
   dataPromise: Promise<DashboardData>;
+  initialRegion?: string;
 }
 
-export function OverviewContent({ dataPromise }: OverviewContentProps) {
+export function OverviewContent({
+  dataPromise,
+  initialRegion = "all",
+}: OverviewContentProps) {
   const data = use(dataPromise);
+  const router = useRouter();
+
   const [selectedRegion, setSelectedRegion] = useQueryState(
     "region",
-    parseAsString.withDefault("all"),
+    parseAsString.withDefault(initialRegion),
   );
-
-  const router = useRouter();
 
   const {
     stats,

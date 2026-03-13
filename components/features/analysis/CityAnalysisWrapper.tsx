@@ -6,23 +6,35 @@ import { type DashboardData } from "@/lib/types";
 
 interface CityAnalysisWrapperProps {
   dataPromise: Promise<DashboardData>;
+  initialCities?: string[];
 }
 
-export function CityAnalysisWrapper({ dataPromise }: CityAnalysisWrapperProps) {
-  return <CityAnalysisSync dataPromise={dataPromise} />;
+export function CityAnalysisWrapper({
+  dataPromise,
+  initialCities = [],
+}: CityAnalysisWrapperProps) {
+  return (
+    <CityAnalysisSync
+      dataPromise={dataPromise}
+      initialCities={initialCities}
+    />
+  );
 }
 
-function CityAnalysisSync({ dataPromise }: CityAnalysisWrapperProps) {
-  const [activeCities, setActiveCities] = useQueryState(
+function CityAnalysisSync({
+  dataPromise,
+  initialCities,
+}: CityAnalysisWrapperProps) {
+  const [selectedCities, setSelectedCities] = useQueryState(
     "city",
-    parseAsArrayOf(parseAsString).withDefault([]),
+    parseAsArrayOf(parseAsString).withDefault(initialCities || []),
   );
 
   return (
     <CityAnalysisContent
       dataPromise={dataPromise}
-      activeCities={activeCities}
-      setActiveCities={setActiveCities}
+      activeCities={selectedCities}
+      setActiveCities={setSelectedCities}
     />
   );
 }

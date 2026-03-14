@@ -101,20 +101,53 @@ export function DailyTrendChart({
       );
       const sortedDates = Array.from(allDates).sort();
 
-      return sortedDates.map((date) => {
+      return sortedDates.map((date, index) => {
         const entry: ChartDataEntry = { date };
         multiData!.forEach((d) => {
           const dateData = d.data.find((i) => i.date === date);
-          entry[d.city] = dateData ? dateData.count : 0;
+          const currentCount = dateData ? dateData.count : 0;
+          entry[d.city] = currentCount;
+
+          if (index > 0) {
+            const prevDate = sortedDates[index - 1];
+            const prevDateData = d.data.find((i) => i.date === prevDate);
+            const prevCount = prevDateData ? prevDateData.count : 0;
+            let pct = 0;
+            if (prevCount > 0) {
+              pct = Math.round(((currentCount - prevCount) / prevCount) * 100);
+            } else if (currentCount > 0) {
+              pct = 100;
+            }
+            entry[`${d.city}_pct`] = pct;
+          } else {
+            entry[`${d.city}_pct`] = 0;
+          }
         });
         return entry;
       });
     }
 
-    return chartData.map((item, index, array) => ({
-      ...item,
-      yesterday: index > 0 ? array[index - 1].count : null,
-    }));
+    return chartData.map((item, index, array) => {
+      const yesterday = index > 0 ? array[index - 1].count : null;
+      let pct = 0;
+      if (yesterday !== null) {
+        const yestVal = Number(yesterday);
+        const currVal = Number(item.count);
+        if (yestVal > 0) {
+          pct = Math.round(((currVal - yestVal) / yestVal) * 100);
+        } else if (currVal > 0) {
+          pct = 100;
+        } else {
+          pct = 0;
+        }
+      }
+
+      return {
+        ...item,
+        yesterday,
+        pct,
+      };
+    });
   }, [chartData, multiData, isMulti, isSingleFromMulti]);
 
   const chartConfig = useMemo(() => {
@@ -172,6 +205,52 @@ export function DailyTrendChart({
       percentChange,
     };
   }, [chartData, total, isMulti, isSingleFromMulti]);
+
+  const tooltipFormatter = (
+    value: number | string | (number | string)[],
+    name: string | number,
+    item: { color?: string; payload?: Record<string, unknown> },
+  ) => {
+    const val = Array.isArray(value) ? Number(value[0]) : Number(value);
+    const nameStr = String(name);
+    const pct =
+      (isMulti && !isSingleFromMulti
+        ? (item.payload?.[`${nameStr}_pct`] as number | undefined)
+        : (item.payload?.pct as number | undefined)) ?? 0;
+
+    // Use the label from chartConfig if available, otherwise fallback to the name
+    const configLabel = chartConfig[nameStr as keyof typeof chartConfig]?.label;
+    const resolvedLabel = typeof configLabel === "string" ? configLabel : nameStr;
+
+    return (
+      <div className="flex flex-1 justify-between items-center gap-3 leading-none min-w-32">
+        <div className="flex items-center gap-2">
+          <div
+            className="h-2 w-2 shrink-0 rounded-[2px]"
+            style={{ backgroundColor: item.color }}
+          />
+          <span className="text-muted-foreground">{resolvedLabel}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono font-medium text-foreground tabular-nums">
+            {val.toLocaleString()}
+          </span>
+          <span
+            dir="ltr"
+            className={`text-[10px] font-bold tabular-nums ${
+              pct > 0
+                ? "text-destructive"
+                : pct < 0
+                  ? "text-emerald-500"
+                  : "text-muted-foreground"
+            }`}
+          >
+            ({pct > 0 ? "+" : ""}{pct}%)
+          </span>
+        </div>
+      </div>
+    );
+  };
 
   if (total === 0) return null;
 
@@ -235,6 +314,7 @@ export function DailyTrendChart({
                   <ChartTooltipContent
                     className="rounded border-border"
                     labelFormatter={formatDate}
+                    formatter={tooltipFormatter}
                   />
                 }
               />
@@ -289,6 +369,7 @@ export function DailyTrendChart({
                   <ChartTooltipContent
                     className="rounded border-border"
                     labelFormatter={formatDate}
+                    formatter={tooltipFormatter}
                   />
                 }
               />

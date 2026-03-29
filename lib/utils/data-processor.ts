@@ -259,11 +259,14 @@ export function processRawAlarms(
 
   const cityMetrics: Record<string, CityMetrics> = {};
   const now = Math.floor(Date.now() / 1000);
+  const twentyFourHoursAgo = now - 24 * 60 * 60;
 
   for (const [baseCity, timestamps] of Object.entries(cityEventTimestamps)) {
     const sorted = timestamps.sort((a, b) => a - b);
     let maxGap = 0;
     let peakIntensity = 0;
+    const last24hCount = timestamps.filter((t) => t >= twentyFourHoursAgo).length;
+    const last24hFreqHours = last24hCount > 0 ? 24 / last24hCount : null;
 
     const endTimestamp = now;
     const observationStart = filterDateUnix;
@@ -301,6 +304,7 @@ export function processRawAlarms(
       maxQuietTimeHours: maxGap / 3600,
       peakIntensity10Min: peakIntensity,
       totalEvents: sorted.length,
+      last24hFreqHours,
     };
   }
 

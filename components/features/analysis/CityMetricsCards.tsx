@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Zap, ShieldCheck, Activity } from "lucide-react";
+import { Clock, Zap, ShieldCheck, Activity, TrendingUp } from "lucide-react";
 import { type CityMetrics } from "@/lib/types";
 
 interface CityMetricsCardsProps {
@@ -34,6 +34,13 @@ export function CityMetricsCards({ metrics }: CityMetricsCardsProps) {
       icon: Zap,
     },
     {
+      label: "קצב נוכחי",
+      value: metrics.last24hFreqHours ? metrics.last24hFreqHours.toFixed(1) : "—",
+      unit: "שעות",
+      subValue: "בין אזעקה לאזעקה (24ש')",
+      icon: TrendingUp,
+    },
+    {
       label: 'סה"כ התרעות',
       value: metrics.totalEvents,
       unit: "אזעקות",
@@ -44,7 +51,7 @@ export function CityMetricsCards({ metrics }: CityMetricsCardsProps) {
 
   return (
     <div
-      className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-border border border-border w-full overflow-hidden"
+      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-px bg-border border border-border w-full overflow-hidden"
       dir="rtl"
     >
       {items.map((item) => (

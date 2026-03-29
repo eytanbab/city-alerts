@@ -140,6 +140,36 @@ describe("Data Utility Functions (Optimized)", () => {
     expect(trend.find((t) => t.date === "2026-03-05")?.count).toBe(0);
   });
 
+  it("should calculate last24hFreqHours correctly", () => {
+    // Mock current time to a fixed value
+    const fixedNow = 1772359200; // 2026-03-02 10:00:00
+    const originalDateNow = Date.now;
+    Date.now = () => fixedNow * 1000;
+
+    const twentyFourHoursAgo = fixedNow - 24 * 60 * 60; // 1772272800
+
+    const mockRawAlarms: [number, number, string[], number][] = [
+      [1, 0, ["אשקלון"], twentyFourHoursAgo + 3600], // 1 hour after 24h window start
+      [2, 0, ["אשקלון"], twentyFourHoursAgo + 7200], // 2 hours after 24h window start
+      [3, 0, ["אשקלון"], twentyFourHoursAgo - 3600], // OUTSIDE: 1 hour before 24h window start
+    ];
+
+    const result = processRawAlarms(mockRawAlarms, { אשקלון: { id: 1, lat: 0, lng: 0 } }, {}, 0);
+
+    // 2 alarms within last 24h. Freq = 24 / 2 = 12.0 hours.
+    expect(result.cityMetrics["אשקלון"].last24hFreqHours).toBe(12);
+
+    // Test city with NO alarms in last 24h
+    const mockRawAlarmsNoRecent: [number, number, string[], number][] = [
+      [1, 0, ["באר שבע"], twentyFourHoursAgo - 3600],
+    ];
+    const resultNoRecent = processRawAlarms(mockRawAlarmsNoRecent, { "באר שבע": { id: 2, lat: 0, lng: 0 } }, {}, 0);
+    expect(resultNoRecent.cityMetrics["באר שבע"].last24hFreqHours).toBeNull();
+
+    // Restore original Date.now
+    Date.now = originalDateNow;
+  });
+
   it("should generate city summary correctly", () => {
     const alarms: Alarm[] = [
       { datetime: "2026-03-01 12:00:00", city: "אשקלון" },

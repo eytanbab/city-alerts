@@ -32,6 +32,7 @@ export interface CityMetrics {
   maxQuietTimeHours: number;
   peakIntensity10Min: number;
   totalEvents: number;
+  last24hFreqHours: number | null;
 }
 
 export interface RegionStats {

@@ -352,7 +352,7 @@ export function AlarmChart({
           {view === "bar" ? (
             <BarChart
               data={chartData}
-              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+              margin={{ left: 0, right: 0, top: 10, bottom: 45 }}
             >
               <CartesianGrid
                 vertical={false}
@@ -363,22 +363,26 @@ export function AlarmChart({
               <XAxis
                 dataKey="hour"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={15}
                 axisLine={false}
-                minTickGap={10}
-                fontSize={12}
-                tick={{ fill: "var(--muted-foreground)" }}
-                padding={{ left: 20, right: 20 }}
+                minTickGap={30}
+                fontSize={10}
+                tick={{ fill: "var(--muted-foreground)", fontWeight: 500 }}
+                padding={{ left: 10, right: 10 }}
+                tickFormatter={(value) => {
+                  if (granularity === "period") return value.split(" ")[0];
+                  return value;
+                }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
                 orientation="right"
                 allowDecimals={false}
-                tickMargin={10}
-                fontSize={12}
+                tickMargin={8}
+                fontSize={10}
                 tick={{ fill: "var(--muted-foreground)" }}
-                width={40}
+                width={30}
               />
               <ChartTooltip
                 content={
@@ -427,7 +431,7 @@ export function AlarmChart({
           ) : (
             <LineChart
               data={chartData}
-              margin={{ left: 0, right: 0, top: 10, bottom: 0 }}
+              margin={{ left: 0, right: 0, top: 10, bottom: 45 }}
             >
               <CartesianGrid
                 vertical={false}
@@ -438,22 +442,26 @@ export function AlarmChart({
               <XAxis
                 dataKey="hour"
                 tickLine={false}
-                tickMargin={10}
+                tickMargin={15}
                 axisLine={false}
-                minTickGap={10}
-                fontSize={12}
-                tick={{ fill: "var(--muted-foreground)" }}
-                padding={{ left: 20, right: 20 }}
+                minTickGap={30}
+                fontSize={10}
+                tick={{ fill: "var(--muted-foreground)", fontWeight: 500 }}
+                padding={{ left: 10, right: 10 }}
+                tickFormatter={(value) => {
+                  if (granularity === "period") return value.split(" ")[0];
+                  return value;
+                }}
               />
               <YAxis
                 tickLine={false}
                 axisLine={false}
                 orientation="right"
                 allowDecimals={false}
-                tickMargin={10}
-                fontSize={12}
+                tickMargin={8}
+                fontSize={10}
                 tick={{ fill: "var(--muted-foreground)" }}
-                width={40}
+                width={30}
               />
               <ChartTooltip
                 content={

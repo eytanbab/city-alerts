@@ -156,6 +156,18 @@ export function CityAnalysisContent({
     }));
   }, [multiCityData]);
 
+  const multiTimeOfDayData = useMemo(() => {
+    return multiCityData.map((d) => ({
+      city: d.city,
+      data: d.metrics?.timeOfDayDistribution || {
+        night: 0,
+        morning: 0,
+        day: 0,
+        evening: 0,
+      },
+    }));
+  }, [multiCityData]);
+
   const dailyTrendData = useMemo(() => {
     return multiCityData.map((d) => ({
       city: d.city,
@@ -261,7 +273,11 @@ export function CityAnalysisContent({
               ))}
             </div>
 
-            <AlarmChart multiData={hourlyData} city={singleCityInfo?.city} />
+            <AlarmChart
+              multiData={hourlyData}
+              multiTimeOfDayData={multiTimeOfDayData}
+              city={singleCityInfo?.city}
+            />
             <DailyTrendChart
               multiData={dailyTrendData}
               city={singleCityInfo?.city}

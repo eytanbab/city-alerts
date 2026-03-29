@@ -42,6 +42,15 @@ export function OverviewContent({
     isFallback,
   } = data;
 
+  // Calculate national time of day distribution
+  const nationalTimeOfDayDist = Object.values(regions).reduce((acc, r) => {
+    acc.night += r.timeOfDayDistribution.night;
+    acc.morning += r.timeOfDayDistribution.morning;
+    acc.day += r.timeOfDayDistribution.day;
+    acc.evening += r.timeOfDayDistribution.evening;
+    return acc;
+  }, { night: 0, morning: 0, day: 0, evening: 0 });
+
   const handleCitySelect = (city: string) => {
     router.push(`/analysis?city=${encodeURIComponent(city)}`);
   };
@@ -55,6 +64,7 @@ export function OverviewContent({
           bottomCities,
           globalDailyTrend,
           hourlyDistribution,
+          timeOfDayDistribution: nationalTimeOfDayDist,
         }
       : regions[selectedRegion];
 
@@ -138,6 +148,7 @@ export function OverviewContent({
           <TabsContent value="hourly" className="mt-0 flex-1">
             <AlarmChart
               data={currentData?.hourlyDistribution || []}
+              timeOfDayData={currentData?.timeOfDayDistribution}
               city={regionLabel}
               description={`התפלגות האזעקות ב${regionLabel === "ארצי" ? "כל הארץ" : "אזור " + regionLabel} לפי שעות היממה`}
             />

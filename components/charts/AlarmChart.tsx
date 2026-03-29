@@ -34,15 +34,27 @@ import {
   BarChart3,
   LineChart as LineIcon,
   Activity,
+  Clock,
+  LayoutGrid,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { type TimeOfDayDistribution } from "@/lib/types";
 
 interface AlarmChartProps {
   data?: { hour: string; count: number }[];
   city?: string;
   description?: string;
   multiData?: { city: string; data: { hour: string; count: number }[] }[];
+  timeOfDayData?: TimeOfDayDistribution;
+  multiTimeOfDayData?: { city: string; data: TimeOfDayDistribution }[];
 }
+
+const PERIOD_LABELS: Record<keyof TimeOfDayDistribution, string> = {
+  night: "לילה (00-06)",
+  morning: "בוקר (06-12)",
+  day: "יום (12-18)",
+  evening: "ערב (18-00)",
+};
 
 interface ChartDataEntry {
   hour: string;
@@ -86,8 +98,11 @@ export function AlarmChart({
   city,
   description = "התפלגות האזעקות לפי שעות היממה",
   multiData,
+  timeOfDayData,
+  multiTimeOfDayData,
 }: AlarmChartProps) {
   const [view, setView] = useState<"bar" | "line">("bar");
+  const [granularity, setGranularity] = useState<"hourly" | "period">("hourly");
   const isMulti = !!(multiData && multiData.length > 1);
   const isSingleFromMulti = !!(multiData && multiData.length === 1);
 
@@ -100,48 +115,90 @@ export function AlarmChart({
 
   // Map Hebrew city names to stable keys to avoid Recharts issues with Hebrew keys
   const cityKeys = useMemo(() => {
-    if (!multiData) return {};
+    if (!multiData && !multiTimeOfDayData) return {};
     const keys: Record<string, string> = {};
-    multiData.forEach((d, i) => {
-      keys[d.city] = `city${i}`;
+    const citiesSource = multiData ? multiData.map(d => d.city) : multiTimeOfDayData!.map(d => d.city);
+    citiesSource.forEach((cityName, i) => {
+      keys[cityName] = `city${i}`;
     });
     return keys;
-  }, [multiData]);
+  }, [multiData, multiTimeOfDayData]);
 
   const chartData = useMemo(() => {
-    if (isSingleFromMulti) {
-      return multiData![0].data as ChartDataEntry[];
-    }
-    if (!isMulti) return (data || []) as ChartDataEntry[];
+    if (granularity === "hourly") {
+      if (isSingleFromMulti) {
+        return multiData![0].data as ChartDataEntry[];
+      }
+      if (!isMulti) return (data || []) as ChartDataEntry[];
 
-    const hours = Array.from(
-      { length: 24 },
-      (_, i) => `${i.toString().padStart(2, "0")}:00`,
-    );
-    return hours.map((hour) => {
-      const entry: ChartDataEntry = { hour };
-      multiData!.forEach((d) => {
-        const hourData = d.data.find((h) => h.hour === hour);
-        const key = cityKeys[d.city];
-        entry[key] = hourData ? hourData.count : 0;
+      const hours = Array.from(
+        { length: 24 },
+        (_, i) => `${i.toString().padStart(2, "0")}:00`,
+      );
+      return hours.map((hour) => {
+        const entry: ChartDataEntry = { hour };
+        multiData!.forEach((d) => {
+          const hourData = d.data.find((h) => h.hour === hour);
+          const key = cityKeys[d.city];
+          entry[key] = hourData ? hourData.count : 0;
+        });
+        return entry;
       });
-      return entry;
-    });
-  }, [data, multiData, isMulti, isSingleFromMulti, cityKeys]);
+    } else {
+      // Period granularity
+      const periods: (keyof TimeOfDayDistribution)[] = ["night", "morning", "day", "evening"];
+      
+      // If we have a single city from analysis (multiTimeOfDayData.length === 1)
+      const singleSource = timeOfDayData || (multiTimeOfDayData && multiTimeOfDayData.length === 1 ? multiTimeOfDayData[0].data : null);
+
+      if (!isMulti && singleSource) {
+        return periods.map(p => ({
+          hour: PERIOD_LABELS[p],
+          count: singleSource[p],
+        }));
+      }
+
+      if (multiTimeOfDayData) {
+        return periods.map(p => {
+          const entry: Record<string, string | number> = { hour: PERIOD_LABELS[p] };
+          multiTimeOfDayData.forEach(d => {
+            const key = cityKeys[d.city];
+            entry[key] = d.data[p];
+          });
+          return entry;
+        });
+      }
+      
+      return [];
+    }
+  }, [data, multiData, isMulti, isSingleFromMulti, cityKeys, granularity, timeOfDayData, multiTimeOfDayData]);
 
   const total = useMemo(() => {
-    if (isSingleFromMulti)
-      return multiData![0].data.reduce((a, c) => a + c.count, 0);
-    if (!isMulti)
-      return chartData.reduce(
-        (acc, curr) => acc + (Number(curr.count) || 0),
+    if (granularity === "hourly") {
+      if (isSingleFromMulti)
+        return multiData![0].data.reduce((a, c) => a + c.count, 0);
+      if (!isMulti)
+        return (data || []).reduce(
+          (acc, curr) => acc + (Number(curr.count) || 0),
+          0,
+        );
+      return multiData!.reduce(
+        (acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0),
         0,
       );
-    return multiData!.reduce(
-      (acc, d) => acc + d.data.reduce((a, c) => a + c.count, 0),
-      0,
-    );
-  }, [chartData, multiData, isMulti, isSingleFromMulti]);
+    } else {
+      const singleSource = timeOfDayData || (multiTimeOfDayData && multiTimeOfDayData.length === 1 ? multiTimeOfDayData[0].data : null);
+      if (!isMulti && singleSource) {
+        return singleSource.night + singleSource.morning + singleSource.day + singleSource.evening;
+      }
+      if (multiTimeOfDayData) {
+        return multiTimeOfDayData.reduce((acc, d) => 
+          acc + d.data.night + d.data.morning + d.data.day + d.data.evening, 0
+        );
+      }
+      return 0;
+    }
+  }, [data, multiData, isMulti, isSingleFromMulti, granularity, timeOfDayData, multiTimeOfDayData]);
 
   const activeCityName = isSingleFromMulti ? multiData![0].city : city;
 
@@ -152,27 +209,39 @@ export function AlarmChart({
         color: "var(--chart-1)",
       },
     };
+    const citiesSource = multiData ? multiData.map(d => d.city) : (multiTimeOfDayData ? multiTimeOfDayData.map(d => d.city) : []);
     if (isMulti) {
-      multiData!.forEach((d, i) => {
-        const key = cityKeys[d.city];
+      citiesSource.forEach((cityName, i) => {
+        const key = cityKeys[cityName];
         config[key] = {
-          label: d.city,
+          label: cityName,
           color: CITY_COLORS[i % CITY_COLORS.length],
         };
       });
     }
     return config;
-  }, [multiData, isMulti, activeCityName, cityKeys]);
+  }, [multiData, multiTimeOfDayData, isMulti, activeCityName, cityKeys]);
 
   const insights = useMemo(() => {
     if (total === 0 || isMulti) return null;
-    const counts = chartData.map((d) => Number(d.count) || 0);
+    const currentChartData = chartData as { hour: string; count: number }[];
+    const counts = currentChartData.map((d) => Number(d.count) || 0);
     const maxCount = Math.max(...counts);
-    const peakHours = chartData
+    const minCount = Math.min(...counts);
+
+    if (granularity === "period") {
+      return {
+        peakHoursFormatted: "",
+        silentHoursFormatted: "",
+        maxCount,
+        minCount,
+      };
+    }
+
+    const peakHours = currentChartData
       .filter((d) => (Number(d.count) || 0) === maxCount)
       .map((d) => d.hour);
-    const minCount = Math.min(...counts);
-    const silentHours = chartData
+    const silentHours = currentChartData
       .filter((d) => (Number(d.count) || 0) === minCount)
       .map((d) => d.hour);
 
@@ -182,7 +251,7 @@ export function AlarmChart({
       maxCount,
       minCount,
     };
-  }, [chartData, total, isMulti]);
+  }, [chartData, total, isMulti, granularity]);
 
   const renderLegend = (props: LegendProps) => {
     const { payload } = props;
@@ -232,28 +301,46 @@ export function AlarmChart({
           <div className="flex flex-col gap-2">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Activity className="h-4 w-4 text-primary" />
-              התפלגות שעתית {isMulti ? "(השוואה)" : `: ${activeCityName}`}
+              {granularity === "hourly" ? "התפלגות שעתית" : "התפלגות לפי חלקי יממה"} {isMulti ? "(השוואה)" : `: ${activeCityName}`}
             </CardTitle>
             <CardDescription className="text-sm font-normal">
               {description}
             </CardDescription>
           </div>
-          <Tabs
-            value={view}
-            onValueChange={(v) => setView(v as typeof view)}
-            className="w-full md:w-auto"
-          >
-            <TabsList className="grid w-full grid-cols-2 md:w-40">
-              <TabsTrigger value="bar" className="gap-1.5">
-                <BarChart3 className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">עמודות</span>
-              </TabsTrigger>
-              <TabsTrigger value="line" className="gap-1.5">
-                <LineIcon className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">קו</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex flex-wrap items-center gap-2">
+            <Tabs
+              value={granularity}
+              onValueChange={(v) => setGranularity(v as typeof granularity)}
+              className="w-full md:w-auto"
+            >
+              <TabsList className="grid w-full grid-cols-2 md:w-48">
+                <TabsTrigger value="hourly" className="gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">שעתי</span>
+                </TabsTrigger>
+                <TabsTrigger value="period" className="gap-1.5">
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">חלקי יממה</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Tabs
+              value={view}
+              onValueChange={(v) => setView(v as typeof view)}
+              className="w-full md:w-auto"
+            >
+              <TabsList className="grid w-full grid-cols-2 md:w-40">
+                <TabsTrigger value="bar" className="gap-1.5">
+                  <BarChart3 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">עמודות</span>
+                </TabsTrigger>
+                <TabsTrigger value="line" className="gap-1.5">
+                  <LineIcon className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">קו</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pb-4 px-2">
@@ -298,6 +385,7 @@ export function AlarmChart({
                   <ChartTooltipContent
                     className="rounded border-border"
                     labelFormatter={(value) => {
+                      if (granularity === "period") return <span className="font-bold">{value}</span>;
                       if (typeof value !== "string") return value;
                       const hour = value.split(":")[0];
                       return (
@@ -311,7 +399,7 @@ export function AlarmChart({
               />
               {isMulti && <Legend verticalAlign="top" content={renderLegend} />}
               {isMulti ? (
-                multiData!.map((d, i) => (
+                (multiData || multiTimeOfDayData)!.map((d, i) => (
                   <Bar
                     key={d.city}
                     name={d.city}
@@ -372,6 +460,7 @@ export function AlarmChart({
                   <ChartTooltipContent
                     className="rounded border-border"
                     labelFormatter={(value) => {
+                      if (granularity === "period") return <span className="font-bold">{value}</span>;
                       if (typeof value !== "string") return value;
                       const hour = value.split(":")[0];
                       return (
@@ -385,7 +474,7 @@ export function AlarmChart({
               />
               {isMulti && <Legend verticalAlign="top" content={renderLegend} />}
               {isMulti ? (
-                multiData!.map((d, i) => (
+                (multiData || multiTimeOfDayData)!.map((d, i) => (
                   <Line
                     key={d.city}
                     name={d.city}
@@ -393,7 +482,7 @@ export function AlarmChart({
                     dataKey={cityKeys[d.city]}
                     stroke={CITY_COLORS[i % CITY_COLORS.length]}
                     strokeWidth={2}
-                    dot={false}
+                    dot={granularity === "period"}
                     activeDot={{ r: 4 }}
                   />
                 ))
@@ -403,7 +492,7 @@ export function AlarmChart({
                   dataKey="count"
                   stroke="var(--chart-1)"
                   strokeWidth={2}
-                  dot={false}
+                  dot={granularity === "period"}
                   activeDot={{ r: 4 }}
                 />
               )}
@@ -411,7 +500,7 @@ export function AlarmChart({
           )}
         </ChartContainer>
       </CardContent>
-      {insights && (
+      {insights && granularity === "hourly" && (
         <CardFooter className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-6 border-t border-border">
           <div className="flex items-start gap-3">
             <div className="flex flex-col gap-1">

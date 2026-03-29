@@ -7,6 +7,7 @@ import {
   type GlobalStats,
   type CityMetrics,
   type RegionStats,
+  type TimeOfDayDistribution,
 } from "@/lib/types";
 
 const ISRAEL_TZ = "Asia/Jerusalem";
@@ -31,7 +32,7 @@ export function normalizeCityName(city: string): string {
   return name;
 }
 
-const dateCache = new Map<number, { datetime: string; datePart: string }>();
+const dateCache = new Map<number, { datetime: string; datePart: string; hour: number }>();
 
 /**
  * Returns a formatted string in Israel Time (YYYY-MM-DD HH:mm:ss)
@@ -79,6 +80,13 @@ export function getUnixForIsraelDate(dateStr: string): number {
     return Math.floor(new Date(y, m - 1, d, 0, 0, 0).getTime() / 1000);
   }
   return Math.floor(date.getTime() / 1000);
+}
+
+export function getTimeOfDay(hour: number): keyof TimeOfDayDistribution {
+  if (hour >= 0 && hour < 6) return "night";
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "day";
+  return "evening";
 }
 
 export function getHourlyDistribution(
@@ -170,6 +178,12 @@ export function processRawAlarms(
   const regionalUniqueCities: Record<string, Set<string>> = {};
   regionsList.forEach((r) => (regionalUniqueCities[r] = new Set()));
 
+  const cityTimeOfDayDist: Record<string, TimeOfDayDistribution> = {};
+  const regionalTimeOfDayDist: Record<string, TimeOfDayDistribution> = {};
+  regionsList.forEach((r) => {
+    regionalTimeOfDayDist[r] = { night: 0, morning: 0, day: 0, evening: 0 };
+  });
+
   // Clear cache for new data processing batch
   dateCache.clear();
 
@@ -183,15 +197,19 @@ export function processRawAlarms(
     let dateInfo = dateCache.get(timestamp);
     if (!dateInfo) {
       const datetime = getIsraelTime(timestamp);
+      const timePart = datetime.split(" ")[1];
+      const hour = parseInt(timePart.substring(0, 2), 10);
       dateInfo = {
         datetime,
         datePart: datetime.split(" ")[0],
+        hour,
       };
       dateCache.set(timestamp, dateInfo);
     }
 
-    const { datetime, datePart } = dateInfo;
+    const { datetime, datePart, hour } = dateInfo as { datetime: string; datePart: string; hour: number };
     const minKey = datetime.substring(0, 16);
+    const period = getTimeOfDay(hour);
 
     for (let j = 0; j < cities.length; j++) {
       const city = cities[j].trim();
@@ -253,6 +271,13 @@ export function processRawAlarms(
 
         if (!cityEventTimestamps[baseCity]) cityEventTimestamps[baseCity] = [];
         cityEventTimestamps[baseCity].push(timestamp);
+
+        // Track time of day for events
+        if (!cityTimeOfDayDist[baseCity]) {
+          cityTimeOfDayDist[baseCity] = { night: 0, morning: 0, day: 0, evening: 0 };
+        }
+        cityTimeOfDayDist[baseCity][period]++;
+        regionalTimeOfDayDist[region][period]++;
       }
     }
   }
@@ -305,6 +330,7 @@ export function processRawAlarms(
       peakIntensity10Min: peakIntensity,
       totalEvents: sorted.length,
       last24hFreqHours,
+      timeOfDayDistribution: cityTimeOfDayDist[baseCity] || { night: 0, morning: 0, day: 0, evening: 0 },
     };
   }
 
@@ -382,6 +408,7 @@ export function processRawAlarms(
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, count]) => ({ date, count })),
       hourlyDistribution: getHourlyDistribution(regionalAlarms[region]),
+      timeOfDayDistribution: regionalTimeOfDayDist[region],
     };
   }
 

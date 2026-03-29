@@ -27,12 +27,20 @@ export interface LeaderboardEntry {
   count: number;
 }
 
+export interface TimeOfDayDistribution {
+  night: number;
+  morning: number;
+  day: number;
+  evening: number;
+}
+
 export interface CityMetrics {
   avgQuietTimeHours: number;
   maxQuietTimeHours: number;
   peakIntensity10Min: number;
   totalEvents: number;
   last24hFreqHours: number | null;
+  timeOfDayDistribution: TimeOfDayDistribution;
 }
 
 export interface RegionStats {
@@ -41,6 +49,7 @@ export interface RegionStats {
   bottomCities: LeaderboardEntry[];
   globalDailyTrend: { date: string; count: number }[];
   hourlyDistribution: { hour: string; count: number }[];
+  timeOfDayDistribution: TimeOfDayDistribution;
   mapData: MapData[];
 }
 

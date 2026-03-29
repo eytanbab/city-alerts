@@ -3,7 +3,6 @@ import { getDashboardData } from "@/lib/services/dashboard";
 import { Navigation } from "@/components/layout/Navigation";
 import { LastUpdated } from "@/components/features/overview/LastUpdated";
 import {
-  TrendChartSkeleton,
   CitySearchSkeleton,
   QuickButtonsSkeleton,
   LastUpdatedSkeleton,
